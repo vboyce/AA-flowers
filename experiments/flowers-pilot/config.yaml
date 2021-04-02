@@ -1,0 +1,113 @@
+treatments:
+  - name: Pair
+    factorIds:
+      - xWQjpcmpuWmZXGA7Q
+      - pWeADdnYht6s2XmXy
+      - PhWBYRyqGv7hpZbKm
+      - bMLyzSZu2NMqPxMp3
+      - XxGKfzAdshtarMJ8v
+      - ivrbpviGCdXTDsEiZ
+  - name: Triad
+    factorIds:
+      - xWQjpcmpuWmZXGA7P
+      - pWeADdnYht6s2XmXy
+      - PhWBYRyqGv7hpZbKm
+      - bMLyzSZu2NMqPxMp3
+      - XxGKfzAdshtarMJ8v
+      - ivrbpviGCdXTDsEiZ
+  - name: Four
+    factorIds:
+      - xWQjpcmpuWmZXGA7R
+      - pWeADdnYht6s2XmXy
+      - PhWBYRyqGv7hpZbKm
+      - bMLyzSZu2NMqPxMp3
+      - XxGKfzAdshtarMJ8v
+      - ivrbpviGCdXTDsEiZ
+factorTypes:
+  - _id: eccB2RajWGC4kcWQH
+    name: playerCount
+    description: The Number of players participating in the given game.
+    required: true
+    type: Integer
+    min: 1
+  - _id: kJddTH8X4Y6Df7SPA
+    name: selectionDuration
+    description: >-
+      how many seconds do participants have to complete a tangram selection
+      trial
+    required: true
+    type: String
+  - _id: oTmtc6KmQb77CaDTC
+    name: submitCode
+    description: code for submission to prolific/mturk
+    required: true
+    type: String
+  - _id: uWvpQqxyNi8Dz6CSn
+    name: rounds
+    description: number of rounds
+    required: false
+    type: Integer
+    min: 1
+  - _id: tJ642Av4buu8Q5w73
+    name: feedbackDuration
+    description: how many seconds the feedback is displayed for
+    required: false
+    type: Integer
+    min: 1
+    max: 100
+  - _id: ZkXeabrJhX4KfX8yj
+    name: listenerBonus
+    description: how much a listener is paid per correct answer (in cents)
+    required: false
+    type: Integer
+    min: 1
+    max: 10
+  - _id: xWQjpcmpuWmZXGA7P
+    name: Triad
+    value: 3
+    factorTypeId: eccB2RajWGC4kcWQH
+  - _id: xWQjpcmpuWmZXGA7Q
+    name: Pair
+    value: 2
+    factorTypeId: eccB2RajWGC4kcWQH
+  - _id: xWQjpcmpuWmZXGA7R
+    name: Quad
+    value: 4
+    factorTypeId: eccB2RajWGC4kcWQH
+  - _id: WPMyAs4AHQkRbejSw
+    name: One
+    value: 1
+    factorTypeId: uWvpQqxyNi8Dz6CSn
+  - _id: bMLyzSZu2NMqPxMp3
+    name: Six
+    value: 6
+    factorTypeId: uWvpQqxyNi8Dz6CSn
+  - _id: XxGKfzAdshtarMJ8v
+    name: five
+    value: 5
+    factorTypeId: tJ642Av4buu8Q5w73
+  - _id: ivrbpviGCdXTDsEiZ
+    name: Four
+    value: 4
+    factorTypeId: ZkXeabrJhX4KfX8yj
+  - _id: hsiunZ8b68hKxbnPM
+    name: Two
+    value: 2
+    factorTypeId: b5miCkhM6uwYKF2Sn
+  - _id: 8s4mWKpqFF83FP3X6
+    name: test
+    value: LCX2Y5GM
+    factorTypeId: oTmtc6KmQb77CaDTC
+  - _id: pWeADdnYht6s2XmXy
+    name: threemin
+    value: '180'
+    factorTypeId: kJddTH8X4Y6Df7SPA
+  - _id: wsDuqNzmgXecXtHLR
+    name: Pair
+    value: 6
+    factorTypeId: b5miCkhM6uwYKF2Sn
+lobbyConfigs:
+  - timeoutType: lobby
+    timeoutInSeconds: 300
+    timeoutStrategy: fail
+    gameLobbyIds: []
