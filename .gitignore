@@ -4,4 +4,4 @@
 node_modules
 .DS_Store
 .Rproj.user
-experiments/flowers-pilot/local.json
+local.json
