@@ -1,11 +1,23 @@
 import Empirica from "meteor/empirica:core";
 
 export const targetSets = {
-  'setA' : {
-    "A": {'name':"/experiment/tangram_A.png", 'utility': 5},
-    "B":{'name': "/experiment/tangram_B.png", 'utility': 3},
-    "C": {'name':"/experiment/tangram_C.png", 'utility': 2},
-    "D":{'name':"/experiment/tangram_D.png", 'utility': 1}
+  'blockA_set1' : {
+    "A": {'name':"/experiment/yellow_similar/image_01220.jpg", 'utility': 6},
+    "B": {'name':"/experiment/yellow_similar/image_06298.jpg", 'utility': 4},
+    "C": {'name':"/experiment/yellow_similar/image_06354.jpg", 'utility': 2},
+    "D": {'name':"/experiment/yellow_similar/image_06676.jpg", 'utility': 1}
+  },
+  'blockA_set2' : {
+    "A": {'name':"/experiment/yellow_similar/image_01220.jpg", 'utility': 6},
+    "B": {'name':"/experiment/yellow_similar/image_05700.jpg", 'utility': 3},
+    "C": {'name':"/experiment/yellow_similar/image_06298.jpg", 'utility': 4},
+    "D": {'name':"/experiment/yellow_similar/image_06354.jpg", 'utility': 2}
+  },
+  'blockA_set3' : {
+    "A": {'name':"/experiment/yellow_similar/image_04982.jpg", 'utility': 8},
+    "B": {'name':"/experiment/yellow_similar/image_01220.jpg", 'utility': 6},
+    "C": {'name':"/experiment/yellow_similar/image_02295.jpg", 'utility': 12},
+    "D": {'name':"/experiment/yellow_similar/image_06354.jpg", 'utility': 2}
   }
 };
 
