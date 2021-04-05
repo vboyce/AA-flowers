@@ -4,6 +4,7 @@ import Tangram from "./Tangram.jsx";
 import Timer from "./Timer.jsx";
 import { HTMLTable } from "@blueprintjs/core";
 import { StageTimeWrapper } from "meteor/empirica:core";
+import _ from "lodash";
 
 export default class Task extends React.Component {
   constructor(props) {
@@ -18,15 +19,18 @@ export default class Task extends React.Component {
 
   render() {
     const { game, round, stage, player } = this.props;
-    const target = round.get("target");
-    const tangramURLs = player.get('tangramURLs');
-    const correct = player.get('clicked') == target
+    //const target = round.get("target");
+    const tangrams= new Map(Object.entries(round.get('context')))
+    const tangramlist = Array.from(tangrams.keys());
+    //const correct = player.get('clicked') == target
     let tangramsToRender;
-    if (tangramURLs) {
-      tangramsToRender = tangramURLs.map((tangram, i) => (
+    if (tangramlist) {
+      tangramsToRender = tangramlist.map((tangram, i) => (
         <Tangram
           key={tangram}
-          tangram={tangram}
+          name={tangram}
+          tangram={tangrams.get(tangram).name}
+          utility={tangrams.get(tangram).utility}
           tangram_num={i}
           round={round}
           stage={stage}
@@ -36,12 +40,12 @@ export default class Task extends React.Component {
       ));
     }
       
-    let role = ""
+    let instructions = ""
     if (stage.name=="selection"){
-     role = (player.get('role')=="speaker"? "You are the speaker. Please describe the picture in the box to the other players.": 
-    "You are a listener. Please click on the image that the speaker describes.")}
+     instructions =  "Click on what you want to plant."}
     if (stage.name=="feedback"){
-      if (player.get('role')=='speaker'){
+      instructions = "Feedback goes here!"
+      /*if (player.get('role')=='speaker'){
         role = round.get("countCorrect")+"/"+(game.treatment.playerCount-1)+ " listeners selected correctly!"
       }
       else if (player.get("clicked")==target){
@@ -52,12 +56,12 @@ export default class Task extends React.Component {
       }
       else{
         role = "Whoops, your selection was incorrect."
-      }
+      }*/
     }
     return (
       <div className="task">
         <div className="board">
-          <h1 className="roleIndicator"> {role}</h1>
+          <h1 className="roleIndicator"> {instructions}</h1>
           <div className="all-tangrams">
             <div className="tangrams">
               {tangramsToRender}

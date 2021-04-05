@@ -1,4 +1,4 @@
-# Room Assignment Problem
+# AA-flowers
 
 This is an experiment powered by
 [Empirica](https://empirica.ly/) (here is a basic
@@ -13,10 +13,4 @@ To develop locally,
 3. launch locally with `meteor --settings local.json` (the default admin password is `password` -- change this in `local.json`.
 4. go to `http://localhost:3000/admin` in your browser
 
-## Deployment
-
-When ready to collect data, we can deploy publicly on Meteor Galaxy:
-
-```
-DEPLOY_HOSTNAME=galaxy.meteor.com meteor deploy codeswitching.meteorapp.com --settings settings.json
-```
+You can import settings from the config.yaml file.

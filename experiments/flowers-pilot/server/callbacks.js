@@ -11,12 +11,10 @@ Empirica.onGameStart((game) => {
   const players = game.players;
   console.debug("game ", game._id, " started");
 
-  const roleList = game.get('roleList');
-  const targets = game.get('context');
+  //const targets = Map(game.get('context'));
 
   players.forEach((player, i) => {
-    player.set("tangramURLs", _.shuffle(targets));
-    player.set("roleList", roleList[player._id]);
+    //player.set("tangrams", _.shuffle(targets));
     player.set("name", names[i]);
     player.set("avatar", `/avatars/jdenticon/${avatarNames[i]}`);
     player.set("nameColor", nameColors[i]);
@@ -29,14 +27,8 @@ Empirica.onGameStart((game) => {
 Empirica.onRoundStart((game, round) => {
   const players = game.players;
   round.set("chat", []); 
-  round.set("countCorrect",0);
-  round.set('speaker', "")
   round.set('submitted', false);
   players.forEach(player => {
-    player.set('role', player.get('roleList')[round.index])
-    if (player.get('role')=="speaker"){
-      round.set('speaker', player._id)
-    }
     player.set('clicked', false);
     player.set('timeClick', false);
   });
@@ -62,23 +54,26 @@ Empirica.onStageEnd((game, round, stage) => {
   if (stage.name=="selection"){
     const players = game.players;
     // Update player scores
+    let scoreIncrement
+    let clickedValues = new Set(players.map(p => p.get("clicked")))
+    console.log(clickedValues)
+    console.log(clickedValues.size)
+    if (clickedValues.size!=1){scoreIncrement=0}
+    else{
+      console.log(clickedValues.values().next().value)
+      console.log(typeof(round.get('context')))
+      const tangrams= new Map(Object.entries(round.get('context')))
+      scoreIncrement=tangrams.get(clickedValues.values().next().value).utility*.01
+    }
     players.forEach(player => {
       const currScore = player.get("bonus") || 0;
-      if (player.get("role")=="speaker"){
-      player.set("bonus", round.get("countCorrect")*game.treatment.listenerBonus/(game.players.length-1)*.01 + currScore);
-      }
-      else{
-      const selectedAnswer = player.get("clicked");
-      const target = round.get('target');
-      const scoreIncrement = selectedAnswer == target ? game.treatment.listenerBonus*.01 : 0;
       player.set("bonus", scoreIncrement + currScore);
       }
-    });
+    );
     //Save outcomes as property of round for later export/analysis
     players.forEach(player => {
       const correctAnswer = round.get('target');
       round.set('player_' + player._id + '_response', player.get('clicked'));
-      round.set('player_' + player._id+ '_correct', correctAnswer == player.get('clicked')); 
       round.set('player_' + player._id + '_time', player.get('timeClick'));
     });
 }

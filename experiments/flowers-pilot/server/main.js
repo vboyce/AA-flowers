@@ -6,20 +6,6 @@ import _ from "lodash";
 
 
 
-function createRoles(players, info) {
-  // Create a schedule for all players to play all others using 'circle' method
-  // (en.wikipedia.org/wiki/Round-robin_tournament#Scheduling_algorithm)
-  // requires an even umber of players
-  const l = _.shuffle(players);
-  const speaker = _.times(info.numTotalTrials, _.constant("speaker"))
-  const listener = _.times(info.numTotalTrials, _.constant("listener"))
-  const role_list= _.times(info.numPlayers, _.constant(listener)); 
-  role_list[0]=speaker;
-  const roles=_.zipObject(l,role_list);
-  console.log(roles)
-  return roles;
-}
-
 // gameInit is where the structure of a game is defined.  Just before
 // every game starts, once all the players needed are ready, this
 // function is called with the treatment and the list of players.  You
@@ -39,9 +25,8 @@ Empirica.gameInit((game, treatment) => {
   // Sample whether to use tangram set A or set B
   game.set("targetSet", 'setA'); 
   game.set('context', targetSets['setA']);
-  const targets = game.get('context');
   const reps = treatment.rounds;
-  const numTargets = targets.length;
+  const numTargets = game.get('context').length;
   const info = {
     numTrialsPerBlock : numTargets,
     numBlocks : reps,
@@ -53,15 +38,15 @@ Empirica.gameInit((game, treatment) => {
   game.set("justStarted", true);
 
   // Make role list
-    game.set('roleList', createRoles(_.map(game.players, '_id'), info));
 
     // Loop through repetition blocks
     _.times(reps, repNum => {
-        mixed_targets=_.shuffle(targets)
+        //mixed_targets=_.shuffle(targets)
       // Loop through targets in block
       _.times(numTargets, targetNum => {      
         const round = game.addRound();
-        round.set('target', mixed_targets[targetNum]);
+        //round.set('target', mixed_targets[targetNum]);
+        round.set('context', new Map(game.get('context')))
         round.set('targetNum', targetNum);
         round.set('repNum', repNum);
         round.set('trialNum', repNum * numTargets + targetNum);

@@ -11,7 +11,7 @@ export default class SocialInteractions extends React.Component {
         <img src={player.get("avatar")} />
         <span className="name" style={{ color: player.get("nameColor") }}>
           {player.get("name")}
-          {self ? " (You)" :  player.get("role")=="listener"? " (Listener)": " (Speaker)"}
+          {self ? " (You)" :  ""}
         </span>
       </div>
     );
