@@ -1,5 +1,6 @@
 import React from "react";
 import { Breadcrumb as Crumb, Classes } from "@blueprintjs/core";
+import _ from "lodash";
 
 export default class customBreadcrumb extends React.Component {
   render() {
@@ -17,7 +18,7 @@ export default class customBreadcrumb extends React.Component {
           <li>
             <Crumb
               text={"Target " + (1 + round.get('targetNum')) +
-                    " / " + game.get('context').length}
+                    " / " + _.keys(game.get('context')).length}
               className={Classes.BREADCRUMB_CURRENT}
             />
           </li>

@@ -20,7 +20,7 @@ export default class Task extends React.Component {
   render() {
     const { game, round, stage, player } = this.props;
     //const target = round.get("target");
-    const tangrams= new Map(Object.entries(round.get('context')))
+    const tangrams= round.get('context')
     const tangramlist = player.get('imageOrder');
     //const correct = player.get('clicked') == target
     let tangramsToRender;
@@ -29,8 +29,8 @@ export default class Task extends React.Component {
         <Tangram
           key={tangram}
           name={tangram}
-          tangram={tangrams.get(tangram).name}
-          utility={tangrams.get(tangram).utility}
+          tangram={tangrams[tangram]["name"]}
+          utility={tangrams[tangram]["utility"]}
           tangram_num={i}
           round={round}
           stage={stage}

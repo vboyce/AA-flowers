@@ -28,8 +28,8 @@ Empirica.onRoundStart((game, round) => {
   const players = game.players;
   round.set("chat", []); 
   round.set('submitted', false);
-  const tangrams= new Map(Object.entries(round.get('context')))
-  const tangramlist = Array.from(tangrams.keys());
+  const tangrams= round.get('context')
+  const tangramlist = _.keys(tangrams)
   players.forEach(player => {
     player.set('clicked', false);
     player.set('timeClick', false);
@@ -62,11 +62,14 @@ Empirica.onStageEnd((game, round, stage) => {
     console.log(clickedValues)
     console.log(clickedValues.size)
     if (clickedValues.size!=1){scoreIncrement=0}
-    else{
-      console.log(clickedValues.values().next().value)
+    else {
+      const tangram= clickedValues.values().next().value
+      if (tangram==false){scoreIncrement=0}
+      else{
       console.log(typeof(round.get('context')))
-      const tangrams= new Map(Object.entries(round.get('context')))
-      scoreIncrement=tangrams.get(clickedValues.values().next().value).utility*.01
+      const tangrams= round.get('context')
+      scoreIncrement=tangrams[tangram]["utility"]*.01
+      }
     }
     players.forEach(player => {
       const currScore = player.get("bonus") || 0;
