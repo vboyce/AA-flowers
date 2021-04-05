@@ -52,9 +52,9 @@ export default class Tangram extends React.Component {
     
     let feedback = [utility]
     if (stage.name=="feedback"){
-      players.forEach(player => {
-        if (player.get('clicked')==name){
-          feedback.push(<img src={player.get("avatar")} key="player" />)
+      players.forEach(p => {
+        if (p.get('clicked')==name){
+          feedback.push(<img src={p.get("avatar")} key={p.get("name")} />)
         }
       })
     }
