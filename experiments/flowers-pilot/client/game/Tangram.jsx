@@ -49,8 +49,9 @@ export default class Tangram extends React.Component {
         "zIndex" : "9"
       })
     }*/
-    
-    let feedback = [utility]
+    console.log(tangram)
+    console.log(utility)
+    let feedback = [<img src={utility} key={"utility"} />]
     if (stage.name=="feedback"){
       players.forEach(p => {
         if (p.get('clicked')==name){

@@ -17,7 +17,13 @@ export const targetSets = {
     "A": {'name':"/experiment/yellow_similar/image_04982.jpg", 'utility': 8},
     "B": {'name':"/experiment/yellow_similar/image_01220.jpg", 'utility': 6},
     "C": {'name':"/experiment/yellow_similar/image_02295.jpg", 'utility': 12},
-    "D": {'name':"/experiment/yellow_similar/image_06354.jpg", 'utility': 2}
+    "D": {'name':"/experiment/yellow_similar/image_06354.jpg", 'utility': 2},
+  },
+  'setA' : {
+    "A": {'name':"/experiment/tangram_A.png", 'utility': 10, 'utility_image': "/experiment/prop_bars/10.png"},
+    "B":{'name': "/experiment/tangram_B.png", 'utility': 5,  'utility_image': "/experiment/prop_bars/5.png"},
+    "C": {'name':"/experiment/tangram_C.png", 'utility': 9,  'utility_image': "/experiment/prop_bars/9.png"},
+    "D":{'name':"/experiment/tangram_D.png", 'utility': 1,  'utility_image': "/experiment/prop_bars/1.png"}
   }
 };
 

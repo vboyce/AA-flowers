@@ -30,7 +30,7 @@ export default class Task extends React.Component {
           key={tangram}
           name={tangram}
           tangram={tangrams[tangram]["name"]}
-          utility={tangrams[tangram]["utility"]}
+          utility={tangrams[tangram]["utility_image"]}
           tangram_num={i}
           round={round}
           stage={stage}
