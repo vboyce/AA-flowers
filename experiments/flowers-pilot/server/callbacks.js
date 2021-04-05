@@ -28,9 +28,12 @@ Empirica.onRoundStart((game, round) => {
   const players = game.players;
   round.set("chat", []); 
   round.set('submitted', false);
+  const tangrams= new Map(Object.entries(round.get('context')))
+  const tangramlist = Array.from(tangrams.keys());
   players.forEach(player => {
     player.set('clicked', false);
     player.set('timeClick', false);
+    player.set('imageOrder', _.shuffle(tangramlist))
   });
 });
 
