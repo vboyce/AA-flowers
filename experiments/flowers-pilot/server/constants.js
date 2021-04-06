@@ -2,10 +2,10 @@ import Empirica from "meteor/empirica:core";
 
 export const targetSets = {
   'blockA_set1' : {
-    "A": {'name':"/experiment/yellow_similar/image_01220.jpg", 'utility': 6},
-    "B": {'name':"/experiment/yellow_similar/image_06298.jpg", 'utility': 4},
-    "C": {'name':"/experiment/yellow_similar/image_06354.jpg", 'utility': 2},
-    "D": {'name':"/experiment/yellow_similar/image_06676.jpg", 'utility': 1}
+    "A": {'name':"/experiment/yellow_similar/image_01220.jpg", 'utility': 6, 'utility_image': "/experiment/prop_bars/10.png"},
+    "B": {'name':"/experiment/yellow_similar/image_06298.jpg", 'utility': 4, 'utility_image': "/experiment/prop_bars/5.png"},
+    "C": {'name':"/experiment/yellow_similar/image_06354.jpg", 'utility': 2, 'utility_image': "/experiment/prop_bars/9.png"},
+    "D": {'name':"/experiment/yellow_similar/image_06676.jpg", 'utility': 1, 'utility_image': "/experiment/prop_bars/1.png"}
   },
   'blockA_set2' : {
     "A": {'name':"/experiment/yellow_similar/image_01220.jpg", 'utility': 6},

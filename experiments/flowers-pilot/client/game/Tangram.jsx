@@ -23,10 +23,14 @@ export default class Tangram extends React.Component {
     const row = 1 + Math.floor(tangram_num / 2)
     const column = 1 + tangram_num % 2
     const mystyle = {
-      "background" : "url(" + tangram + ")",
-      "backgroundSize": "cover",
+      "background" : "url(" + tangram + "), url(" + utility + ")",
+      "backgroundSize": "90%, 85%",
+      "backgroundRepeat" : "no-repeat, no-repeat",
+      "backgroundPosition": "bottom, top",
+      "backgroundOrigin" : "content-box",
       "gridRow": row,
-      "gridColumn": column
+      "gridColumn": column,
+      "padding" : "10px"
     };
 
     // Highlight target object for speaker 
@@ -49,24 +53,27 @@ export default class Tangram extends React.Component {
         "zIndex" : "9"
       })
     }*/
+
+
     console.log(tangram)
     console.log(utility)
-    let feedback = [<img src={utility} key={"utility"} />]
+    let feedback = []; // = [<img src={utility} key={"utility"} />]
     if (stage.name=="feedback"){
       players.forEach(p => {
         if (p.get('clicked')==name){
-          feedback.push(<img src={p.get("avatar")} key={p.get("name")} />)
+          feedback.push(<img src={p.get("avatar")} key={p.get("name")} style = {{"height" : "25px"}}/>)
         }
       })
     }
     
     return (
+      
       <div
         className="tangram"
         onClick={this.handleClick}
         style={mystyle}
         >
-          <div className="feedback"> {feedback}</div>
+          <div className="feedback" style = {{"top": "0%", "margin-left": "auto", "margin-right": "auto"}} > {feedback}</div>
       </div>
     );
   }
