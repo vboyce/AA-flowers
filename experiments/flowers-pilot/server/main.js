@@ -23,11 +23,13 @@ Empirica.gameInit((game, treatment) => {
 
 
   // Sample whether to use tangram set A or set B
-  game.set("targetSet", 'blockA_set1'); 
-  game.set('context', targetSets['blockA_set1']);
-  console.log(game.get('context'))
+  game.set("targetSet", 'setA'); 
+  game.set('context', targetSets['setA']);
+  
+  //console.log(game.get('context'))
   const reps = treatment.rounds;
-  const numTargets = _.keys(game.get('context')).length;
+  const numTargets = game.get('context').length;
+  console.log(numTargets)
   const info = {
     numTrialsPerBlock : numTargets,
     numBlocks : reps,
@@ -42,13 +44,13 @@ Empirica.gameInit((game, treatment) => {
 
     // Loop through repetition blocks
     _.times(reps, repNum => {
-        //mixed_targets=_.shuffle(targets)
+        mixed_targets=_.shuffle(game.get('context'))
       // Loop through targets in block
 
       _.times(numTargets, targetNum => {      
         const round = game.addRound();
         //round.set('target', mixed_targets[targetNum]);
-        round.set('context', game.get('context'))
+        round.set('context', mixed_targets[targetNum])
         round.set('targetNum', targetNum);
         round.set('repNum', repNum);
         round.set('trialNum', repNum * numTargets + targetNum);
