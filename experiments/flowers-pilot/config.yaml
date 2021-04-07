@@ -1,4 +1,44 @@
 treatments:
+  - name: Test
+    factorIds:
+      - xWQjpcmpuWmZXGA7P
+      - pWeADdnYht6s2XmXy
+      - 8s4mWKpqFF83FP3X6
+      - WPMyAs4AHQkRbejSw
+      - XxGKfzAdshtarMJ8v
+      - ivrbpviGCdXTDsEiZ
+      - hsiunZ8b68hKxbnPM
+    archivedAt: 2021-03-31T21:24:06.487Z
+  - name: pilot
+    factorIds:
+      - xWQjpcmpuWmZXGA7P
+      - pWeADdnYht6s2XmXy
+      - 8s4mWKpqFF83FP3X6
+      - bMLyzSZu2NMqPxMp3
+      - XxGKfzAdshtarMJ8v
+      - ivrbpviGCdXTDsEiZ
+      - hsiunZ8b68hKxbnPM
+    archivedAt: 2021-03-31T20:01:42.586Z
+  - name: Dyad
+    factorIds:
+      - xWQjpcmpuWmZXGA7Q
+      - pWeADdnYht6s2XmXy
+      - PhWBYRyqGv7hpZbKm
+      - WPMyAs4AHQkRbejSw
+      - XxGKfzAdshtarMJ8v
+      - ivrbpviGCdXTDsEiZ
+      - hsiunZ8b68hKxbnPM
+    archivedAt: 2021-03-31T21:24:07.400Z
+  - name: Quad
+    factorIds:
+      - xWQjpcmpuWmZXGA7R
+      - pWeADdnYht6s2XmXy
+      - PhWBYRyqGv7hpZbKm
+      - WPMyAs4AHQkRbejSw
+      - XxGKfzAdshtarMJ8v
+      - ivrbpviGCdXTDsEiZ
+      - hsiunZ8b68hKxbnPM
+    archivedAt: 2021-03-31T21:24:07.925Z
   - name: Pair
     factorIds:
       - xWQjpcmpuWmZXGA7Q
@@ -7,6 +47,7 @@ treatments:
       - bMLyzSZu2NMqPxMp3
       - XxGKfzAdshtarMJ8v
       - ivrbpviGCdXTDsEiZ
+    archivedAt: 2021-04-07T00:43:53.474Z
   - name: Triad
     factorIds:
       - xWQjpcmpuWmZXGA7P
@@ -15,6 +56,7 @@ treatments:
       - bMLyzSZu2NMqPxMp3
       - XxGKfzAdshtarMJ8v
       - ivrbpviGCdXTDsEiZ
+    archivedAt: 2021-04-07T00:43:52.537Z
   - name: Four
     factorIds:
       - xWQjpcmpuWmZXGA7R
@@ -23,8 +65,25 @@ treatments:
       - bMLyzSZu2NMqPxMp3
       - XxGKfzAdshtarMJ8v
       - ivrbpviGCdXTDsEiZ
+    archivedAt: 2021-04-07T00:43:51.865Z
+  - name: Twoplayer
+    factorIds:
+      - xWQjpcmpuWmZXGA7Q
+      - pWeADdnYht6s2XmXy
+      - N426gB4dWdJiZeyon
+      - bMLyzSZu2NMqPxMp3
+      - XxGKfzAdshtarMJ8v
+      - ivrbpviGCdXTDsEiZ
+  - name: Fourplayer
+    factorIds:
+      - xWQjpcmpuWmZXGA7R
+      - pWeADdnYht6s2XmXy
+      - N426gB4dWdJiZeyon
+      - bMLyzSZu2NMqPxMp3
+      - XxGKfzAdshtarMJ8v
+      - ivrbpviGCdXTDsEiZ
 factorTypes:
-  - _id: eccB2RajWGC4kcWQH
+  - _id: wHYi68RWswKR5eQkZ
     name: playerCount
     description: The Number of players participating in the given game.
     required: true
@@ -62,18 +121,42 @@ factorTypes:
     type: Integer
     min: 1
     max: 10
+  - _id: b5miCkhM6uwYKF2Sn
+    name: speakerBonus
+    description: how much bonus the speaker gets *per listener* who gets it right
+    required: false
+    type: Integer
+    min: 0
+    max: 10
+    archivedAt: 2021-03-31T21:23:37.251Z
+factors:
+  - _id: H6mfXThg4jQ2annbb
+    name: minute
+    value: '60'
+    factorTypeId: kJddTH8X4Y6Df7SPA
+    archivedAt: 2021-03-31T21:23:46.292Z
+  - _id: PhWBYRyqGv7hpZbKm
+    name: prolificPilot
+    value: 3B021164
+    factorTypeId: oTmtc6KmQb77CaDTC
+    archivedAt: 2021-04-07T00:47:07.099Z
+  - _id: 6MrFJYnfziMgRMbZq
+    name: lots
+    value: '200'
+    factorTypeId: kJddTH8X4Y6Df7SPA
+    archivedAt: 2021-03-31T21:23:45.597Z
   - _id: xWQjpcmpuWmZXGA7P
     name: Triad
     value: 3
-    factorTypeId: eccB2RajWGC4kcWQH
+    factorTypeId: wHYi68RWswKR5eQkZ
   - _id: xWQjpcmpuWmZXGA7Q
     name: Pair
     value: 2
-    factorTypeId: eccB2RajWGC4kcWQH
+    factorTypeId: wHYi68RWswKR5eQkZ
   - _id: xWQjpcmpuWmZXGA7R
     name: Quad
     value: 4
-    factorTypeId: eccB2RajWGC4kcWQH
+    factorTypeId: wHYi68RWswKR5eQkZ
   - _id: WPMyAs4AHQkRbejSw
     name: One
     value: 1
@@ -98,14 +181,24 @@ factorTypes:
     name: test
     value: LCX2Y5GM
     factorTypeId: oTmtc6KmQb77CaDTC
+    archivedAt: 2021-04-07T00:47:49.434Z
   - _id: pWeADdnYht6s2XmXy
     name: threemin
     value: '180'
     factorTypeId: kJddTH8X4Y6Df7SPA
+  - _id: n6akL2KMtAmNNT2MS
+    name: All
+    value: 6
+    factorTypeId: ZkXeabrJhX4KfX8yj
+    archivedAt: 2021-03-31T21:23:41.496Z
   - _id: wsDuqNzmgXecXtHLR
     name: Pair
     value: 6
     factorTypeId: b5miCkhM6uwYKF2Sn
+  - _id: N426gB4dWdJiZeyon
+    name: April7
+    value: 63E387C3
+    factorTypeId: oTmtc6KmQb77CaDTC
 lobbyConfigs:
   - timeoutType: lobby
     timeoutInSeconds: 300
