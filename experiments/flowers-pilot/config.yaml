@@ -47,7 +47,6 @@ treatments:
       - bMLyzSZu2NMqPxMp3
       - XxGKfzAdshtarMJ8v
       - ivrbpviGCdXTDsEiZ
-    archivedAt: 2021-04-07T00:43:53.474Z
   - name: Triad
     factorIds:
       - xWQjpcmpuWmZXGA7P
@@ -56,7 +55,6 @@ treatments:
       - bMLyzSZu2NMqPxMp3
       - XxGKfzAdshtarMJ8v
       - ivrbpviGCdXTDsEiZ
-    archivedAt: 2021-04-07T00:43:52.537Z
   - name: Four
     factorIds:
       - xWQjpcmpuWmZXGA7R
@@ -65,25 +63,16 @@ treatments:
       - bMLyzSZu2NMqPxMp3
       - XxGKfzAdshtarMJ8v
       - ivrbpviGCdXTDsEiZ
-    archivedAt: 2021-04-07T00:43:51.865Z
-  - name: Twoplayer
+  - name: testing
     factorIds:
       - xWQjpcmpuWmZXGA7Q
-      - pWeADdnYht6s2XmXy
-      - N426gB4dWdJiZeyon
       - bMLyzSZu2NMqPxMp3
-      - XxGKfzAdshtarMJ8v
-      - ivrbpviGCdXTDsEiZ
-  - name: Fourplayer
-    factorIds:
-      - xWQjpcmpuWmZXGA7R
       - pWeADdnYht6s2XmXy
-      - N426gB4dWdJiZeyon
-      - bMLyzSZu2NMqPxMp3
+      - PhWBYRyqGv7hpZbKm
       - XxGKfzAdshtarMJ8v
       - ivrbpviGCdXTDsEiZ
 factorTypes:
-  - _id: wHYi68RWswKR5eQkZ
+  - _id: eccB2RajWGC4kcWQH
     name: playerCount
     description: The Number of players participating in the given game.
     required: true
@@ -139,7 +128,6 @@ factors:
     name: prolificPilot
     value: 3B021164
     factorTypeId: oTmtc6KmQb77CaDTC
-    archivedAt: 2021-04-07T00:47:07.099Z
   - _id: 6MrFJYnfziMgRMbZq
     name: lots
     value: '200'
@@ -148,15 +136,15 @@ factors:
   - _id: xWQjpcmpuWmZXGA7P
     name: Triad
     value: 3
-    factorTypeId: wHYi68RWswKR5eQkZ
+    factorTypeId: eccB2RajWGC4kcWQH
   - _id: xWQjpcmpuWmZXGA7Q
     name: Pair
     value: 2
-    factorTypeId: wHYi68RWswKR5eQkZ
+    factorTypeId: eccB2RajWGC4kcWQH
   - _id: xWQjpcmpuWmZXGA7R
     name: Quad
     value: 4
-    factorTypeId: wHYi68RWswKR5eQkZ
+    factorTypeId: eccB2RajWGC4kcWQH
   - _id: WPMyAs4AHQkRbejSw
     name: One
     value: 1
@@ -181,7 +169,6 @@ factors:
     name: test
     value: LCX2Y5GM
     factorTypeId: oTmtc6KmQb77CaDTC
-    archivedAt: 2021-04-07T00:47:49.434Z
   - _id: pWeADdnYht6s2XmXy
     name: threemin
     value: '180'
@@ -195,10 +182,6 @@ factors:
     name: Pair
     value: 6
     factorTypeId: b5miCkhM6uwYKF2Sn
-  - _id: N426gB4dWdJiZeyon
-    name: April7
-    value: 63E387C3
-    factorTypeId: oTmtc6KmQb77CaDTC
 lobbyConfigs:
   - timeoutType: lobby
     timeoutInSeconds: 300
