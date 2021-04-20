@@ -1,10 +1,20 @@
 import Empirica from "meteor/empirica:core";
 
 import "./callbacks.js";
-import { targetSets } from "./constants";
+import { targetSets, utilities , sequences} from "./constants";
 import _ from "lodash";
 
-
+function chooseImages(flowers, utilities, number){
+  //takes a list of flower objects, a list of utilties and a number to select
+  //returns the context
+  const f=_.slice(_.shuffle(flowers),0,number)
+  const u=_.slice(_.shuffle(utilities),0,number)
+  const values=_.zipWith(f,u, (a,b)=>_.assign({},a,b))
+  const names=_.map(f, (a)=>a.label)
+  const all=_.zipObject(names,values)
+  console.log(all)
+  return all
+}
 
 // gameInit is where the structure of a game is defined.  Just before
 // every game starts, once all the players needed are ready, this
@@ -22,18 +32,18 @@ Empirica.gameInit((game, treatment) => {
   );
 
 
-  // Sample whether to use tangram set A or set B
-  game.set("targetSet", 'setA'); 
-  game.set('context', targetSets['setA']);
-  
-  //console.log(game.get('context'))
-  const reps = treatment.rounds;
-  const numTargets = game.get('context').length;
-  console.log(numTargets)
+  game.set("targetSet", treatment.targetSet);
+  game.set("sequence", sequences[treatment.targetSet])  
+  game.set("numBlocks", game.get("sequence").length)
+  game.set("condition", treatment.condition)
+  console.log(game.get('sequence'))
+  const numTargets = treatment.numTargets; 
+  const repsPerBlock = treatment.repsPerBlock 
+  const numBlocks = game.get("numBlocks")
   const info = {
-    numTrialsPerBlock : numTargets,
-    numBlocks : reps,
-    numTotalTrials: reps * numTargets,
+    numTrialsPerBlock : repsPerBlock,
+    numBlocks : numBlocks,
+    numTotalTrials: repsPerBlock * numBlocks,
     numPlayers: game.players.length
   };
   
@@ -43,17 +53,16 @@ Empirica.gameInit((game, treatment) => {
   // Make role list
 
     // Loop through repetition blocks
-    _.times(reps, repNum => {
-        mixed_targets=_.shuffle(game.get('context'))
-      // Loop through targets in block
+    _.times(numBlocks, blockNum => {
+        const color=game.get('sequence')[blockNum] 
 
-      _.times(numTargets, targetNum => {      
+      _.times(repsPerBlock, repNum => {      
         const round = game.addRound();
         //round.set('target', mixed_targets[targetNum]);
-        round.set('context', mixed_targets[targetNum])
-        round.set('targetNum', targetNum);
+        round.set('context', chooseImages(targetSets[color],utilities,numTargets))
         round.set('repNum', repNum);
-        round.set('trialNum', repNum * numTargets + targetNum);
+        round.set('blockNum', blockNum);
+        round.set('trialNum', blockNum * repsPerBlock + repNum);
         round.set('numPlayers', game.players.length)
                 
         round.addStage({
