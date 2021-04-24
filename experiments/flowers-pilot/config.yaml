@@ -9,8 +9,20 @@ treatments:
       - BhQi7sMQc7Xn8XfvN
       - b6Mw4aN3PPoPvg9zQ
       - Sw72ohJbi6YPGaoij
+    archivedAt: 2021-04-24T01:55:22.420Z
+  - name: Trio-coop-partial
+    factorIds:
+      - xWQjpcmpuWmZXGA7P
+      - pWeADdnYht6s2XmXy
+      - PhWBYRyqGv7hpZbKm
+      - XxGKfzAdshtarMJ8v
+      - tbrmbrEbCZovKMq64
+      - BhQi7sMQc7Xn8XfvN
+      - b6Mw4aN3PPoPvg9zQ
+      - Sw72ohJbi6YPGaoij
+      - 4BJzY5MF99QfjpHAN
 factorTypes:
-  - _id: eccB2RajWGC4kcWQH
+  - _id: xsLLkq9Qzg59bQC23
     name: playerCount
     description: The Number of players participating in the given game.
     required: true
@@ -63,6 +75,11 @@ factorTypes:
     type: Integer
     min: 1
     max: 20
+  - _id: K86LrpQD9kfzZTT7S
+    name: partial
+    description: is there partial knowledge?
+    required: false
+    type: Boolean
 factors:
   - _id: PhWBYRyqGv7hpZbKm
     name: prolificPilot
@@ -71,35 +88,19 @@ factors:
   - _id: xWQjpcmpuWmZXGA7P
     name: Triad
     value: 3
-    factorTypeId: eccB2RajWGC4kcWQH
+    factorTypeId: xsLLkq9Qzg59bQC23
   - _id: xWQjpcmpuWmZXGA7Q
     name: Pair
     value: 2
-    factorTypeId: eccB2RajWGC4kcWQH
+    factorTypeId: xsLLkq9Qzg59bQC23
   - _id: xWQjpcmpuWmZXGA7R
     name: Quad
     value: 4
-    factorTypeId: eccB2RajWGC4kcWQH
-  - _id: WPMyAs4AHQkRbejSw
-    name: One
-    value: 1
-    factorTypeId: uWvpQqxyNi8Dz6CSn
-  - _id: bMLyzSZu2NMqPxMp3
-    name: Six
-    value: 6
-    factorTypeId: uWvpQqxyNi8Dz6CSn
+    factorTypeId: xsLLkq9Qzg59bQC23
   - _id: XxGKfzAdshtarMJ8v
     name: five
     value: 5
     factorTypeId: tJ642Av4buu8Q5w73
-  - _id: ivrbpviGCdXTDsEiZ
-    name: Four
-    value: 4
-    factorTypeId: ZkXeabrJhX4KfX8yj
-  - _id: hsiunZ8b68hKxbnPM
-    name: Two
-    value: 2
-    factorTypeId: b5miCkhM6uwYKF2Sn
   - _id: 8s4mWKpqFF83FP3X6
     name: test
     value: LCX2Y5GM
@@ -108,10 +109,6 @@ factors:
     name: threemin
     value: '180'
     factorTypeId: kJddTH8X4Y6Df7SPA
-  - _id: wsDuqNzmgXecXtHLR
-    name: Pair
-    value: 6
-    factorTypeId: b5miCkhM6uwYKF2Sn
   - _id: tbrmbrEbCZovKMq64
     name: setA
     value: setA
@@ -128,6 +125,14 @@ factors:
     name: Twelve
     value: 12
     factorTypeId: dXoDyaNp7iLQGpXsP
+  - _id: 4BJzY5MF99QfjpHAN
+    name: 'true'
+    value: true
+    factorTypeId: K86LrpQD9kfzZTT7S
+  - _id: oAvTsx9dyfH3TzagJ
+    name: 'false'
+    value: false
+    factorTypeId: K86LrpQD9kfzZTT7S
 lobbyConfigs:
   - timeoutType: lobby
     timeoutInSeconds: 300
