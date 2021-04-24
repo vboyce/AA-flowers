@@ -19,10 +19,8 @@ export default class Task extends React.Component {
 
   render() {
     const { game, round, stage, player } = this.props;
-    //const target = round.get("target");
     const tangrams= round.get('context')
     const tangramlist = player.get('imageOrder');
-    //const correct = player.get('clicked') == target
     let tangramsToRender;
     if (tangramlist) {
       tangramsToRender = tangramlist.map((tangram, i) => (
@@ -30,7 +28,7 @@ export default class Task extends React.Component {
           key={tangram}
           name={tangram}
           tangram={tangrams[tangram]["location"]}
-          utility={tangrams[tangram]["utility_image"]}
+          utility={tangrams[tangram].blinded==player._id?"":tangrams[tangram]["utility_image"]}
           tangram_num={i}
           round={round}
           stage={stage}

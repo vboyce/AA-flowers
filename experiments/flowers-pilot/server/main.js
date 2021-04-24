@@ -4,15 +4,20 @@ import "./callbacks.js";
 import { targetSets, utilities , sequences} from "./constants";
 import _ from "lodash";
 
-function chooseImages(flowers, utilities, number){
+function chooseImages(flowers, utilities, number, players, blinded){
   //takes a list of flower objects, a list of utilties and a number to select
   //returns the context
+  // if blinded, then each flower is labelled with which player won't its utils
+  let blinds={}
+  if (blinded){
+    const order=_.range(number).map(p=> p% players.length)
+    blinds=order.map(i => _.assign({},{"blinded":players[i]}))
+  }
   const f=_.slice(_.shuffle(flowers),0,number)
   const u=_.slice(_.shuffle(utilities),0,number)
-  const values=_.zipWith(f,u, (a,b)=>_.assign({},a,b))
+  const values=_.zipWith(f,u,blinds, (a,b,c)=>_.assign({},a,b,c))
   const names=_.map(f, (a)=>a.label)
   const all=_.zipObject(names,values)
-  console.log(all)
   return all
 }
 
@@ -46,6 +51,7 @@ Empirica.gameInit((game, treatment) => {
     numTotalTrials: repsPerBlock * numBlocks,
     numPlayers: game.players.length
   };
+  const playerIds=_.map(game.players, "_id")
   
   // I use this to play the sound on the UI when the game starts
   game.set("justStarted", true);
@@ -59,7 +65,7 @@ Empirica.gameInit((game, treatment) => {
       _.times(repsPerBlock, repNum => {      
         const round = game.addRound();
         //round.set('target', mixed_targets[targetNum]);
-        round.set('context', chooseImages(targetSets[color],utilities,numTargets))
+        round.set('context', chooseImages(targetSets[color],utilities,numTargets, playerIds, treatment.partial))
         round.set('repNum', repNum);
         round.set('blockNum', blockNum);
         round.set('trialNum', blockNum * repsPerBlock + repNum);
