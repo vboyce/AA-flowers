@@ -21,6 +21,18 @@ treatments:
       - b6Mw4aN3PPoPvg9zQ
       - Sw72ohJbi6YPGaoij
       - 4BJzY5MF99QfjpHAN
+  - name: trio-competitive-partial
+    factorIds:
+      - xWQjpcmpuWmZXGA7P
+      - pWeADdnYht6s2XmXy
+      - PhWBYRyqGv7hpZbKm
+      - XxGKfzAdshtarMJ8v
+      - tbrmbrEbCZovKMq64
+      - ttoh8hn8bSDbSJ3gu
+      - b6Mw4aN3PPoPvg9zQ
+      - Sw72ohJbi6YPGaoij
+      - 4BJzY5MF99QfjpHAN
+      - ShaXLWHc7zKxb7N5Z
 factorTypes:
   - _id: xsLLkq9Qzg59bQC23
     name: playerCount
@@ -80,6 +92,15 @@ factorTypes:
     description: is there partial knowledge?
     required: false
     type: Boolean
+  - _id: bXvGAr4hy9EPmQ8Kp
+    name: scale
+    description: >-
+      what the utilities are multiplied by -- should be low for coop and high
+      for competitive
+    required: false
+    type: Number
+    min: 0
+    max: 10
 factors:
   - _id: PhWBYRyqGv7hpZbKm
     name: prolificPilot
@@ -133,6 +154,18 @@ factors:
     name: 'false'
     value: false
     factorTypeId: K86LrpQD9kfzZTT7S
+  - _id: ttoh8hn8bSDbSJ3gu
+    name: competitiveCartel
+    value: competCartel
+    factorTypeId: vEbTwwQmrSWHfYeF4
+  - _id: ShaXLWHc7zKxb7N5Z
+    name: One
+    value: 1
+    factorTypeId: bXvGAr4hy9EPmQ8Kp
+  - _id: 9ib83Q4z4ZSEigvvN
+    name: one_fifth
+    value: 0.2
+    factorTypeId: bXvGAr4hy9EPmQ8Kp
 lobbyConfigs:
   - timeoutType: lobby
     timeoutInSeconds: 300

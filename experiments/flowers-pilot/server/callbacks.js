@@ -56,29 +56,23 @@ Empirica.onStageStart((game, round, stage) => {
 Empirica.onStageEnd((game, round, stage) => {
   if (stage.name=="selection"){
     const players = game.players;
-    // Update player scores
-    let scoreIncrement
-    let clickedValues = new Set(players.map(p => p.get("clicked")))
-    console.log(clickedValues)
-    console.log(clickedValues.size)
-    if (clickedValues.size!=1){scoreIncrement=0}
-    else {
-      const tangram= clickedValues.values().next().value
-      if (tangram==false){scoreIncrement=0}
-      else{
-      console.log(typeof(round.get('context')))
-      const tangrams= round.get('context')
-      scoreIncrement=tangrams[tangram]["utility"]*.01
-      }
-    }
+    const tangrams= round.get('context')
+    const scale = game.treatment.scale || 1
+    const type = game.treatment.condition
+    _.forEach(_.keys(tangrams), tangram => {
+      let click=[]
+      _.forEach(players, p => {
+        if (p.get("clicked")==tangram){click.push(p)}
+      })
+      let scoreIncrement=tangrams[tangram]["utility"]*.01
+      if (type=="coopCartel"){scoreIncrement=scoreIncrement*scale*click.length}
+      if (type=="competCartel"){scoreIncrement=scoreIncrement*scale/click.length}
+      _.forEach(click, player=> {
+        const currScore = player.get("bonus") || 0;
+        player.set("bonus", scoreIncrement + currScore);
+      })
+    })   
     players.forEach(player => {
-      const currScore = player.get("bonus") || 0;
-      player.set("bonus", scoreIncrement + currScore);
-      }
-    );
-    //Save outcomes as property of round for later export/analysis
-    players.forEach(player => {
-      const correctAnswer = round.get('target');
       round.set('player_' + player._id + '_response', player.get('clicked'));
       round.set('player_' + player._id + '_time', player.get('timeClick'));
     });
