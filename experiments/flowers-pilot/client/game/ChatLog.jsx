@@ -20,7 +20,8 @@ export default class ChatLog extends React.Component {
         text,
         playerId: player._id,
         target: round.get('target'),
-        role: player.get('role')
+        role: player.get('role'),
+        type: "message"
       });
       this.setState({ comment: "" });
     }
@@ -66,6 +67,7 @@ class Messages extends React.Component {
       chatSound.play();
     }
   }
+
   render() {
     const { messages, player } = this.props;
 
@@ -75,11 +77,7 @@ class Messages extends React.Component {
           <div className="empty">No messages yet...</div>
         ) : null}
         {messages.map((message, i) => (
-          <Message
-            key={i}
-            message={message}
-            self={message.subject ? player._id === message.subject._id : null}
-          />
+           <Message key={i} message={message} self={message.subject ? player._id === message.subject._id : null} />   
         ))}
       </div>
     );
@@ -88,13 +86,15 @@ class Messages extends React.Component {
 
 class Message extends React.Component {
   render() {
-    const { text, subject } = this.props.message;
+    const { text, subject, type } = this.props.message;
     const { self } = this.props;
     return (
       <div className="message">
-        <Author player={subject} self={self} />
+        <Author player={subject} self={self} type = {type} />
         {text}
       </div>
     );
   }
 }
+
+

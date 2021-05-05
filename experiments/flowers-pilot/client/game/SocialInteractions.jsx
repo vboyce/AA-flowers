@@ -22,9 +22,10 @@ export default class SocialInteractions extends React.Component {
 
     const otherPlayers = _.reject(game.players, p => p._id === player._id);
     const messages = round.get("chat")
-          .map(({ text, playerId }) => ({
+          .map(({ text, playerId, type }) => ({
             text,
-            subject: game.players.find(p => p._id === playerId)
+            subject: game.players.find(p => p._id === playerId),
+            type : type
           }));
     const events = stage.get("log").map(({ subjectId, ...rest }) => ({
       subject: subjectId && game.players.find(p => p._id === subjectId),

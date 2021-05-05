@@ -6,12 +6,20 @@ import _ from "lodash";
 export default class Tangram extends React.Component {
     
   handleClick = e => {
-    const { game, tangram, name, utility, tangram_num, stage, player, round } = this.props;
+    const { messages, game, tangram, name, utility, tangram_num, stage, player, round } = this.props;
     if (stage.name == 'selection' &
         player.get('clicked') === false) {
       player.set("clicked", name)
       player.set("timeClick", Date.now()-stage.startTimeAt)
       player.stage.submit()
+
+      round.append("chat", {
+        text: null,
+        playerId: player._id,
+        target: round.get('target'),
+        role: player.get('role'),
+        type: "alert"
+      });
 
     }
   };
