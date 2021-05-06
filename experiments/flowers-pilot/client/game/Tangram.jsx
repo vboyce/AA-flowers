@@ -28,14 +28,14 @@ export default class Tangram extends React.Component {
     const { game, tangram, name, utility, tangram_num, round, stage, player, ...rest } = this.props;
     const players = game.players
     //const target = round.get("target")
-    const row = 1 + Math.floor(tangram_num / 2)
-    const column = 1 + tangram_num % 2
+    const row = 1 + Math.floor(tangram_num / 3)
+    const column = 1 + tangram_num % 3
     const mystyle = {
       "background" : "url(" + tangram + "), url(" + utility + ")",
       "backgroundSize": "90%, 85%",
       "backgroundRepeat" : "no-repeat, no-repeat",
       "backgroundPosition": "bottom, top",
-      "backgroundOrigin" : "content-box",
+      "backgroundOrigin" : "content-box, padding-box",
       "gridRow": row,
       "gridColumn": column,
       "padding" : "10px"

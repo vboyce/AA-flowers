@@ -68,8 +68,10 @@ Empirica.onStageEnd((game, round, stage) => {
       if (type=="coopCartel"){scoreIncrement=scoreIncrement*scale*click.length}
       if (type=="competCartel"){scoreIncrement=scoreIncrement*scale/click.length}
       _.forEach(click, player=> {
-        const currScore = player.get("bonus") || 0;
+        const currScore = player.get("bonus") || 0;      
         player.set("bonus", scoreIncrement + currScore);
+        player.set("scoreIncrement", scoreIncrement)
+        player.set("clickLength", click.length)
       })
     })   
     players.forEach(player => {

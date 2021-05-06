@@ -32,6 +32,10 @@ export default class SocialInteractions extends React.Component {
       ...rest
     }));
 
+    // const condition = game.get("condition")
+
+    let bonusView;
+
     return (
       <div className="social-interactions">
         <div className="status">
@@ -49,11 +53,14 @@ export default class SocialInteractions extends React.Component {
           <h5 className='bp3-heading'>Score</h5>
 
           <h2 className='bp3-heading'>${(player.get("bonus") || 0).toFixed(2)}</h2>
+
         </div>
         </div>
         
         
         <ChatLog messages={messages} round={round} stage={stage} player={player} />
+
+        {/*We are in {condition}.*/}
       </div>
     );
   }
