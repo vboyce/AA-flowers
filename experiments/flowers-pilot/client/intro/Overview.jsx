@@ -7,60 +7,31 @@ export default class Overview extends React.Component {
   render() {
     const { hasPrev, hasNext, onNext, onPrev, treatment } = this.props;
     const social = treatment.playerCount > 1;
+    var coopCartelBool = (treatment.condition=="coopCartel");
+    var competCartelBool = (treatment.condition=="competCartel");
     return (
       <Centered>
         <div className="instructions">
-       
-          <h1 className={"bp3-heading"}> Game Overview </h1>
 
+          <h1 className={"bp3-heading"}> Introduction </h1>
           <p>
-            <b> Please read these instructions carefully! You will have to pass a quiz on how the game works before you can play!</b>
-          </p>
-          
-          <p>
-            In this task, you will be assigned to a team with {treatment.playerCount -1} other people ({treatment.playerCount} including yourself!).
-            You will play a series of communication games with people on your team.
-            Everyone on your team will see the same set of pictures, which will look something like this:
-          </p>
+
+            <b> Please read these instructions carefully! You will need to pass a quiz before we will allow you to participate.</b></p>
 
           <div className="smallimage">
-            <center><img width="300px" src="/experiment/tangrams.PNG" /></center>
+            <img height="190px" src="/experiment/fred-the-florist.png" ALIGN="left" HSPACE="25" VSPACE="25"/>
+
+            <p> <i>Hello! Congratulations on the purchase of your new flower farm! My name’s Fred the Florist. I sell seeds to all of the farmers in the area. I hear you’re new to the business, so there are a couple of things you should know!</i></p>
+            <p> Every month (round), you’ll need to order the seeds for the flower you’ll plant in your flower patch. I feature {treatment.numTargets} flowers a month, but have lots of variety and they’re all guaranteed to turn a profit! </p>
           </div>
 
-          <p>
-            One of the people on the team will be randomly assigned the {" "}
-            <strong>Speaker</strong> role and the others will be assigned the {" "}
-            <strong>Listener</strong> role.
-          </p>
+          {coopCartelBool &&
+            <div><p>I see here that you’re <b>sharing</b> a farm with {treatment.playerCount - 1} other farmers. You and your partners will need to <b>decide together</b> to which seed to order. </p>
+            <p>My ordering system is a little complicated, so I’ll give you a discount if you order the same seeds as your partners! This means if all {treatment.playerCount} of you order the same flower you’ll each get {treatment.playerCount}x the profit. If {treatment.playerCount - 1} of you order the same flower, those {treatment.playerCount - 1} partners will get {treatment.playerCount - 1}x the profit.  </p> </div>}
 
-          <p>
-            If you are the Speaker, you will see a black box
-            secretly marking one of the pictures as the {" "} <strong>target</strong>.
-          </p>
-
-          <div className="smallimage">
-            <center><img width="300px" src="/experiment/target.PNG" /></center>
-          </div>
-
-          <p>
-            The Speaker's job is to send a description of the target through the chatbox
-            so that the Listeners are able to pick it out of the set. You can write whatever
-            description you think will best allow your partners to identify the target.
-            Please note that <b>the order of the pictures on your screen is scrambled</b>, so descriptions like "the one on the left" or "the third one" will not
-            work. Also, please limit your description to the current target picture: do not
-            discuss previous trials or chat about any other topics!
-          </p>
-
-          <div className="smallimage">
-            <center><img width="300px" src="/experiment/typing.PNG" /></center>
-            <br/>
-          </div>
-
-          <p>
-            After the Speaker sends a message, the Listeners will read it and 
-            <b> each click the picture they believe is the target</b>.  They are also
-            allowed to respond by sending messages back through the chatbox
-            until they are ready to make a selection. </p>
+            {competCartelBool &&
+              <div><p>I sell seeds to farmers all over the area, but only have enough seeds for one order per flower. You and the {treatment.playerCount - 1} other farmers will have to decide together who will order which seed for the month. </p>
+              <p> My ordering system doesn’t allow multiple orders per seed, so if you order the same seeds as another farmer, you’ll have to share the profit between yourselves! This means if all {treatment.playerCount} of you order the same flower you’ll each get 1/{treatment.playerCount} the profit. If {treatment.playerCount - 1} of you order the same flower, those {treatment.playerCount - 1} partners will get 1/{treatment.playerCount - 1} the profit.   </p> </div>}
 
           <button
             type="button"

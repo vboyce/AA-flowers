@@ -8,12 +8,15 @@ import "@blueprintjs/core/lib/css/blueprint.css";
 import Empirica from "meteor/empirica:core";
 
 import Consent from "./intro/Consent.jsx";
+
+
 import Overview from "./intro/Overview.jsx";
+
 import SocialInteractionDetails from "./intro/SocialInteractionDetails.jsx";
 import MoreAboutBonus from "./intro/MoreAboutBonus.jsx";
 import UIOverview from "./intro/UIOverview.jsx";
-import GroupQuiz from "./intro/GroupQuiz.jsx";
-
+import GroupQuizCompet from "./intro/GroupQuizCompet.jsx";
+import GroupQuizCoop from "./intro/GroupQuizCoop.jsx";
 import Round from "./game/Round.jsx";
 import Thanks from "./exit/Thanks.jsx";
 import Sorry from "./exit/Sorry";
@@ -24,24 +27,23 @@ import customBreadcrumb from "./game/Breadcrumb.jsx";
 // Empirica.header(() => null);
 
 // Set the Consent Component you want to present players (optional).
-//Empirica.consent(Consent);
+Empirica.consent(Consent);
 
 // Introduction pages to show before they play the game (optional).
 // At this point they have been assigned a treatment. You can return
 // different instruction steps depending on the assigned treatment.
 Empirica.introSteps((game, treatment) => {
-  const steps = [Overview];
-  if (game.treatment.playerCount > 1) {
-    steps.push(SocialInteractionDetails);
+  const steps = [Overview, SocialInteractionDetails];
+  if (game.treatment.condition== "coopCartel") {
+    steps.push(GroupQuizCoop);
   }
-  steps.push(MoreAboutBonus, UIOverview);
+  if (game.treatment.condition== "competCartel") {
+    steps.push(GroupQuizCompet);
+  }
+  //steps.push(MoreAboutBonus);
 
-  if (game.treatment.playerCount > 1) {
-    steps.push(GroupQuiz);
-  } 
-
-  //return steps;
-  return [];
+  return steps;
+  //return [];
 });
 
 // The Round component containing the game UI logic.
