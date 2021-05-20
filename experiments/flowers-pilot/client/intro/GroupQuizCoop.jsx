@@ -12,8 +12,8 @@ export default class GroupQuizCoop extends React.Component {
     knowledge: "",
     imageCount: "",
     timeOut: "",
-    coopselectsame: "",
-    coopselectdiff:"",
+    questionOne: "",
+    questionTwo:"",
     pictures: "",
     flowerWorth: ""
   };
@@ -51,8 +51,8 @@ export default class GroupQuizCoop extends React.Component {
       this.state.imageCount !== "6"  ||
       this.state.timeOut !== "0" ||
       this.state.flowerWorth !== "9" ||
-      this.state.coopselectsame !== "same" ||
-      this.state.coopselectdiff !== "diff-high" ||
+      this.state.questionOne !== "C" ||
+      this.state.questionTwo !== "C" ||
       this.state.pictures !== "different") {
       AlertToaster.show({
         message:
@@ -139,26 +139,30 @@ export default class GroupQuizCoop extends React.Component {
 
             <div className="bp3-form-group">
               <div className="bp3-form-content">
-              <p>In the image below, if your partner selected image A, which image should you select?</p>
-              <img width ="400px" src="/experiment/tutorial_images/interface_temp.png"  border="1" HSPACE="25"/>
+              <p>In the image below, if your partner selected image C, which image should you select?</p>
+              <img width ="400px" src="/experiment/tutorial_images/quiz-example-hard.png"  border="1" HSPACE="25"/>
                 <RadioGroup
                   label=""
                   onChange={this.handleRadioChange}
-                  selectedValue={this.state.coopselectsame}
-                  name="coopselectsame"
+                  selectedValue={this.state.questionOne}
+                  name="questionOne"
                   required
                 >
                   <Radio
                     label="A"
-                    value="same"
+                    value="A"
                   />
                   <Radio
                     label="B"
-                    value="diff-high"
+                    value="B"
                   />
                   <Radio
                     label="C"
-                    value="diff-low"
+                    value="C"
+                  />
+                  <Radio
+                    label="D"
+                    value="D"
                   />
                 </RadioGroup>
               </div>
@@ -166,26 +170,29 @@ export default class GroupQuizCoop extends React.Component {
 
             <div className="bp3-form-group">
               <div className="bp3-form-content">
-              <p><hl/></p>
-              <img width ="400px" src="/experiment/tutorial_images/interface_temp.png"  border="1" HSPACE="25"/>
+              <p>In the image below, if ONE partner selected image A, which image should you select?</p>
+              <img width ="400px" src="/experiment/tutorial_images/quiz-example-hard.png"  border="1" HSPACE="25"/>
                 <RadioGroup
-                  label="In the image above, if your partner selected image A, which image should you select?"
                   onChange={this.handleRadioChange}
-                  selectedValue={this.state.coopselectdiff}
-                  name="coopselectdiff"
+                  selectedValue={this.state.questionTwo}
+                  name="questionTwo"
                   required
                 >
                   <Radio
                     label="A"
-                    value="same"
+                    value="A"
                   />
                   <Radio
                     label="B"
-                    value="diff-high"
+                    value="B"
                   />
                   <Radio
                     label="C"
-                    value="diff-low"
+                    value="C"
+                  />
+                  <Radio
+                    label="D"
+                    value="D"
                   />
                 </RadioGroup>
               </div>
