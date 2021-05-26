@@ -81,6 +81,8 @@ export default class SocialInteractionDetails extends React.Component {
               {coopCartelBool && <p>The bars above the flowers represent how much each flower is worth on the market. The longer the bar, the more the flower is expected to sell. Remember, if all {treatment.playerCount} of you select the same flower, you will recieve a {treatment.playerCount}x the profit. </p>}
 
               {competCartelBool && <p>The bars above the flowers represent how much each flower is worth on the market. The longer the bar, the more the flower is expected to sell. Remember, if all {treatment.playerCount} of you select the same flower, you will recieve a 1/{treatment.playerCount} the profit. </p>}
+
+              <p>The bars above the flowers also represent your expertise as a flower farmer! You may not know much about some flowers, so those flowers are missing a profit bar. Your partners will have information about the flowers that are missing profit bars for you, but they might be missing information about flowers that you can see! </p>
             </div>
 
             <div className="instruction-example">

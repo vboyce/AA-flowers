@@ -221,7 +221,7 @@ export default class GroupQuizCoop extends React.Component {
 
             <div className="bp3-form-group">
               <label className="bp3-label" htmlFor="time-out">
-                If a player does NOT choose a tangram before the time is up
+                If a player does NOT choose an image before the time is up
                 then their score in that task will be:
               </label>
               <div className="bp3-form-content">

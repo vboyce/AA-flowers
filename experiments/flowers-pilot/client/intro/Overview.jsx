@@ -26,7 +26,7 @@ export default class Overview extends React.Component {
           </div>
 
           {coopCartelBool &&
-            <div><p>I see here that you’re <b>sharing</b> a farm with {treatment.playerCount - 1} other farmers. You and your partners will need to <b>decide together</b> to which seed to order. </p>
+            <div><p>I see here that you’re <b>sharing</b> a farm with {treatment.playerCount - 1} other farmers. You and your partners will need to <b>decide together</b> which seed to order. </p>
             <p>My ordering system is a little complicated, so I’ll give you a discount if you order the same seeds as your partners! This means if all {treatment.playerCount} of you order the same flower you’ll each get {treatment.playerCount}x the profit. If {treatment.playerCount - 1} of you order the same flower, those {treatment.playerCount - 1} partners will get {treatment.playerCount - 1}x the profit.  </p> </div>}
 
             {competCartelBool &&
