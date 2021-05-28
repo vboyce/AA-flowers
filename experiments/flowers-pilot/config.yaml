@@ -21,6 +21,7 @@ treatments:
       - b6Mw4aN3PPoPvg9zQ
       - Sw72ohJbi6YPGaoij
       - 4BJzY5MF99QfjpHAN
+    archivedAt: 2021-05-28T18:56:21.178Z
   - name: trio-competitive-partial
     factorIds:
       - xWQjpcmpuWmZXGA7P
@@ -33,6 +34,44 @@ treatments:
       - Sw72ohJbi6YPGaoij
       - 4BJzY5MF99QfjpHAN
       - ShaXLWHc7zKxb7N5Z
+    archivedAt: 2021-05-28T18:56:20.250Z
+  - name: may28coop
+    factorIds:
+      - xWQjpcmpuWmZXGA7P
+      - pWeADdnYht6s2XmXy
+      - 8s4mWKpqFF83FP3X6
+      - XxGKfzAdshtarMJ8v
+      - tbrmbrEbCZovKMq64
+      - ttoh8hn8bSDbSJ3gu
+      - b6Mw4aN3PPoPvg9zQ
+      - Sw72ohJbi6YPGaoij
+      - 4BJzY5MF99QfjpHAN
+      - 5XZDmt9Lfoe5HjZBN
+    archivedAt: 2021-05-28T18:56:19.234Z
+  - name: coopmay28
+    factorIds:
+      - 5XZDmt9Lfoe5HjZBN
+      - 4BJzY5MF99QfjpHAN
+      - Sw72ohJbi6YPGaoij
+      - b6Mw4aN3PPoPvg9zQ
+      - BhQi7sMQc7Xn8XfvN
+      - tbrmbrEbCZovKMq64
+      - XxGKfzAdshtarMJ8v
+      - pWeADdnYht6s2XmXy
+      - PhWBYRyqGv7hpZbKm
+      - xWQjpcmpuWmZXGA7P
+  - name: compmay28
+    factorIds:
+      - xWQjpcmpuWmZXGA7P
+      - pWeADdnYht6s2XmXy
+      - PhWBYRyqGv7hpZbKm
+      - XxGKfzAdshtarMJ8v
+      - ttoh8hn8bSDbSJ3gu
+      - tbrmbrEbCZovKMq64
+      - b6Mw4aN3PPoPvg9zQ
+      - Sw72ohJbi6YPGaoij
+      - 4BJzY5MF99QfjpHAN
+      - Yh3z6HadySgFoyADL
 factorTypes:
   - _id: xsLLkq9Qzg59bQC23
     name: playerCount
@@ -114,10 +153,12 @@ factors:
     name: Pair
     value: 2
     factorTypeId: xsLLkq9Qzg59bQC23
+    archivedAt: 2021-05-28T18:56:46.354Z
   - _id: xWQjpcmpuWmZXGA7R
     name: Quad
     value: 4
     factorTypeId: xsLLkq9Qzg59bQC23
+    archivedAt: 2021-05-28T18:56:47.747Z
   - _id: XxGKfzAdshtarMJ8v
     name: five
     value: 5
@@ -154,6 +195,7 @@ factors:
     name: 'false'
     value: false
     factorTypeId: K86LrpQD9kfzZTT7S
+    archivedAt: 2021-05-28T18:56:55.965Z
   - _id: ttoh8hn8bSDbSJ3gu
     name: competitiveCartel
     value: competCartel
@@ -162,9 +204,19 @@ factors:
     name: One
     value: 1
     factorTypeId: bXvGAr4hy9EPmQ8Kp
+    archivedAt: 2021-05-28T18:54:23.843Z
   - _id: 9ib83Q4z4ZSEigvvN
     name: one_fifth
     value: 0.2
+    factorTypeId: bXvGAr4hy9EPmQ8Kp
+    archivedAt: 2021-05-28T18:54:22.851Z
+  - _id: 5XZDmt9Lfoe5HjZBN
+    name: coopLang
+    value: 0.15
+    factorTypeId: bXvGAr4hy9EPmQ8Kp
+  - _id: Yh3z6HadySgFoyADL
+    name: compLang
+    value: 0.5
     factorTypeId: bXvGAr4hy9EPmQ8Kp
 lobbyConfigs:
   - timeoutType: lobby

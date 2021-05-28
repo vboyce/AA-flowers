@@ -44,7 +44,7 @@ export default class Task extends React.Component {
     if (stage.name=="selection"){
      instructions =  "Click on what you want to plant."}
     if (stage.name=="feedback"){
-      incrementView = "\+" + player.get("scoreIncrement")
+      incrementView = "\+" + player.get("scoreIncrement").toFixed(2)
       let condition = game.get("condition")
       let clickLength = player.get("clickLength")
 
@@ -74,18 +74,6 @@ export default class Task extends React.Component {
 
       }
 
-      /*if (player.get('role')=='speaker'){
-        role = round.get("countCorrect")+"/"+(game.treatment.playerCount-1)+ " listeners selected correctly!"
-      }
-      else if (player.get("clicked")==target){
-        role = "Your selection is CORRECT!"
-      }
-      else if (player.get("clicked")==false){
-        role = "You did not make a selection."
-      }
-      else{
-        role = "Whoops, your selection was incorrect."
-      }*/
     return (
       <div className="task">
         <div className="board">
