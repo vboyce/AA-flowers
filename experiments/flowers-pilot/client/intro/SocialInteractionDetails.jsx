@@ -51,6 +51,7 @@ export default class SocialInteractionDetails extends React.Component {
               </div>
               <hr />
               <p> This is where I will display the flowers that are available each month. I will give you {treatment.numTargets} options to choose from. </p>
+              <p> The flowers will be in <strong>random positions for each player</strong>, so the placement of the flowers on your screen may look different from the placement on your partner's screen.</p>
             </div>
 
             <div className="instruction-example">
@@ -64,7 +65,7 @@ export default class SocialInteractionDetails extends React.Component {
               </div>
               <hr />
               <p>Your total score is the amount of money you've earned so far. <strong>You will be paid this amount as a bonus at the end of the game.</strong> Keep an eye on it! </p>
-              <p>You and your teammates have{" "} {Math.ceil(treatment.selectionDuration / 60.0)} minutes to select an item each round. If you do not select an image in this time frame, you will automatically{" "} <strong>progress to the next task when the time is up</strong> and you will not get a bonus, so please stay focused. </p>
+              <p>You and your teammates have{" "} {Math.ceil(treatment.selectionDuration / 60.0)} minutes to select an item each round. <strong> If you do not select an image in this time frame, you will automatically{" "} progress to the next task when the time is up</strong> and you will not get a bonus, so please stay focused. </p>
             </div>
 
               <div className="instruction-example">
@@ -78,9 +79,9 @@ export default class SocialInteractionDetails extends React.Component {
               <div className="instruction-image"> <img src="/experiment/tutorial_images/6-bar.png" ALIGN="left"/>
               </div>
               <hr />
-              {coopCartelBool && <p>The bars above the flowers represent how much each flower is worth on the market. The longer the bar, the more the flower is expected to sell. Remember, if all {treatment.playerCount} of you select the same flower, you will recieve a {treatment.playerCount}x the profit. </p>}
+              {coopCartelBool && <p>The bars above the flowers represent how much each flower is worth on the market. The longer the bar, the more the flower is expected to sell. <strong>Remember, if all {treatment.playerCount} of you select the same flower, you will recieve {treatment.playerCount}x the profit.</strong> </p>}
 
-              {competCartelBool && <p>The bars above the flowers represent how much each flower is worth on the market. The longer the bar, the more the flower is expected to sell. Remember, if all {treatment.playerCount} of you select the same flower, you will recieve a 1/{treatment.playerCount} the profit. </p>}
+              {competCartelBool && <p>The bars above the flowers represent how much each flower is worth on the market. The longer the bar, the more the flower is expected to sell. <strong>Remember, if all {treatment.playerCount} of you select the same flower, you will recieve 1/{treatment.playerCount} the profit.</strong> </p>}
 
               <p>The bars above the flowers also represent your expertise as a flower farmer! You may not know much about some flowers, so those flowers are missing a profit bar. Your partners will have information about the flowers that are missing profit bars for you, but they might be missing information about flowers that you can see! </p>
             </div>

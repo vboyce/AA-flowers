@@ -139,7 +139,7 @@ export default class GroupQuizCoop extends React.Component {
 
             <div className="bp3-form-group">
               <div className="bp3-form-content">
-              <p>In the image below, if your partner selected image C, which image should you select?</p>
+              <p>In the image below, if ONE partner selected image C, which image is the best for YOU?</p>
               <img width ="400px" src="/experiment/tutorial_images/quiz-example-hard.png"  border="1" HSPACE="25"/>
                 <RadioGroup
                   label=""
@@ -170,7 +170,7 @@ export default class GroupQuizCoop extends React.Component {
 
             <div className="bp3-form-group">
               <div className="bp3-form-content">
-              <p>In the image below, if ONE partner selected image A, which image should you select?</p>
+              <p>In the image below, if ONE partner selected image A, which image is the best for YOU?</p>
               <img width ="400px" src="/experiment/tutorial_images/quiz-example-hard.png"  border="1" HSPACE="25"/>
                 <RadioGroup
                   onChange={this.handleRadioChange}
