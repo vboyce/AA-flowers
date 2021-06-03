@@ -1,0 +1,304 @@
+---
+title: "flowers-pilot-analysis"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r set-up, include=F}
+#knitr::opts_chunk$set(echo = FALSE, warning=F, message=F)
+#knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"))
+#options(knitr.table.format = "html")
+library(tidyverse)
+library(jsonlite)
+library(here)
+#library(rlang)
+#library(lme4)
+#library(brms)
+#library(rstan)
+#rstan_options(auto_write = TRUE)
+#options(mc.cores = parallel::detectCores())
+theme_set(theme_bw())
+ParseJSONColumn <- function(x) {
+  str_c("[ ", str_c(x, collapse = ",", sep=" "), " ]")  %>% 
+    fromJSON(flatten = T)
+}
+data_target = "pilot0"
+##Data import constants
+data_location=paste0("data/",data_target)
+date_start=lubridate::ymd('2021-05-27')
+image_location=paste0("figs/",data_target)
+#model_location="code/models"
+```
+
+```{r}
+# This was for determining participant bonuses using the version of data with PID
+# d.treatments <- read_csv(here(data_location, 'treatments.csv')) %>% rename(treatmentId=`_id`)
+# 
+# d.games <- read_csv(here(data_location, 'games.csv')) %>%
+#   select(gameId=`_id`, treatmentId, playerIds) %>%
+#   left_join(d.treatments) %>%
+#   mutate(playerIds=str_split(playerIds,",")) %>%
+#   unnest(playerIds) %>%
+#   select(playerId=playerIds, name)
+# 
+# d.players <- read_csv(here(data_location, 'players.csv')) %>%
+#   rename(playerId=`_id`) %>%
+#   left_join(d.games) %>%
+#   select(data.bonus, playerId,id,data.bonus,name) %>%
+#     filter(!is.na(name)) %>%
+#   mutate(pc_bonus=case_when(
+#     name=="fourRotate" ~ 3,
+#     name=="threeRotate" ~ 1.5,
+#     T ~ 0
+#   )) %>%
+#   mutate(bonus=round(data.bonus+pc_bonus,2),
+#          cost=round(bonus*4/3,2)) %>% write_csv(here(data_location, "player_payments.csv")) %>% select(id,bonus) %>% write_csv(here(data_location,"for_prolific.csv"))
+```
+
+# Pre-process
+
+```{r}
+extract_context_info <- function(context_key){
+  return(str_extract(context_key, "[^.]*$"))
+}
+
+d.contexts <- read_csv(here(data_location,'rounds.csv'),guess_max=10000) %>% 
+  mutate(data.context = map(data.context, 
+                            .f = ParseJSONColumn)) %>% 
+  select("_id":"data.numPlayers") %>%
+  mutate(data.context = map(data.context,
+                            function(df) df %>% gather(key, value) %>%
+                              mutate(key = gsub('.', '-', key, fixed=TRUE)) %>%
+                              separate(key, into = c("label", "key"), sep = "-") %>%
+                              spread(key, value))) %>%
+  unnest(data.context)
+
+d.games <- read_csv(here(data_location, 'games.csv')) %>% 
+  rename(gameId = `_id`) %>% 
+    filter(createdAt >= date_start)
+
+d.chat.raw <- read_csv(here(data_location, 'rounds.csv'), guess_max=10000) %>%
+  filter(createdAt >= date_start) %>%
+  mutate(data.chat = ifelse(is.na(data.chat), '{}', data.chat)) %>%
+  rename(row_id = `_id`) %>%
+  mutate(data.chat = map(data.chat, .f = ParseJSONColumn)) %>%
+  unnest(data.chat) %>%
+  select(-ends_with('response'), -ends_with('time')) %>%
+  rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% 
+  write_csv(here(data_location, 'raw_chat.csv'))
+
+d.round_results.raw <- read_csv(here(data_location,'rounds.csv'),guess_max=10000) %>% 
+  filter(createdAt >= date_start) %>% 
+  rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% 
+  rename_with ( ~ gsub("room", "player", .x, fixed=T)) %>% 
+  select(-chat) %>% 
+  gather(key, value, starts_with('player')) %>% 
+  separate(key, into = c('blah', 'playerId', 'info')) %>% 
+  spread(info, value) %>% 
+  select(-blah, -context) %>% 
+  left_join(d.contexts %>% select(gameId, 
+                                  repNum = data.repNum, 
+                                  blockNum = data.blockNum, 
+                                  trialNum = data.trialNum, 
+                                  response = label, utility, blinded)) %>%
+  mutate(time = as.numeric(time)/1000) %>%
+  #get individual utilities 
+  group_by(gameId, repNum, blockNum, trialNum, response) %>% 
+  mutate(n_resp = n(), ind_winnings = as.numeric(utility)*n_resp)
+
+#only include rounds that finished
+rounds_exclude <- d.round_results.raw %>% group_by(gameId,numPlayers,repNum) %>% tally() %>% filter(n!=12) %>% select(gameId,repNum)
+d.round_results <-  d.round_results.raw %>% anti_join(rounds_exclude)
+```
+
+
+```{r}
+summary <- d.round_results.raw %>% group_by(trialNum, repNum, gameId, numPlayers) %>% 
+          # mutate(time= time %|% 180) %>% 
+  summarize(max_time=max(time)) %>% 
+  group_by(gameId, numPlayers) %>% 
+  summarize(total_time=sum(max_time)/60,
+            num_rounds=max(repNum+1)) %>% 
+  arrange(numPlayers)
+#knitr::kable(summary)
+message("Full games")
+summary %>% filter(num_rounds==12) %>% group_by(numPlayers) %>% tally()
+message("Partial games")
+summary %>% filter(num_rounds!=12) %>% group_by(numPlayers) %>% tally()
+```
+
+
+# Demographics
+```{r demographics}
+d.exit.survey <- read_csv(here(data_location, 'player-inputs.csv')) %>%
+  filter(createdAt >= date_start) %>%
+  left_join(d.games, by = c('gameId')) %>%
+    rename_with(~ gsub("data.", "", .x, fixed = TRUE))
+```
+```{r feedback}
+d.exit.survey %>% select( language, fair, chatUseful, feedback, time) %>% knitr::kable()
+```
+
+
+
+# Pretty pictures
+
+
+```{r chat}
+#group raw chat by participant
+d.chat <- read_csv(here(data_location, "raw_chat.csv")) %>% 
+ # filter(!is.chitchat) %>% 
+  mutate(text = gsub("\\n", '', fixed = T, text),
+         text = gsub("[/?/.]", ' ', text),
+         text = str_squish(text),
+         #tangram = gsub('/experiment/tangram_', '', target, fixed=TRUE),
+         #tangram = gsub('.png', '', tangram, fixed=TRUE),
+         utt_length_chars = str_length(text), 
+         utt_length_words = str_count(text, "\\W+") + 1) %>% 
+  filter(type != "alert")%>%
+  group_by(gameId, blockNum, trialNum, repNum, playerId, numPlayers) %>%
+  summarize(text = paste0(text, collapse = ', '),
+            total_num_words = sum(utt_length_words),
+            total_num_chars = sum(utt_length_chars)) %>%
+  anti_join(rounds_exclude) %>% 
+  full_join(d.round_results, c("gameId", "trialNum", "repNum", "playerId", "numPlayers", "blockNum"))
+```
+
+Everything here has bootstrapped 95% CIs. 
+
+Should find better curves to fit, but using quadratic to allow for some curvature.
+
+```{r}
+# ggplot(d.chat, aes(x=repNum, y=total_num_words, color=role))+
+#   facet_wrap(~tangram, nrow=2)+
+#   scale_color_brewer(palette="Dark2")+
+#      stat_summary(fun.data = "mean_cl_boot")+
+#   labs(title="Number of words", y="Number of words", x="Round number")+
+#   theme(legend.position="bottom")
+ggplot(d.chat, aes(x=repNum, y=total_num_words, color=as.factor(numPlayers)))+
+  facet_wrap(~role, nrow=1)+
+  scale_color_brewer(palette="Dark2")+
+    geom_jitter(alpha=.05)+
+    geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
+  #geom_smooth(method = "glm", formula = y~x,method.args = list(family = gaussian(link = 'log')))+
+     stat_summary(fun.data = "mean_cl_boot")+
+    scale_y_continuous(limits = c(0,50))+
+  labs(title="Number of words", y="Number of words", x="Round number", color="Player count")+
+  theme(legend.position="bottom")
+ggsave(here(image_location, 'words.pdf'), width=6, height=4)
+```
+
+```{r}
+d.chat %>% filter(role=="speaker") %>% 
+    mutate(groupxtangram=str_c(gameId,tangram)) %>% 
+  group_by(repNum, numPlayers, gameId,tangram, groupxtangram) %>% 
+  summarize(words=sum(total_num_words)) %>% 
+ggplot(aes(x=repNum, y=words, color=as.factor(numPlayers)))+
+  facet_wrap(~numPlayers, nrow=1)+
+  scale_color_brewer(palette="Dark2")+
+    geom_line(aes(group=groupxtangram), alpha=.1,method=glm, se=F)+
+    geom_smooth(method = "glm", formula = y~x,method.args = list(family = gaussian(link = 'log')))+
+    #geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
+  labs(title="Words from speaker per tangram", y="Number of words", x="Round number", color="Player count")+
+  theme(legend.position="null")
+ggsave(here(image_location, 'words_lines.pdf'), width=6, height=4)
+```
+
+```{r}
+d.chat %>% filter(role=="speaker") %>% 
+ggplot(aes(x=repNum, y=total_num_words, color=as.factor(numPlayers)))+
+  facet_wrap(~tangram)+
+  scale_color_brewer(palette="Dark2")+
+    #geom_smooth(method=glm, formula=y~poly(x,2), se=T, alpha=.1)+
+      geom_smooth(method = "glm", formula = y~x,method.args = list(family = gaussian(link = 'log')))+
+       stat_summary(fun.data = "mean_cl_boot", size=.2)+
+  labs(title="Tangram variability", y="Number of words", x="Round number", color="Player count")+
+  theme(legend.position="bottom")
+ggsave(here(image_location, 'words_tangrams.pdf'), width=8, height=6)
+```
+
+```{r accuracy}
+d.round_results %>% group_by(playerId,repNum, gameId, numPlayers) %>% 
+  mutate(correct.num=ifelse(correct,1,0)) %>% 
+  ggplot(aes(x=repNum, y=correct.num, color=as.factor(numPlayers)))+
+geom_smooth(method = "glm", method.args = list(family = "binomial")) + 
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width=.2))+
+  #geom_point()+
+  scale_color_brewer(palette="Dark2")+
+  #scale_y_continuous(limits = c(0,1))+
+  labs(x="Round Number", y="Fraction correctly selected", title= "Overall accuracy increases over repetitions", color="Player count")+
+    theme(legend.position="bottom")
+ggsave(here(image_location, 'accuracy.pdf'), width=6, height=4)
+```
+
+
+```{r time}
+d.round_results %>% group_by(playerId, repNum, gameId, numPlayers) %>% 
+  filter(correct==T) %>% 
+  #summarize(time=mean(time)) %>% 
+  ggplot(aes(x=repNum, y=time, color=as.factor(numPlayers)))+
+  geom_jitter(width=.4, height=0, alpha=.03)+
+geom_smooth(method = "glm", formula = y~x,
+                      method.args = list(family = gaussian(link = 'log')))+
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width=.2))+
+  scale_y_continuous(limits = c(0,180))+
+    scale_color_brewer(palette="Dark2")+
+  labs(x="Round Number", y="Time to selection in seconds",
+       title="People choose faster in later rounds", color="Player count")+
+  theme(legend.position = "bottom")
+ggsave(here(image_location, 'time.pdf'), width=6, height=4)
+```
+# Models
+
+```{r, include=F}
+model_input <- d.chat %>% filter(role=="speaker") %>% 
+  mutate(block=repNum,
+         words=total_num_words,
+         tangram_group=str_c(tangram, gameId))
+         
+priors <- c(
+  set_prior("normal(20, 20)", class="Intercept"),
+  set_prior("normal(0, 10)", class="b"),
+  set_prior("normal(0, 10)", class="sd"),
+  set_prior("lkj(1)",       class="cor"))
+model <- brm(words ~ block * numPlayers + (block|tangram)+ (1|playerId)+(1|tangram_group)+(block|gameId), data=model_input,file=here(model_location, "model_1"),                            prior=priors, control=list(adapt_delta=.95))
+         
+```
+
+```{r, include=F}
+d.prev.speaker <- d.chat %>% ungroup() %>%  filter(role=="speaker") %>% select(gameId,repNum, tangram, total_num_words_prev=total_num_words)
+d.prev.round <- d.chat %>% ungroup() %>% select(playerId, correct, tangram, gameId, repNum) %>% 
+  left_join(d.prev.speaker) %>% unique() %>% mutate(repNum=repNum+1)
+d.chat.lagged <- d.chat %>%
+  ungroup() %>% 
+  select(gameId, playerId, trialNum, repNum, playerId, role, tangram, total_num_words, numPlayers) %>%
+  left_join(d.prev.round) %>%
+  mutate(reduction_word=log(total_num_words)-log(total_num_words_prev)) %>%
+  filter(repNum>0) %>%
+  filter(role=="speaker") %>%
+  mutate(prev_correct_round=correct)
+model_input <- d.chat.lagged %>% filter(role=="speaker") %>% 
+  mutate(block=repNum,
+         words=total_num_words,
+         tangram_group=str_c(tangram, gameId),
+         was_INcorrect=ifelse(!prev_correct_round,1,0))
+         
+priors <- c(
+  set_prior("normal(20, 20)", class="Intercept"),
+  set_prior("normal(0, 10)", class="b"),
+  set_prior("normal(0, 10)", class="sd"),
+  set_prior("lkj(1)",       class="cor"))
+model_speaker_acc <- brm(words ~ block * numPlayers +block*was_INcorrect+ (block|tangram)+ (1|playerId)+(1|tangram_group)+(block|gameId), data=model_input,file=here(model_location, "speaker_acc"),                         prior=priors, control=list(adapt_delta=.95))
+         
+```
+
+
+
+
+```{r}
+summary(model)
+```
+```{r}
+summary(model_speaker_acc)
+```
