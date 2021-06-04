@@ -1,0 +1,171 @@
+---
+title: "linguistic_analysis_C.Rmd : Linguistic quantity and complexity"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+```
+
+## STEP THREE - Linguistic quantity and complexity
+
+
+```{r main data, include=TRUE}
+data_target = "pilot0"
+data_location=paste0("data/",data_target)
+
+d_flowers<- read_csv(here(data_location, "raw_chat.csv"))%>%
+ filter(!is.na(text))
+```
+
+### 1. Utt Length
+```{r utt_length}
+#1. 
+
+d_flowers <- d_flowers %>%
+  mutate(utt_length_words = str_count(text, "\\W+") + 1) %>% 
+    group_by(gameId, blockNum, trialNum, repNum, playerId) 
+
+d_flowers_utt_length <- d_flowers %>%
+      summarise(total_num_words = sum(utt_length_words))
+
+
+ggplot(d_flowers_utt_length, aes(x=repNum, y=total_num_words, color=as.factor(playerId)))+
+  scale_color_brewer(palette="Dark2")+
+  geom_jitter(alpha=.05)+
+  geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
+  stat_summary(fun.data = "mean_cl_boot")+
+  scale_y_continuous(limits = c(0,50))+
+  labs(title="Number of words", y="Number of words", x="Round number", color="playerId")+
+  theme(legend.position="bottom")
+```
+
+### 2a. Number of turns
+```{r number_of_turns}
+
+
+d_flowers_n_turns <- d_flowers %>%
+  summarise(n=n())
+
+ggplot(d_flowers_n_turns, aes(x=repNum, y=n, color=as.factor(playerId)))+
+  scale_color_brewer(palette="Dark2")+
+  geom_jitter(alpha=.05)+
+  geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
+  stat_summary(fun.data = "mean_cl_boot")+
+  labs(title="Number of turns", y="Number of turns", x="Round number", color="playerId")+
+  theme(legend.position="bottom")
+
+```
+
+```{r number_of_turns2}
+## 2b. Number of turns
+d_flowers_n_utt_speaker <- d_flowers %>%
+  group_by(playerId, repNum, gameId, blockNum) %>%
+  summarise(n_utt_speaker=n())
+
+
+ggplot(d_flowers_n_utt_speaker, 
+       aes(x=repNum, y=n_utt_speaker, label=playerId)) + 
+  geom_smooth(method = "lm", formula = y~x) + 
+  geom_point(alpha=.1) +
+  facet_wrap(~playerId, nrow=1)+
+  xlab("Round number") + 
+  ylab("Number of turns") + 
+  theme_bw()
+```
+
+### 3. Parts of speech
+```{r pos}
+
+library("spacyr")
+
+text <- d_flowers$text
+parsed <- spacy_parse(text,pos=TRUE) %>%
+  select(doc_id, pos) %>%
+  group_by(doc_id) %>%
+  mutate(pos = paste(pos, collapse=",")) %>%
+  distinct()
+  
+d_flowers_pos  <- cbind(d_flowers, parsed) %>%
+  separate_rows(pos, convert = TRUE) %>%
+  group_by(gameId, blockNum, trialNum, repNum, playerId, pos) %>%
+  filter(pos=="NOUN"| pos=="VERB" | pos=="ADJ"| pos=="ADP"| pos=="DET" | pos=="PRON") %>%
+  summarise(pos_count=n()) %>%
+  left_join(d_flowers_utt_length) %>%
+  mutate(prop_pos=pos_count/total_num_words)
+        
+
+ggplot(d_flowers_pos, 
+       aes(x=repNum, y=prop_pos, label=playerId)) + 
+  geom_smooth(method = "lm", formula = y~x) + 
+  geom_point(alpha=.1) +
+  facet_wrap(~pos, nrow=1)+
+  xlab("Round number") + 
+  ylab("Proportion of pos") + 
+  theme_bw()
+
+```
+
+### 4. Lexical Diversity (TTR)
+
+```{r ttr}
+
+
+```
+
+##STEP FOUR - Feedback items and markers
+
+### 1. Distribution of speech across speakers
+```{r word_length}
+
+d_flowers_n_utt_speaker <- d_flowers %>%
+  group_by(playerId, repNum, gameId, blockNum) %>%
+  summarise(n_utt_speaker=n())
+
+d_flowers_n_utt_game <- d_flowers %>%
+  group_by(repNum, gameId, blockNum) %>%
+  summarise(n_utt_game=n())
+
+d_flowers_n_utt_dist <- d_flowers_n_utt_speaker %>%
+  left_join(d_flowers_n_utt_game) %>%
+  mutate(overall_turns=n_utt_speaker/n_utt_game)
+
+ggplot(d_flowers_n_utt_dist, 
+       aes(x=repNum, y=overall_turns, label=playerId)) + 
+  geom_smooth(method = "lm", formula = y~x) + 
+  geom_point(alpha=.1) +
+  facet_wrap(~playerId, nrow=1)+
+  xlab("Round number") + 
+  ylab("Proportion of turns") + 
+  theme_bw()
+
+```
+
+
+### 2. Turn-eliciting questions
+
+```{r cars}
+library("stringr")
+
+d_flowers_q <- d_flowers %>% 
+ mutate(sentence_type = ifelse(str_detect(text, "\\?"), 
+                             "question",
+                             "other")) %>%
+ group_by(playerId, repNum, gameId, blockNum, sentence_type) %>%
+ summarise(n_sentence_Type=n()) %>%
+ filter(sentence_type=="question") %>%
+ left_join(d_flowers_n_utt_speaker) %>%
+ mutate(prop_questions = n_sentence_Type/n_utt_speaker )  
+
+
+ggplot(d_flowers_q, 
+       aes(x=repNum, y=prop_questions, label=playerId)) + 
+  geom_smooth(method = "lm", formula = y~x) + 
+  geom_point(alpha=.1) +
+  xlab("Round number") + 
+  ylab("Proportion of questions") + 
+  theme_bw()
+
+```
