@@ -1,5 +1,5 @@
 ---
-title: "linguistic_analysis_C.Rmd : Linguistic quantity and complexity"
+title: "linguistic_analysis_C-D.Rmd : Linguistic quantity and complexity"
 output: html_document
 ---
 
@@ -32,8 +32,9 @@ d_flowers_utt_length <- d_flowers %>%
       summarise(total_num_words = sum(utt_length_words))
 
 
-ggplot(d_flowers_utt_length, aes(x=repNum, y=total_num_words, color=as.factor(playerId)))+
+ggplot(d_flowers_utt_length, aes(x=trialNum, y=total_num_words, color=as.factor(playerId)))+
   scale_color_brewer(palette="Dark2")+
+  facet_wrap(~gameId, nrow=1) +
   geom_jitter(alpha=.05)+
   geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
   stat_summary(fun.data = "mean_cl_boot")+
@@ -49,7 +50,8 @@ ggplot(d_flowers_utt_length, aes(x=repNum, y=total_num_words, color=as.factor(pl
 d_flowers_n_turns <- d_flowers %>%
   summarise(n=n())
 
-ggplot(d_flowers_n_turns, aes(x=repNum, y=n, color=as.factor(playerId)))+
+ggplot(d_flowers_n_turns, aes(x=trialNum, y=n, color=as.factor(playerId)))+
+  facet_wrap(~gameId, nrow=1) +
   scale_color_brewer(palette="Dark2")+
   geom_jitter(alpha=.05)+
   geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
@@ -58,19 +60,19 @@ ggplot(d_flowers_n_turns, aes(x=repNum, y=n, color=as.factor(playerId)))+
   theme(legend.position="bottom")
 
 ```
-
+### 2b. Number of turns
 ```{r number_of_turns2}
-## 2b. Number of turns
+
 d_flowers_n_utt_speaker <- d_flowers %>%
-  group_by(playerId, repNum, gameId, blockNum) %>%
+  group_by(playerId, trialNum, gameId, blockNum) %>%
   summarise(n_utt_speaker=n())
 
 
 ggplot(d_flowers_n_utt_speaker, 
-       aes(x=repNum, y=n_utt_speaker, label=playerId)) + 
+       aes(x=trialNum, y=n_utt_speaker, label=playerId)) + 
   geom_smooth(method = "lm", formula = y~x) + 
   geom_point(alpha=.1) +
-  facet_wrap(~playerId, nrow=1)+
+  facet_wrap(~ playerId) +
   xlab("Round number") + 
   ylab("Number of turns") + 
   theme_bw()
@@ -98,7 +100,7 @@ d_flowers_pos  <- cbind(d_flowers, parsed) %>%
         
 
 ggplot(d_flowers_pos, 
-       aes(x=repNum, y=prop_pos, label=playerId)) + 
+       aes(x=trialNum, y=prop_pos, label=playerId)) + 
   geom_smooth(method = "lm", formula = y~x) + 
   geom_point(alpha=.1) +
   facet_wrap(~pos, nrow=1)+
@@ -115,31 +117,31 @@ ggplot(d_flowers_pos,
 
 ```
 
-##STEP FOUR - Feedback items and markers
+## STEP FOUR - Feedback items and markers
 
 ### 1. Distribution of speech across speakers
 ```{r word_length}
 
 d_flowers_n_utt_speaker <- d_flowers %>%
-  group_by(playerId, repNum, gameId, blockNum) %>%
+  group_by(playerId, trialNum, gameId, blockNum) %>%
   summarise(n_utt_speaker=n())
 
 d_flowers_n_utt_game <- d_flowers %>%
-  group_by(repNum, gameId, blockNum) %>%
+  group_by(trialNum, gameId, blockNum) %>%
   summarise(n_utt_game=n())
 
 d_flowers_n_utt_dist <- d_flowers_n_utt_speaker %>%
   left_join(d_flowers_n_utt_game) %>%
   mutate(overall_turns=n_utt_speaker/n_utt_game)
 
-ggplot(d_flowers_n_utt_dist, 
-       aes(x=repNum, y=overall_turns, label=playerId)) + 
-  geom_smooth(method = "lm", formula = y~x) + 
-  geom_point(alpha=.1) +
-  facet_wrap(~playerId, nrow=1)+
-  xlab("Round number") + 
-  ylab("Proportion of turns") + 
-  theme_bw()
+#ggplot(d_flowers_n_utt_dist, 
+#       aes(x=trialNum, y=overall_turns, label=playerId)) + 
+#  geom_smooth(method = "lm", formula = y~x) + 
+#  geom_point(alpha=.1) +
+#  facet_wrap(~playerId)+
+#  xlab("Round number") + 
+#  ylab("Proportion of turns") + 
+#  theme_bw()
 
 ```
 
@@ -149,11 +151,17 @@ ggplot(d_flowers_n_utt_dist,
 ```{r cars}
 library("stringr")
 
+d_flowers_n_utt_speaker <- d_flowers %>%
+  group_by(playerId, trialNum, gameId, blockNum) %>%
+  summarise(n_utt_speaker=n())
+
+
+
 d_flowers_q <- d_flowers %>% 
  mutate(sentence_type = ifelse(str_detect(text, "\\?"), 
                              "question",
                              "other")) %>%
- group_by(playerId, repNum, gameId, blockNum, sentence_type) %>%
+ group_by(playerId, trialNum, gameId, blockNum, sentence_type) %>%
  summarise(n_sentence_Type=n()) %>%
  filter(sentence_type=="question") %>%
  left_join(d_flowers_n_utt_speaker) %>%
@@ -161,8 +169,9 @@ d_flowers_q <- d_flowers %>%
 
 
 ggplot(d_flowers_q, 
-       aes(x=repNum, y=prop_questions, label=playerId)) + 
+       aes(x=trialNum, y=prop_questions, label=playerId)) + 
   geom_smooth(method = "lm", formula = y~x) + 
+  facet_wrap(~ playerId) +
   geom_point(alpha=.1) +
   xlab("Round number") + 
   ylab("Proportion of questions") + 
