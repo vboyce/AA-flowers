@@ -7,6 +7,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(here)
+library(magrittr)
+library(qdap)
+library("stringr")
 ```
 
 ## STEP THREE - Linguistic quantity and complexity
@@ -114,6 +117,25 @@ ggplot(d_flowers_pos,
 
 ```{r ttr}
 
+    
+ttr <- function(text_){
+  text_ <- gsub('[[:punct:] ]+',' ',text_) ####plus remove caps
+  ttr_<- type_token_ratio(text__, n.words=10)
+  return(ttr_)
+}
+
+d_flowers_text <- d_flowers %>%
+    group_by(gameId, blockNum, trialNum, repNum, playerId) %>%
+    mutate(text_block = paste0(text, collapse = " ")) %>%
+    select(-c(text)) %>%
+    distinct() 
+
+text_block <- d_flowers_text$text_block
+
+#d_flowers_ttr <- text_block %>%
+#  mutate(ttr_v=ttr(text_block))
+
+
 
 ```
 
@@ -149,7 +171,7 @@ d_flowers_n_utt_dist <- d_flowers_n_utt_speaker %>%
 ### 2. Turn-eliciting questions
 
 ```{r cars}
-library("stringr")
+
 
 d_flowers_n_utt_speaker <- d_flowers %>%
   group_by(playerId, trialNum, gameId, blockNum) %>%
