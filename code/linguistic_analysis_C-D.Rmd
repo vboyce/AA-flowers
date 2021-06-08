@@ -4,11 +4,9 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
 library(tidyverse)
 library(here)
-library(magrittr)
-library(qdap)
 library("stringr")
 ```
 
@@ -20,50 +18,79 @@ data_target = "pilot0"
 data_location=paste0("data/",data_target)
 
 d_flowers<- read_csv(here(data_location, "raw_chat.csv"))%>%
- filter(!is.na(text))
+ filter(!is.na(text)) 
+
+
+
+
+
 ```
 
 ### 1. Utt Length
 ```{r utt_length}
-#1. 
-
-d_flowers <- d_flowers %>%
-  mutate(utt_length_words = str_count(text, "\\W+") + 1) %>% 
-    group_by(gameId, blockNum, trialNum, repNum, playerId) 
 
 d_flowers_utt_length <- d_flowers %>%
-      summarise(total_num_words = sum(utt_length_words))
+  mutate(text = gsub('[[:punct:] ]+',' ',text)) %>%
+  mutate(utt_length_words = sapply(strsplit(text, " "), length)) %>% 
+  group_by(gameId, blockNum, trialNum, repNum, playerId)  %>%
+  summarise(total_num_words = sum(utt_length_words),
+            mlu = mean(utt_length_words))
 
 
-ggplot(d_flowers_utt_length, aes(x=trialNum, y=total_num_words, color=as.factor(playerId)))+
+ggplot(d_flowers_utt_length, aes(x=repNum, y=total_num_words, color=as.factor(playerId)))+
   scale_color_brewer(palette="Dark2")+
-  facet_wrap(~gameId, nrow=1) +
+  facet_grid(cols = vars(blockNum), rows =vars(gameId)) +
   geom_jitter(alpha=.05)+
   geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
   stat_summary(fun.data = "mean_cl_boot")+
   scale_y_continuous(limits = c(0,50))+
-  labs(title="Number of words", y="Number of words", x="Round number", color="playerId")+
-  theme(legend.position="bottom")
+  labs(title="Number of words", y="Total number of words", x="Round number", color="playerId")+
+  theme(legend.position="bottom") + 
+  theme_bw()
+
+
+
+
+ggplot(d_flowers_utt_length, aes(x=repNum, y=mlu, color=as.factor(playerId)))+
+  scale_color_brewer(palette="Dark2")+
+  facet_grid(cols = vars(blockNum), rows =vars(gameId)) +
+  geom_jitter(alpha=.05)+
+  geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
+  stat_summary(fun.data = "mean_cl_boot")+
+  scale_y_continuous(limits = c(0,15))+
+  labs(title="MLU", y="MLU", x="Round number", color="playerId")+
+  theme(legend.position="bottom") + 
+  theme_bw()
+
+
+
+
 ```
 
-### 2a. Number of turns
+### 2. Number of turns
 ```{r number_of_turns}
 
 
 d_flowers_n_turns <- d_flowers %>%
+  group_by(gameId, blockNum, trialNum, repNum, playerId)  %>%
   summarise(n=n())
 
 ggplot(d_flowers_n_turns, aes(x=trialNum, y=n, color=as.factor(playerId)))+
-  facet_wrap(~gameId, nrow=1) +
+  facet_grid(rows =vars(gameId)) +
   scale_color_brewer(palette="Dark2")+
   geom_jitter(alpha=.05)+
   geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
   stat_summary(fun.data = "mean_cl_boot")+
   labs(title="Number of turns", y="Number of turns", x="Round number", color="playerId")+
-  theme(legend.position="bottom")
+  theme(legend.position="bottom") + 
+  theme_bw()
 
 ```
+
+
+#second plot
 ### 2b. Number of turns
+
 ```{r number_of_turns2}
 
 d_flowers_n_utt_speaker <- d_flowers %>%
@@ -75,7 +102,7 @@ ggplot(d_flowers_n_utt_speaker,
        aes(x=trialNum, y=n_utt_speaker, label=playerId)) + 
   geom_smooth(method = "lm", formula = y~x) + 
   geom_point(alpha=.1) +
-  facet_wrap(~ playerId) +
+  facet_grid(~playerId) +
   xlab("Round number") + 
   ylab("Number of turns") + 
   theme_bw()
@@ -117,12 +144,14 @@ ggplot(d_flowers_pos,
 
 ```{r ttr}
 
-    
 ttr <- function(text_){
-  text_ <- gsub('[[:punct:] ]+',' ',text_) ####plus remove caps
-  ttr_<- type_token_ratio(text__, n.words=10)
+  text_ <- tolower(text_)
+  total_words = sapply(strsplit(text_, " "), length)
+  no_duplicates = vapply(lapply(strsplit(text_, " "), unique), paste, character(1L), collapse = " ")
+  total_unique = str_count(no_duplicates, "\\W+") + 1
+  ttr_ = total_unique/total_words
   return(ttr_)
-}
+}    
 
 d_flowers_text <- d_flowers %>%
     group_by(gameId, blockNum, trialNum, repNum, playerId) %>%
@@ -130,12 +159,21 @@ d_flowers_text <- d_flowers %>%
     select(-c(text)) %>%
     distinct() 
 
-text_block <- d_flowers_text$text_block
 
-#d_flowers_ttr <- text_block %>%
-#  mutate(ttr_v=ttr(text_block))
+d_flowers_ttr <- d_flowers_text %>%
+  mutate(ttr_ = ttr(text_block))
 
+#t<-str_split(text_, " ", 1:6)
+#y<- paste(unlist(lapply(t,head,n=5)), collapse=" ")
 
+ggplot(d_flowers_ttr, 
+       aes(x=trialNum, y=ttr_, label=playerId)) + 
+  geom_smooth(method = "lm", formula = y~x) + 
+  geom_point(alpha=.1) +
+  facet_grid(rows =vars(gameId)) +
+  xlab("Round number") + 
+  ylab("Type_token ratio") + 
+  theme_bw()
 
 ```
 
@@ -156,14 +194,14 @@ d_flowers_n_utt_dist <- d_flowers_n_utt_speaker %>%
   left_join(d_flowers_n_utt_game) %>%
   mutate(overall_turns=n_utt_speaker/n_utt_game)
 
-#ggplot(d_flowers_n_utt_dist, 
-#       aes(x=trialNum, y=overall_turns, label=playerId)) + 
-#  geom_smooth(method = "lm", formula = y~x) + 
-#  geom_point(alpha=.1) +
-#  facet_wrap(~playerId)+
-#  xlab("Round number") + 
-#  ylab("Proportion of turns") + 
-#  theme_bw()
+ggplot(d_flowers_n_utt_dist, 
+       aes(x=trialNum, y=overall_turns, label=playerId)) + 
+  geom_smooth(method = "lm", formula = y~x) + 
+  geom_point(alpha=.1) +
+  facet_wrap(~playerId)+
+  xlab("Round number") + 
+  ylab("Proportion of turns") + 
+  theme_bw()
 
 ```
 
