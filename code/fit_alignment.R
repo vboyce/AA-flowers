@@ -14,9 +14,10 @@ library(purrr)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
-result_files <-  list.files(path = "/Users/lscpuser/Downloads",recursive = TRUE,
-                            all.files = FALSE, full.names = TRUE,
-                            pattern = "output.csv")
+result_files <- "data/pilot0/output.csv"
+#result_files <-  list.files(path = "../data/pilot0/",recursive = TRUE,
+ #                           all.files = FALSE, full.names = TRUE,
+  #                          pattern = "output.csv")
 
 setup_alignment_data <- function(corpus_df) {
   corpus_df %>%
