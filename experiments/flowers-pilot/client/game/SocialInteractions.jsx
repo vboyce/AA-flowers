@@ -58,7 +58,7 @@ export default class SocialInteractions extends React.Component {
         </div>
         
         
-        <ChatLog messages={messages} round={round} stage={stage} player={player} />
+        <ChatLog messages={messages} game={game} round={round} stage={stage} player={player} />
 
         {/*We are in {condition}.*/}
       </div>

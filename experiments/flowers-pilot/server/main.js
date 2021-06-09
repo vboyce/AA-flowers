@@ -38,7 +38,7 @@ Empirica.gameInit((game, treatment) => {
 
 
   game.set("targetSet", treatment.targetSet);
-  game.set("sequence", sequences[treatment.targetSet])  
+  game.set("sequence", _.shuffle(sequences[treatment.targetSet]))  
   game.set("numBlocks", game.get("sequence").length)
   game.set("condition", treatment.condition)
   console.log(game.get('sequence'))
