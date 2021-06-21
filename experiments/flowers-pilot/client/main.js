@@ -17,6 +17,7 @@ import MoreAboutBonus from "./intro/MoreAboutBonus.jsx";
 import UIOverview from "./intro/UIOverview.jsx";
 import GroupQuizCompet from "./intro/GroupQuizCompet.jsx";
 import GroupQuizCoop from "./intro/GroupQuizCoop.jsx";
+
 import Round from "./game/Round.jsx";
 import Thanks from "./exit/Thanks.jsx";
 import Sorry from "./exit/Sorry";

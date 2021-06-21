@@ -9,6 +9,8 @@ export default class Overview extends React.Component {
     const social = treatment.playerCount > 1;
     var coopCartelBool = (treatment.condition=="coopCartel");
     var competCartelBool = (treatment.condition=="competCartel");
+    var lang = (treatment.chatEnabled==true);
+    var nonlang = (treatment.chatEnabled==false);
     return (
       <Centered>
         <div className="instructions">
@@ -26,11 +28,11 @@ export default class Overview extends React.Component {
           </div>
 
           {coopCartelBool &&
-            <div><p>I see here that you’re <b>sharing</b> a farm with {treatment.playerCount - 1} other farmers. You and your partners will need to <b>decide together</b> which seed to order. </p>
+            <div><p>I see here that you’re <b>sharing</b> a farm with {treatment.playerCount - 1} other farmers. You and your partners will need to decide {lang ? 'together' : 'independently'} which seed to order. </p>
             <p>My ordering system is a little complicated, so I’ll give you a discount if you order the same seeds as your partners! This means if all {treatment.playerCount} of you order the same flower you’ll each get {treatment.playerCount}x the profit. If {treatment.playerCount - 1} of you order the same flower, those {treatment.playerCount - 1} partners will get {treatment.playerCount - 1}x the profit.  </p> </div>}
 
             {competCartelBool &&
-              <div><p>I sell seeds to farmers all over the area, but only have enough seeds for one order per flower. You and the {treatment.playerCount - 1} other farmers will have to decide together who will order which seed for the month. </p>
+              <div><p>I sell seeds to farmers all over the area, but only have enough seeds for one order per flower. You and the {treatment.playerCount - 1} other farmers will have to decide {lang ? 'together' : 'independently'} who will order which seed for the month. </p>
               <p> My ordering system doesn’t allow multiple orders per seed, so if you order the same seeds as another farmer, you’ll have to share the profit between yourselves! This means if all {treatment.playerCount} of you order the same flower you’ll each get 1/{treatment.playerCount} the profit. If {treatment.playerCount - 1} of you order the same flower, those {treatment.playerCount - 1} partners will get 1/{treatment.playerCount - 1} the profit.   </p> </div>}
 
           <button
