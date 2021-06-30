@@ -79,13 +79,14 @@ export default class SocialInteractionDetails extends React.Component {
               <hr />
               <p>Your total score is the amount of money you've earned so far. <strong>You will be paid this amount as a bonus at the end of the game.</strong> Keep an eye on it! </p>
               <p>You and your teammates have{" "} {Math.ceil(treatment.selectionDuration / 60.0)} minutes to select an item each round. <strong> If you do not select an image in this time frame, you will automatically{" "} progress to the next task when the time is up</strong> and you will not get a bonus, so please stay focused. </p>
+              <p>You will have one chance to make a choice. You will not be able to change your selection once you click a flower. <strong>Please be sure of your selection before you make it!</strong></p>
             </div>
             {lang &&
               <div className="instruction-example">
               <div className="instruction-image"> <img src="/experiment/tutorial_images/5-chat-lang.png" ALIGN="left"/>
               </div>
               <hr />
-              <p>You may communicate with your teammates through the in-game chat. Whatever you write will appear to your teammates. {" "} You can use the chat function however you like, but please note that these messages <strong>will</strong> be recorded.</p>
+              <p>You may <strong>communicate with your teammates through the in-game chat.</strong> Whatever you write will appear to your teammates. {" "} You can use the chat function however you like, but please note that these messages <strong>will</strong> be recorded.</p>
             </div>}
 
             <div className="instruction-example">
@@ -98,7 +99,7 @@ export default class SocialInteractionDetails extends React.Component {
 
               {competCartelBool && <p>The bars above the flowers represent how much each flower is worth on the market. The longer the bar, the more the flower is expected to sell. <strong>Remember, if all {treatment.playerCount} of you select the same flower, you will recieve 1/{treatment.playerCount} the profit.</strong> </p>}
 
-              <p>The bars above the flowers also represent your expertise as a flower farmer! You may not know much about some flowers, so those flowers are missing a profit bar. Your partners will have information about the flowers that are missing profit bars for you, but they might be missing information about flowers that you can see! </p>
+              <p>The bars above the flowers also represent your expertise as a flower farmer! You may not know much about some flowers, so those flowers are missing a profit bar. <strong>Your partners will have information about the flowers that are missing profit bars for you, but they might be missing information about flowers that you can see! </strong></p>
             </div>
 
             <div className="instruction-example">
@@ -112,7 +113,6 @@ export default class SocialInteractionDetails extends React.Component {
               {coopCartelBool && <img src="/experiment/tutorial_images/7-feedback-collab-nonlang.png" ALIGN="left"/>}
               {competCartelBool && <img src="/experiment/tutorial_images/7-feedback-compet-nonlang.png" ALIGN="left"/>}
               </div>}
-
 
               <hr />
               <p> Note that the game allows for simultaneous and real-time actions. Each trial will only end after all the players have made a selection (or the timer runs out). Once that happens, you'll be told who selected which flower. You'll also get some information about how your score was calculated at the top! </p>
