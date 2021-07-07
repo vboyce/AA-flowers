@@ -1,0 +1,4 @@
+﻿_id,name,timeoutType,timeoutInSeconds,timeoutStrategy,timeoutBots,extendCount,createdAt,archivedAt
+HDHtPfs2ocQZ5bRDq,,lobby,300,fail,,,2021-04-07T01:08:22Z,
+SqE43LmxFazbmtNv3,individual,individual,300,fail,,2,2021-06-28T19:34:08Z,
+BP7PjP32Z33i44DLq,individual_timeout,individual,600,fail,,0,2021-07-02T20:36:47Z,

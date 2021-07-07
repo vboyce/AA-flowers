@@ -12,23 +12,23 @@ output:
 library(tidyverse)
 library(jsonlite)
 library(here)
+
+theme_set(theme_bw())
+
+data_target = "technical_pilots"
+##Data import constants
+data_location=paste0("data/",data_target)
+date_start=lubridate::ymd('2021-06-30')
+image_location=paste0("figs/",data_target)
+
 #library(rlang)
 #library(lme4)
 #library(brms)
 #library(rstan)
 #rstan_options(auto_write = TRUE)
 #options(mc.cores = parallel::detectCores())
-theme_set(theme_bw())
-ParseJSONColumn <- function(x) {
-  str_c("[ ", str_c(x, collapse = ",", sep=" "), " ]")  %>% 
-    fromJSON(flatten = T)
-}
-data_target = "pilot0"
-##Data import constants
-data_location=paste0("data/",data_target)
-date_start=lubridate::ymd('2021-05-27')
-image_location=paste0("figs/",data_target)
 #model_location="code/models"
+
 ```
 
 ```{r}
@@ -58,11 +58,143 @@ image_location=paste0("figs/",data_target)
 
 # Pre-process
 
-```{r}
+We need:
+1) game info with treatment parameters
+2) context for each round (what were participant's options? max utility based on game conditions?)
+3) round results (what did participants select each round?)
+4) chat (what did individual participants say each round)
+5) feedback/demographics
+
+```{r helper-functions}
+ParseJSONColumn <- function(x) {
+  str_c("[ ", str_c(x, collapse = ",", sep=" "), " ]")  %>% 
+    fromJSON(flatten = T)
+}
+
 extract_context_info <- function(context_key){
   return(str_extract(context_key, "[^.]*$"))
 }
+```
 
+Get info about the games and treatments
+- We need each game, the 
+```{r game-preprocessing}
+d.games.raw <- read_csv(here(data_location, 'games.csv')) %>% 
+  rename(gameId = `_id`) %>% 
+  filter(createdAt >= date_start) %>%
+  rename_with(~ gsub("data.", "", .x, fixed = TRUE))
+
+d.treatments.raw <- read_csv(here(data_location, 'treatments.csv')) %>% 
+  rename(treatmentId = `_id`) %>%
+  #filter(createdAt >= date_start) %>%
+  mutate(factorIds = str_split(factorIds, pattern=",")) %>%
+  unnest(factorIds) %>% rename(factorId = factorIds)
+
+d.factors.raw <- read_csv(here(data_location, 'factors.csv'))%>% 
+  rename(factorId = `_id`)
+
+d.factor_types.raw <- read_csv(here(data_location, 'factor-types.csv')) %>%
+  rename(factorTypeId = "_id",
+         factorName = "name")
+
+d.factors <- d.factors.raw %>% 
+  left_join(d.factor_types.raw %>% 
+              select(factorTypeId, factorName))
+
+d.treatments <- d.treatments.raw %>% 
+  left_join(d.factors %>% 
+              select(factorId, factorName, value)) %>%
+  pivot_wider(id_cols = c(treatmentId, name, createdAt), 
+              names_from = factorName, values_from = value)
+
+d.players <- read_csv(here(data_location, 'players.csv')) %>%
+  rename(playerId = `_id`) %>% 
+  filter(createdAt >= date_start) %>%
+  rename_with(~ gsub("data.", "", .x, fixed = TRUE))
+
+d.games <- d.games.raw %>% left_join(d.treatments %>% 
+                                       select(-createdAt)) %>%
+  janitor::remove_empty() %>%
+  #select out the nonuseful columns
+  select(-c(gameLobbyId, treatmentId, batchId, targetSet, justStarted, submitCode, roundIds)) %>%
+  separate(col = playerIds, sep = ",", into = c("player_1", "player_2", "player_3")) %>% 
+  pivot_longer(cols = starts_with("player_"), names_to = "playerNum", values_to = "playerId") %>%
+  left_join(d.players %>% select(playerId, readyAt)) %>%
+  mutate(game_length = finishedAt - readyAt) %>%
+  group_by(across(gameId:chatEnabled)) %>%
+  summarize(gameLength = max(game_length)) %>% ungroup()
+```
+
+Round info
+For each round, we want to know the context...
+- which flowers were available
+- the utility of each flower
+
+We also want to have a report for each round including...
+- which participants selected which flowers
+- the time the participants took to select
+- the utility of the flower the participants selected
+
+```{r}
+d.round_results.raw <- read_csv(here(data_location,'rounds.csv'), guess_max=10000) %>% 
+  filter(createdAt >= date_start) %>% 
+  rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% 
+  rename_with ( ~ gsub("room", "player", .x, fixed=T))
+
+#try pivot_longer instead of gather??
+d.round_results <- d.round_results.raw  %>% 
+  select(-chat, -context) %>%
+  mutate_at(vars(starts_with('player')), as.character) %>%
+  pivot_longer(cols = starts_with('player'), 
+               names_to = c('blah', 'playerId', 'info'), 
+               values_to = "value",
+               names_sep = "_",
+               values_drop_na = TRUE) %>%
+  pivot_wider(names_from = "info", values_from = "value") %>%
+  select(-blah) %>%
+  mutate_at(c("time", "utility"), as.numeric) %>%
+  #TODO: some times are negative?? interesting
+  mutate(time = abs(as.numeric(time)/1000)) %>%
+  rename(time_sec = time, playerResponse = response, playerUtility = utility) %>%
+  arrange(createdAt, gameId, blockNum, repNum)
+
+#exclude blocks with <12 completed rounds
+rounds_exclude <- d.round_results %>% group_by(gameId, blockNum) %>% tally() %>% filter(n!=36) %>% select(gameId,blockNum)
+d.round_results.final <-  d.round_results %>% anti_join(rounds_exclude)
+```
+```{r}
+summary <- d.round_results %>% 
+  group_by(gameId) %>% 
+  summarize(num_rounds=max(repNum+1)) %>% 
+  left_join(d.games%>% ungroup() %>% select(gameId, condition, chat=chatEnabled, gameLength))
+#knitr::kable(summary)
+message("Full games")
+summary %>% filter(num_rounds==12)
+message("Partial games")
+summary %>% filter(num_rounds!=12) 
+```
+
+
+```{r}
+d.chat.raw <- d.round_results.raw %>%
+  filter(createdAt >= date_start) %>%
+  anti_join(rounds_exclude) %>%
+  #there will always be an alert for each active round, so drop NA
+  filter(!is.na(chat))%>%
+  select(-c(ends_with('response'), ends_with('time'), ends_with('utility'), context, stageIds)) %>%
+  #mutate(chat = ifelse(is.na(chat), '{}', chat)) %>%
+  rename(roundID = `_id`) %>%
+  mutate(chat = map(chat, .f = ParseJSONColumn)) %>%
+  unnest(chat) %>%
+  arrange(createdAt, gameId, blockNum, repNum) %>% 
+  left_join(d.players %>% select(playerId, name)) %>%
+  left_join(d.round_results %>% select(gameId, blockNum, repNum, trialNum, playerId, playerResponse, playerUtility)) %>%
+  left_join(d.games %>% select(gameId, condition, chatEnabled)) %>%
+  mutate("participantAction" = ifelse(type == "alert", paste(name, "selected", playerResponse, "for", playerUtility, "point(s)"), NA)) %>%
+  select(gameId, trialNum, condition, chatEnabled, playerId, name, text, participantAction, everything()) %>%
+  write_csv(here(data_location, 'raw_chat.csv'))
+
+#extract the alternative flowers
 d.contexts <- read_csv(here(data_location,'rounds.csv'),guess_max=10000) %>% 
   mutate(data.context = map(data.context, 
                             .f = ParseJSONColumn)) %>% 
@@ -72,61 +204,12 @@ d.contexts <- read_csv(here(data_location,'rounds.csv'),guess_max=10000) %>%
                               mutate(key = gsub('.', '-', key, fixed=TRUE)) %>%
                               separate(key, into = c("label", "key"), sep = "-") %>%
                               spread(key, value))) %>%
-  unnest(data.context)
-
-d.games <- read_csv(here(data_location, 'games.csv')) %>% 
-  rename(gameId = `_id`) %>% 
-    filter(createdAt >= date_start)
-
-d.chat.raw <- read_csv(here(data_location, 'rounds.csv'), guess_max=10000) %>%
-  filter(createdAt >= date_start) %>%
-  mutate(data.chat = ifelse(is.na(data.chat), '{}', data.chat)) %>%
-  rename(row_id = `_id`) %>%
-  mutate(data.chat = map(data.chat, .f = ParseJSONColumn)) %>%
-  unnest(data.chat) %>%
-  select(-ends_with('response'), -ends_with('time')) %>%
-  rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% 
-  write_csv(here(data_location, 'raw_chat.csv'))
-
-d.round_results.raw <- read_csv(here(data_location,'rounds.csv'),guess_max=10000) %>% 
-  filter(createdAt >= date_start) %>% 
-  rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% 
-  rename_with ( ~ gsub("room", "player", .x, fixed=T)) %>% 
-  select(-chat) %>% 
-  gather(key, value, starts_with('player')) %>% 
-  separate(key, into = c('blah', 'playerId', 'info')) %>% 
-  spread(info, value) %>% 
-  select(-blah, -context) %>% 
-  left_join(d.contexts %>% select(gameId, 
-                                  repNum = data.repNum, 
-                                  blockNum = data.blockNum, 
-                                  trialNum = data.trialNum, 
-                                  response = label, utility, blinded)) %>%
-  mutate(time = as.numeric(time)/1000) %>%
-  #get individual utilities 
-  group_by(gameId, repNum, blockNum, trialNum, response) %>% 
-  mutate(n_resp = n(), ind_winnings = as.numeric(utility)*n_resp)
-
-#only include rounds that finished
-rounds_exclude <- d.round_results.raw %>% group_by(gameId,numPlayers,repNum) %>% tally() %>% filter(n!=12) %>% select(gameId,repNum)
-d.round_results <-  d.round_results.raw %>% anti_join(rounds_exclude)
+  unnest(data.context) %>%
+  rename_with(~ gsub("data.", "", .x, fixed = TRUE))
 ```
+How often do participants select a flower that is hidden from them?
 
 
-```{r}
-summary <- d.round_results.raw %>% group_by(trialNum, repNum, gameId, numPlayers) %>% 
-          # mutate(time= time %|% 180) %>% 
-  summarize(max_time=max(time)) %>% 
-  group_by(gameId, numPlayers) %>% 
-  summarize(total_time=sum(max_time)/60,
-            num_rounds=max(repNum+1)) %>% 
-  arrange(numPlayers)
-#knitr::kable(summary)
-message("Full games")
-summary %>% filter(num_rounds==12) %>% group_by(numPlayers) %>% tally()
-message("Partial games")
-summary %>% filter(num_rounds!=12) %>% group_by(numPlayers) %>% tally()
-```
 
 
 # Demographics
@@ -144,26 +227,133 @@ d.exit.survey %>% select( language, fair, chatUseful, feedback, time) %>% knitr:
 
 # Pretty pictures
 
+Correlation between response time and utility?
+
+```{r}
+d.round_results %>% left_join(d.games %>% select(gameId, condition, chatEnabled)) %>%
+  mutate(chat = ifelse(chatEnabled, "lang", "nonlang"),
+         full_condition = paste0(condition, "-", chat)) %>%
+  ggplot(aes(x=log(time_sec), y = as.numeric(playerUtility), color = full_condition)) + 
+  facet_grid(rows = vars(condition), cols = vars(chat)) +
+  geom_point(alpha = .25) + 
+  labs(x = "log time (in seconds)",
+       y = "individual utility",
+       title = "Response time in sec (log) and utility", subtitle =  "each participant, each round")
+```
+
+Easiest way to do this, is to derive the game start date with the latest participant ready time and the game finishedAt
+
+```{r}
+d.round_results %>% left_join(d.games %>% select(gameId, condition, chatEnabled, gameLength)) %>%
+  mutate(chat = ifelse(chatEnabled, "lang", "nonlang"),
+         full_condition = paste0(condition, "-", chat)) %>%
+  group_by(gameId, condition, chat, full_condition,gameLength) %>%
+  summarize(totalUtility = sum(playerUtility))%>%
+  ggplot(aes(x=gameLength, y = as.numeric(totalUtility), color = full_condition)) + 
+  facet_grid(rows = vars(condition), cols = vars(chat), scales = "free_y") +
+  geom_point(alpha = .75) + 
+  labs(x = "Game length (in minutes)",
+       y = "total points by group",
+       title = "Length of game in mins and utility", subtitle =  "per game")
+
+d.round_results %>% left_join(d.games %>% select(gameId, condition, chatEnabled, gameLength)) %>%
+  mutate(chat = ifelse(chatEnabled, "lang", "nonlang"),
+         full_condition = paste0(condition, "-", chat)) %>%
+  group_by(gameId, condition, chat, full_condition,gameLength) %>%
+  summarize(totalUtility = sum(playerUtility))%>%
+  mutate(totalUtility = ifelse(condition=="coopCartel", totalUtility/3, totalUtility)) %>%
+  ggplot(aes(x=log(as.numeric(gameLength, units="mins")), y = as.numeric(totalUtility), color = full_condition)) + 
+  #facet_grid(rows = vars(condition), cols = vars(chat), scales = "free_y") +
+  geom_point(alpha = .75) + 
+  geom_smooth(method=lm, alpha=.3)+
+  labs(x = "Game length (in minutes)",
+       y = "total points by group",
+       title = "Length of game in mins and utility", subtitle =  "per game")
+```
 
 ```{r chat}
 #group raw chat by participant
-d.chat <- read_csv(here(data_location, "raw_chat.csv")) %>% 
+d.chat <- read_csv(here(data_location, "raw_chat.csv"), guess_max=1000) %>% 
+  filter(type == "message") %>%
+  full_join(d.round_results, c("gameId", "trialNum", "repNum", "playerId", "numPlayers", "blockNum")) %>%
  # filter(!is.chitchat) %>% 
   mutate(text = gsub("\\n", '', fixed = T, text),
          text = gsub("[/?/.]", ' ', text),
          text = str_squish(text),
-         #tangram = gsub('/experiment/tangram_', '', target, fixed=TRUE),
-         #tangram = gsub('.png', '', tangram, fixed=TRUE),
          utt_length_chars = str_length(text), 
          utt_length_words = str_count(text, "\\W+") + 1) %>% 
-  filter(type != "alert")%>%
   group_by(gameId, blockNum, trialNum, repNum, playerId, numPlayers) %>%
   summarize(text = paste0(text, collapse = ', '),
             total_num_words = sum(utt_length_words),
             total_num_chars = sum(utt_length_chars)) %>%
-  anti_join(rounds_exclude) %>% 
-  full_join(d.round_results, c("gameId", "trialNum", "repNum", "playerId", "numPlayers", "blockNum"))
+  anti_join(rounds_exclude)
+  
 ```
+
+Pick just one game to look at, make sure the plot is working?
+```{r}
+condition = "coopCartel"
+
+d.chat %>% 
+         left_join(d.games %>% select(gameId, createdAt,condition, chatEnabled)) %>% 
+         filter(condition == "coopCartel",
+                chatEnabled == "true") %>%
+ggplot(aes(x = repNum, y=total_num_words, color = as.factor(playerId))) + 
+  geom_jitter(alpha = .5) + 
+  facet_grid(cols = vars(blockNum), rows = vars(gameId), scales = "free_y") + 
+  geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
+  theme(legend.position = "none")+
+  labs(title = "Cooperative + Lang", subtitle="Number of words", y="Number of words", x="Round number", color="playerId")
+
+d.chat %>% 
+         left_join(d.games %>% select(gameId, createdAt,condition, chatEnabled)) %>% 
+         filter(condition == "competCartel",
+                chatEnabled == "true") %>%
+ggplot(aes(x = repNum, y=total_num_words, color = as.factor(playerId))) + 
+  geom_jitter(alpha = .5) + 
+  facet_grid(cols = vars(blockNum), rows = vars(gameId), scales = "free_y") + 
+  geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
+  theme(legend.position = "none")+
+  labs(title="Competitive + Lang", subtitle = "Number of words", y="Number of words", x="Round number", color="playerId")
+```
+
+Accuracy
+sum utility for entire group/max possible utility per group (or, the max flower *3)
+Each condition is going to have a different maximum utility
+
+coopcartel will have a max utility = max flower * 3 (players) * 3 (incentive)
+
+competcartel will have a max utility = sum(top_3_flowers)
+```{r}
+d.max_utility <- d.contexts %>% 
+  left_join(d.games %>% select(gameId, condition)) %>%
+  mutate(utility= as.numeric(utility)) %>%
+  group_by(gameId, blockNum, repNum) %>% 
+  slice_max(order_by =utility,n = 3)%>%
+  summarize(competCartel = sum(utility),
+            coopCartel = max(utility * 9)) %>% ungroup() %>%
+  pivot_longer(cols = c(competCartel, coopCartel), names_to = "condition", values_to = "maxUtility")
+
+
+
+d.utility <- d.round_results %>%
+         left_join(d.games %>% select(gameId, condition, chatEnabled)) %>% 
+  group_by(gameId, blockNum, repNum, trialNum,condition, chatEnabled) %>% 
+  summarize(group_utility = sum(as.numeric(playerUtility)))%>% ungroup() %>%
+  left_join(d.max_utility) %>%
+  mutate(prop_utility = group_utility/maxUtility,
+         chat = if_else(chatEnabled=="true", "Lang", "Nonlang"))
+
+d.utility %>% 
+  ggplot(aes(x = trialNum, y=prop_utility, color = as.factor(gameId))) + 
+  geom_jitter(alpha = .4) + 
+  facet_grid(cols = vars(condition), rows = vars(chat), scales = "free_y") + 
+  #geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
+  theme(legend.position = "none")+
+  labs(title="Accuracy", y="Group utility/max utility", x="Round number", color="gameId")
+```
+
+-----
 
 Everything here has bootstrapped 95% CIs. 
 
