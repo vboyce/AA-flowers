@@ -59,23 +59,46 @@ Empirica.onStageEnd((game, round, stage) => {
     const tangrams= round.get('context')
     const scale = game.treatment.scale || 1
     const type = game.treatment.condition
-    _.forEach(_.keys(tangrams), tangram => {
-      let click=[]
+    // 
+    if (type=="coopMulti"){ // this depends on total clicks
+      let rawScore=0
+      let clicked=[]
       _.forEach(players, p => {
-        if (p.get("clicked")==tangram){click.push(p)}
+        clicked.push(p.get("clicked"))
       })
-      let rawScore=tangrams[tangram]["utility"]
-      if (type=="coopCartel"){rawScore=rawScore*click.length}
-      if (type=="competCartel"){rawScore=rawScore/click.length}
+      clicked=_.uniq(clicked) // no duplicates
+      _.forEach(clicked, tangram => {
+        rawScore=rawScore+tangrams[tangram]["utility"]
+      })
+      rawScore=rawScore/players.length
       let scoreIncrement=rawScore*scale*.01
-      _.forEach(click, player=> {
+      _.forEach(players, player => {
         const currScore = player.get("bonus") || 0;      
         player.set("bonus", scoreIncrement + currScore);
         player.set("scoreIncrement", scoreIncrement)
-        player.set("clickLength", click.length)
+        player.set("clickLength", clicked.length) //how many unique flowers were clicked
         player.set("rawScore", rawScore)
       })
-    })   
+    }
+    else{ // these conditions score depends only on others who clicked the same thing
+      _.forEach(_.keys(tangrams), tangram => {
+        let click=[]
+        _.forEach(players, p => {
+          if (p.get("clicked")==tangram){click.push(p)}
+        })
+        let rawScore=tangrams[tangram]["utility"]
+        if (type=="coopCartel"){rawScore=rawScore*click.length}
+        if (type=="competCartel"){rawScore=rawScore/click.length}
+        let scoreIncrement=rawScore*scale*.01
+        _.forEach(click, player=> {
+          const currScore = player.get("bonus") || 0;      
+          player.set("bonus", scoreIncrement + currScore);
+          player.set("scoreIncrement", scoreIncrement)
+          player.set("clickLength", click.length)
+          player.set("rawScore", rawScore)
+        })
+        })
+    }  
     players.forEach(player => {
       round.set('player_' + player._id + '_response', player.get('clicked'));
       round.set('player_' + player._id + '_time', player.get('timeClick'));

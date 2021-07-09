@@ -71,6 +71,16 @@ export default class Task extends React.Component {
           explanation = "This lowered your bonus."
           }
         }
+        else if (condition=="coopMulti"){
+          if(clickLength==3){
+            instructions="Great! 3 flowers were selected!"
+            explanation = "This increased your bonus!"
+          }else{
+            let numFlowers = clickLength == 2 ? "2 flowers were" : "1 flower was"
+            instructions="Uh oh! Only "+numFlowers+" selected."
+            explanation="This lowered your bonus."
+          }
+        }
 
       }
 

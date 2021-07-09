@@ -1,6 +1,18 @@
 treatments:
+  - name: coop_choose_3
+    factorIds:
+      - xWQjpcmpuWmZXGA7P
+      - pWeADdnYht6s2XmXy
+      - Yf7NcrEDFdYq4TrjF
+      - XxGKfzAdshtarMJ8v
+      - tbrmbrEbCZovKMq64
+      - pa4NDkMQdTxqe6xL6
+      - b6Mw4aN3PPoPvg9zQ
+      - Sw72ohJbi6YPGaoij
+      - FGGd9n4Xwadi4Mfxo
+      - ZTgP4QLnadb66di5E
   - factorIds:
-      - 6HnugKp75JgFtv5Yn
+      - xWQjpcmpuWmZXGA7P
     archivedAt: 2021-06-14T23:33:33.060Z
   - name: Pair-coop
     factorIds:
@@ -15,7 +27,7 @@ treatments:
     archivedAt: 2021-04-24T01:55:22.420Z
   - name: Trio-coop-partial
     factorIds:
-      - 6HnugKp75JgFtv5Yn
+      - xWQjpcmpuWmZXGA7P
       - pWeADdnYht6s2XmXy
       - PhWBYRyqGv7hpZbKm
       - XxGKfzAdshtarMJ8v
@@ -23,11 +35,11 @@ treatments:
       - BhQi7sMQc7Xn8XfvN
       - b6Mw4aN3PPoPvg9zQ
       - Sw72ohJbi6YPGaoij
-      - nt5n74medDGktdqZk
+      - FGGd9n4Xwadi4Mfxo
     archivedAt: 2021-06-14T23:33:27.280Z
   - name: trio-competitive-partial
     factorIds:
-      - 6HnugKp75JgFtv5Yn
+      - xWQjpcmpuWmZXGA7P
       - pWeADdnYht6s2XmXy
       - PhWBYRyqGv7hpZbKm
       - XxGKfzAdshtarMJ8v
@@ -35,12 +47,12 @@ treatments:
       - ttoh8hn8bSDbSJ3gu
       - b6Mw4aN3PPoPvg9zQ
       - Sw72ohJbi6YPGaoij
-      - nt5n74medDGktdqZk
-      - ShaXLWHc7zKxb7N5Z
+      - FGGd9n4Xwadi4Mfxo
+      - ZTgP4QLnadb66di5E
     archivedAt: 2021-06-14T23:33:27.305Z
   - name: may28coop
     factorIds:
-      - 6HnugKp75JgFtv5Yn
+      - xWQjpcmpuWmZXGA7P
       - pWeADdnYht6s2XmXy
       - 8s4mWKpqFF83FP3X6
       - XxGKfzAdshtarMJ8v
@@ -48,13 +60,13 @@ treatments:
       - ttoh8hn8bSDbSJ3gu
       - b6Mw4aN3PPoPvg9zQ
       - Sw72ohJbi6YPGaoij
-      - nt5n74medDGktdqZk
+      - FGGd9n4Xwadi4Mfxo
       - 5XZDmt9Lfoe5HjZBN
     archivedAt: 2021-05-28T18:56:19.234Z
   - name: coopmay28
     factorIds:
       - 5XZDmt9Lfoe5HjZBN
-      - nt5n74medDGktdqZk
+      - FGGd9n4Xwadi4Mfxo
       - Sw72ohJbi6YPGaoij
       - b6Mw4aN3PPoPvg9zQ
       - BhQi7sMQc7Xn8XfvN
@@ -62,10 +74,10 @@ treatments:
       - XxGKfzAdshtarMJ8v
       - pWeADdnYht6s2XmXy
       - PhWBYRyqGv7hpZbKm
-      - 6HnugKp75JgFtv5Yn
+      - xWQjpcmpuWmZXGA7P
   - name: compmay28
     factorIds:
-      - 6HnugKp75JgFtv5Yn
+      - xWQjpcmpuWmZXGA7P
       - pWeADdnYht6s2XmXy
       - PhWBYRyqGv7hpZbKm
       - XxGKfzAdshtarMJ8v
@@ -73,11 +85,11 @@ treatments:
       - tbrmbrEbCZovKMq64
       - b6Mw4aN3PPoPvg9zQ
       - Sw72ohJbi6YPGaoij
-      - nt5n74medDGktdqZk
+      - FGGd9n4Xwadi4Mfxo
       - Yh3z6HadySgFoyADL
   - name: coopLangJune
     factorIds:
-      - 6HnugKp75JgFtv5Yn
+      - xWQjpcmpuWmZXGA7P
       - pWeADdnYht6s2XmXy
       - 8s4mWKpqFF83FP3X6
       - XxGKfzAdshtarMJ8v
@@ -85,13 +97,13 @@ treatments:
       - BhQi7sMQc7Xn8XfvN
       - b6Mw4aN3PPoPvg9zQ
       - Sw72ohJbi6YPGaoij
-      - nt5n74medDGktdqZk
+      - FGGd9n4Xwadi4Mfxo
       - 5XZDmt9Lfoe5HjZBN
-      - vwmgeY3RSj5Kcf3T5
+      - hYDX9FFidvBYBfGhQ
     archivedAt: 2021-06-14T23:40:10.238Z
   - name: compNonlangJune
     factorIds:
-      - 6HnugKp75JgFtv5Yn
+      - xWQjpcmpuWmZXGA7P
       - pWeADdnYht6s2XmXy
       - 8s4mWKpqFF83FP3X6
       - XxGKfzAdshtarMJ8v
@@ -99,12 +111,12 @@ treatments:
       - ttoh8hn8bSDbSJ3gu
       - b6Mw4aN3PPoPvg9zQ
       - Sw72ohJbi6YPGaoij
-      - nt5n74medDGktdqZk
+      - FGGd9n4Xwadi4Mfxo
       - BtojAaAq4T5Fju83x
-      - TJd2Lzfdbd8HNWEsL
+      - b9WB3TiLzyAbEXeKf
   - name: compLangJune
     factorIds:
-      - 6HnugKp75JgFtv5Yn
+      - xWQjpcmpuWmZXGA7P
       - pWeADdnYht6s2XmXy
       - 8s4mWKpqFF83FP3X6
       - XxGKfzAdshtarMJ8v
@@ -112,12 +124,12 @@ treatments:
       - ttoh8hn8bSDbSJ3gu
       - b6Mw4aN3PPoPvg9zQ
       - Sw72ohJbi6YPGaoij
-      - nt5n74medDGktdqZk
+      - FGGd9n4Xwadi4Mfxo
       - Yh3z6HadySgFoyADL
-      - vwmgeY3RSj5Kcf3T5
+      - hYDX9FFidvBYBfGhQ
   - name: coopLangJune2
     factorIds:
-      - 6HnugKp75JgFtv5Yn
+      - xWQjpcmpuWmZXGA7P
       - pWeADdnYht6s2XmXy
       - 8s4mWKpqFF83FP3X6
       - XxGKfzAdshtarMJ8v
@@ -125,12 +137,12 @@ treatments:
       - tbrmbrEbCZovKMq64
       - b6Mw4aN3PPoPvg9zQ
       - Sw72ohJbi6YPGaoij
-      - nt5n74medDGktdqZk
+      - FGGd9n4Xwadi4Mfxo
       - 5XZDmt9Lfoe5HjZBN
-      - vwmgeY3RSj5Kcf3T5
+      - hYDX9FFidvBYBfGhQ
   - name: coopNonlangJune
     factorIds:
-      - 6HnugKp75JgFtv5Yn
+      - xWQjpcmpuWmZXGA7P
       - pWeADdnYht6s2XmXy
       - 8s4mWKpqFF83FP3X6
       - XxGKfzAdshtarMJ8v
@@ -138,11 +150,11 @@ treatments:
       - tbrmbrEbCZovKMq64
       - b6Mw4aN3PPoPvg9zQ
       - Sw72ohJbi6YPGaoij
-      - nt5n74medDGktdqZk
+      - FGGd9n4Xwadi4Mfxo
       - KN7WR3PnKhPnzBCL5
-      - TJd2Lzfdbd8HNWEsL
+      - b9WB3TiLzyAbEXeKf
 factorTypes:
-  - _id: XQQEYkGvh3Gcc4gPn
+  - _id: zzEuG3B2DtcSPzzHB
     name: playerCount
     description: The Number of players participating in the given game.
     required: true
@@ -215,38 +227,22 @@ factorTypes:
     required: true
     type: Boolean
 factors:
-  - _id: 6HnugKp75JgFtv5Yn
-    name: three
-    value: 3
-    factorTypeId: XQQEYkGvh3Gcc4gPn
-  - _id: nt5n74medDGktdqZk
+  - _id: FGGd9n4Xwadi4Mfxo
     name: 'true'
     value: true
     factorTypeId: K86LrpQD9kfzZTT7S
-  - _id: eAYCsMMp5ZCaMp3KN
+  - _id: qvZvPSfDPy5JEg3PB
     name: 'false'
     value: false
     factorTypeId: K86LrpQD9kfzZTT7S
-  - _id: PhWBYRyqGv7hpZbKm
-    name: prolificPilot
-    value: 3B021164
-    factorTypeId: oTmtc6KmQb77CaDTC
-  - _id: xWQjpcmpuWmZXGA7Q
-    name: Pair
-    value: 2
-    factorTypeId: XQQEYkGvh3Gcc4gPn
-  - _id: xWQjpcmpuWmZXGA7R
-    name: Quad
-    value: 4
-    factorTypeId: XQQEYkGvh3Gcc4gPn
+  - _id: xWQjpcmpuWmZXGA7P
+    name: Triad
+    value: 3
+    factorTypeId: zzEuG3B2DtcSPzzHB
   - _id: XxGKfzAdshtarMJ8v
     name: five
     value: 5
     factorTypeId: tJ642Av4buu8Q5w73
-  - _id: 8s4mWKpqFF83FP3X6
-    name: test
-    value: LCX2Y5GM
-    factorTypeId: oTmtc6KmQb77CaDTC
   - _id: pWeADdnYht6s2XmXy
     name: threemin
     value: '180'
@@ -271,16 +267,6 @@ factors:
     name: competitiveCartel
     value: competCartel
     factorTypeId: vEbTwwQmrSWHfYeF4
-  - _id: ShaXLWHc7zKxb7N5Z
-    name: compNonlang
-    value: 1
-    factorTypeId: bXvGAr4hy9EPmQ8Kp
-    archivedAt: 2021-06-14T23:39:51.423Z
-  - _id: 9ib83Q4z4ZSEigvvN
-    name: coopNonlang
-    value: 0.2
-    factorTypeId: bXvGAr4hy9EPmQ8Kp
-    archivedAt: 2021-06-14T23:39:40.185Z
   - _id: 5XZDmt9Lfoe5HjZBN
     name: coopLang
     value: 0.15
@@ -289,14 +275,47 @@ factors:
     name: compLang
     value: 0.5
     factorTypeId: bXvGAr4hy9EPmQ8Kp
-  - _id: vwmgeY3RSj5Kcf3T5
+  - _id: Yf7NcrEDFdYq4TrjF
+    name: test
+    value: TEST
+    factorTypeId: oTmtc6KmQb77CaDTC
+  - _id: pa4NDkMQdTxqe6xL6
+    name: coop_choose_3
+    value: coopMulti
+    factorTypeId: vEbTwwQmrSWHfYeF4
+  - _id: ZTgP4QLnadb66di5E
+    name: 'null'
+    value: 1
+    factorTypeId: bXvGAr4hy9EPmQ8Kp
+  - _id: hYDX9FFidvBYBfGhQ
     name: 'true'
     value: true
     factorTypeId: 8ZYC2jZrDkoZvXGGS
-  - _id: TJd2Lzfdbd8HNWEsL
+  - _id: b9WB3TiLzyAbEXeKf
     name: 'false'
     value: false
     factorTypeId: 8ZYC2jZrDkoZvXGGS
+  - _id: PhWBYRyqGv7hpZbKm
+    name: prolificPilot
+    value: 3B021164
+    factorTypeId: oTmtc6KmQb77CaDTC
+  - _id: xWQjpcmpuWmZXGA7Q
+    name: Pair
+    value: 2
+    factorTypeId: zzEuG3B2DtcSPzzHB
+  - _id: xWQjpcmpuWmZXGA7R
+    name: Quad
+    value: 4
+    factorTypeId: zzEuG3B2DtcSPzzHB
+  - _id: 8s4mWKpqFF83FP3X6
+    name: test
+    value: LCX2Y5GM
+    factorTypeId: oTmtc6KmQb77CaDTC
+  - _id: 9ib83Q4z4ZSEigvvN
+    name: coopNonlang
+    value: 0.2
+    factorTypeId: bXvGAr4hy9EPmQ8Kp
+    archivedAt: 2021-06-14T23:39:40.185Z
   - _id: KN7WR3PnKhPnzBCL5
     name: coopNonlang
     value: 0.25
@@ -306,19 +325,11 @@ factors:
     value: 0.7
     factorTypeId: bXvGAr4hy9EPmQ8Kp
 lobbyConfigs:
-  - name: default
-    timeoutType: lobby
+  - timeoutType: lobby
     timeoutInSeconds: 300
     timeoutStrategy: fail
     gameLobbyIds: []
   - name: individual
-    timeoutType: individual
-    timeoutInSeconds: 300
-    timeoutStrategy: fail
-    extendCount: 2
-    gameLobbyIds: []
-    archivedAt: 2021-06-28T17:52:29.883Z
-  - name: individualpilot
     timeoutType: individual
     timeoutInSeconds: 300
     timeoutStrategy: fail
