@@ -14,11 +14,12 @@ import Overview from "./intro/Overview.jsx";
 
 import SocialInteractionDetails from "./intro/SocialInteractionDetails.jsx";
 
-import BasicInterfaceInstructions from "./intro/BasicInterfaceInstructions.jsx";
-import BasicInterfaceQuiz from "./intro/BasicInterfaceQuiz.jsx";
+import BasicInterfaceInstructions from "./intro/instructions/BasicInterfaceInstructions.jsx";
+import BasicInterfaceQuiz from "./intro/quizes/BasicInterfaceQuiz.jsx";
 
-import AdvancedInterfaceInstructions from "./intro/AdvancedInterfaceInstructions.jsx";
-import AdvancedInterfaceQuiz from "./intro/AdvancedInterfaceQuiz.jsx";
+import AdvancedInterfaceInstructions from "./intro/instructions/AdvancedInterfaceInstructions.jsx";
+import AdvancedInterfaceQuiz from "./intro/quizes/AdvancedInterfaceQuiz.jsx";
+
 
 import MoreAboutBonus from "./intro/MoreAboutBonus.jsx";
 import UIOverview from "./intro/UIOverview.jsx";
@@ -41,7 +42,7 @@ Empirica.consent(Consent);
 // At this point they have been assigned a treatment. You can return
 // different instruction steps depending on the assigned treatment.
 Empirica.introSteps((game, treatment) => {
-  const steps = [Overview, BasicInterfaceInstructions, BasicInterfaceQuiz, AdvancedInterfaceInstructions, AdvancedInterfaceQuiz, GroupQuizCoop];
+  const steps = [Overview, BasicInterfaceInstructions, BasicInterfaceQuiz, AdvancedInterfaceInstructions, AdvancedInterfaceQuiz, GameplayInstructions, GameplayQuiz];
   if (game.treatment.condition== "coopCartel") {
     steps.push(GroupQuizCoop);
   }

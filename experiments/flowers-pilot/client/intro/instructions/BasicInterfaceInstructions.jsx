@@ -40,6 +40,7 @@ export default class BasicInterfaceInstructions extends React.Component {
           <h1 className={"bp3-heading"}> Game Instructions </h1>
           <p><b> Please read these instructions carefully! You will need to pass a quiz before we will allow you to participate.</b></p>
           <h2 className={"bp4-heading"}> Basic Interface </h2>
+
           <div class="interface-instructions">
             <div class="instruction-example">
 
