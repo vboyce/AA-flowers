@@ -15,16 +15,21 @@ import Overview from "./intro/Overview.jsx";
 import SocialInteractionDetails from "./intro/SocialInteractionDetails.jsx";
 
 import BasicInterfaceInstructions from "./intro/instructions/BasicInterfaceInstructions.jsx";
-import BasicInterfaceQuiz from "./intro/quizes/BasicInterfaceQuiz.jsx";
+import BasicInterfaceQuiz from "./intro/quizzes/BasicInterfaceQuiz.jsx";
 
 import AdvancedInterfaceInstructions from "./intro/instructions/AdvancedInterfaceInstructions.jsx";
-import AdvancedInterfaceQuiz from "./intro/quizes/AdvancedInterfaceQuiz.jsx";
+import AdvancedInterfaceQuiz from "./intro/quizzes/AdvancedInterfaceQuiz.jsx";
 
+import GameplayInstructions from "./intro/instructions/GameplayInstructions.jsx";
+import GameplayQuiz from "./intro/quizzes/GameplayQuiz.jsx";
+
+import FinalQuizLang from "./intro/quizzes/FinalQuizLang.jsx";
+import FinalQuizNonLang from "./intro/quizzes/FinalQuizNonLang.jsx";
 
 import MoreAboutBonus from "./intro/MoreAboutBonus.jsx";
 import UIOverview from "./intro/UIOverview.jsx";
-import GroupQuizCompet from "./intro/GroupQuizCompet.jsx";
-import GroupQuizCoop from "./intro/GroupQuizCoop.jsx";
+//import GroupQuizCompet from "./intro/GroupQuizCompet.jsx";
+//import GroupQuizCoop from "./intro/GroupQuizCoop.jsx";
 
 import Round from "./game/Round.jsx";
 import Thanks from "./exit/Thanks.jsx";
@@ -33,7 +38,7 @@ import ExitSurvey from "./exit/ExitSurvey";
 
 import customBreadcrumb from "./game/Breadcrumb.jsx";
 
-Empirica.header(() => null);
+//Empirica.header(() => null);
 
 // Set the Consent Component you want to present players (optional).
 Empirica.consent(Consent);
@@ -42,13 +47,23 @@ Empirica.consent(Consent);
 // At this point they have been assigned a treatment. You can return
 // different instruction steps depending on the assigned treatment.
 Empirica.introSteps((game, treatment) => {
+
   const steps = [Overview, BasicInterfaceInstructions, BasicInterfaceQuiz, AdvancedInterfaceInstructions, AdvancedInterfaceQuiz, GameplayInstructions, GameplayQuiz];
-  if (game.treatment.condition== "coopCartel") {
-    steps.push(GroupQuizCoop);
+  if (treatment.chatEnabled) {
+    steps.push(FinalQuizLang);
   }
-  if (game.treatment.condition== "competCartel") {
-    steps.push(GroupQuizCompet);
+  else {
+    steps.push(FinalQuizNonLang);
   }
+  //if (game.treatment.lang== "coopCartel") {
+  //  steps.push(FinalQuizCoop);
+  //}
+  //if (game.treatment.condition== "competCartel") {
+  //  steps.push(FinalQuizCompet);
+  //}
+  //if (game.treatment.condition== "coopMulti") {
+  //  steps.push(FinalQuizMulti);
+  //}
   //steps.push(MoreAboutBonus);
 
   return steps;
@@ -68,11 +83,16 @@ Empirica.round(Round);
 // user if they come back to the website.
 // If you don't return anything, or do not define this function, a default
 // exit screen will be shown.
-Empirica.exitSteps((game, player) => {
+Empirica.exitSteps((game, player, treatment) => {
   if (player.exitStatus !== "finished") {
     return [Sorry];
   } else {
-    return [ExitSurvey, Thanks];
+    if (game.treatment.chatEnabled == "true") {
+    //chat exit survey
+    return [ExitSurvey, Thanks];}
+    else {
+      return [ExitSurvey, Thanks];
+    }
   }
 });
 

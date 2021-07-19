@@ -1,6 +1,10 @@
 import React from "react";
 
-import { Centered } from "meteor/empirica:core";
+import { Centered, AlertToaster } from "meteor/empirica:core";
+
+import { Radio, RadioGroup } from "@blueprintjs/core";
+
+import { Checkbox } from "@blueprintjs/core";
 
 export default class GameplayInstructions extends React.Component {
   state = {
@@ -11,15 +15,16 @@ export default class GameplayInstructions extends React.Component {
     const {game, hasPrev, hasNext, onNext, onPrev, treatment } = this.props;
     var coopCartelBool = (treatment.condition=="coopCartel");
     var competCartelBool = (treatment.condition=="competCartel");
+    var coopMultiBool = (treatment.condition=="coopMulti");
     var lang = (treatment.chatEnabled==true);
     var nonlang = (treatment.chatEnabled!=true);
-    var coopMultiBool = (treatment.condition=="coopMulti");
     return (
       <Centered>
         <div className="instructions">
           <h1 className={"bp3-heading"}> Game Instructions </h1>
           <p><b> Please read these instructions carefully! You will need to pass a quiz before we will allow you to participate.</b></p>
-          <h2 className={"bp4-heading"}> Gameplay Instructions </h2>
+
+          <h2 className={"bp4-heading"}> Gameplay </h2>
 
           <div class="interface-instructions">
           <div className="instruction-example">
@@ -52,6 +57,7 @@ export default class GameplayInstructions extends React.Component {
 
             <p> Once all three players have made their selection, or the time runs out, you'll be told who selected which flower. You'll also get some information about how your score was calculated at the top! </p>
           </div>
+
           </div>
 
 <button

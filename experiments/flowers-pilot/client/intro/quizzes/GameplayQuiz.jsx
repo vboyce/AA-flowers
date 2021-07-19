@@ -6,7 +6,7 @@ import { Radio, RadioGroup } from "@blueprintjs/core";
 
 import { Checkbox } from "@blueprintjs/core";
 
-export default class GroupQuizCoop extends React.Component {
+export default class GameplayQuiz extends React.Component {
   state = {
     knowledge: "",
     flowerWorth: ""
