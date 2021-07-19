@@ -28,20 +28,20 @@ export default class FinalQuizLang extends React.Component {
         //lang condition
         AlertToaster.show({
           message:
-            "This solution wiuld give you a low profit. The bars above the flowers represent their worth, so there are better solutions on the page. Please try again!",
+            "The bars above the flowers represent their worth, so there are better solutions on the page. Please try again!",
         });
       }
       else if (this.state.selection == "B" || this.state.selection == "F") {
         //nonlang condition
         AlertToaster.show({
           message:
-            "While this flower might have a good value, there are flowers with a guarenteed high profit. Remember: the flowers hidden from you are revealed to your teammates. There is a better option on the page. Please try again!",
+            "Remember: the flowers hidden from you are revealed to your teammates. There is a better option on the page. Please try again!",
         });
       }
       else if (this.state.selection == "C" || this.state.selection == "D") {
         AlertToaster.show({
           message:
-            "This flower will already be chosen by another player. While you CAN select this flower, you will split the profit with a partner. There is a better option on the page. Please try again!",
+            "This flower will already be chosen by another player. There is a better option on the page. Please try again!",
         });
       }
       else {

@@ -11,9 +11,9 @@ export default class GameplayInstructions extends React.Component {
     const {game, hasPrev, hasNext, onNext, onPrev, treatment } = this.props;
     var coopCartelBool = (treatment.condition=="coopCartel");
     var competCartelBool = (treatment.condition=="competCartel");
+    var coopMultiBool = (treatment.condition=="coopMulti");
     var lang = (treatment.chatEnabled==true);
     var nonlang = (treatment.chatEnabled!=true);
-    var coopMultiBool = (treatment.condition=="coopMulti");
     return (
       <Centered>
         <div className="instructions">
@@ -30,7 +30,7 @@ export default class GameplayInstructions extends React.Component {
             <hr />
             <p>The bars above the flowers represent how much each flower is worth on the market. The longer the bar, the more the flower is expected to sell. </p>
 
-            <p>The bars above the flowers also represent your expertise as a flower farmer! You may not know much about some flowers, so those flowers are missing a profit bar. <strong>Your partners will have information about the flowers that are missing profit bars for you, but they might be missing information about flowers that you can see! </strong></p>
+            <p>You may not know anything about some flowers, so those flowers are missing a profit bar. <strong>Your partners may have information about the flowers that are missing profit bars for you! </strong></p>
           </div>
 
           <div className="instruction-example">

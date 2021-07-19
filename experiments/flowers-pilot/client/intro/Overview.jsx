@@ -29,16 +29,18 @@ export default class Overview extends React.Component {
           </div>
 
           {coopCartelBool &&
-            <div><p>I see here that you’re <b>sharing</b> a farm with {treatment.playerCount - 1} other farmers ({treatment.playerCount} players total). You and your partners will need to decide {lang ? 'together' : 'independently'} which seed to order. My ordering system is a little complicated, so I’ll give you a discount if you order the same seeds as your partners!  </p>
+            <div><p>I see here that you’re <b>sharing</b> a farm with {treatment.playerCount - 1} other farmers ({treatment.playerCount} players total). You and your partners will need to decide {lang ? 'together' : 'independently'} which seeds to order. My ordering system is a little complicated, so I’ll give you a discount if you order the same seeds as your partners!  </p>
             <p>This means if all {treatment.playerCount} of you order the same flower you’ll each get {treatment.playerCount}x the profit. If {treatment.playerCount - 1} of you order the same flower, those {treatment.playerCount - 1} partners will get {treatment.playerCount - 1}x the profit.  </p> </div>}
 
             {competCartelBool &&
               <div><p>I sell seeds to farmers all over the area, but only have enough seeds for one order per flower. You and the {treatment.playerCount - 1} other farmers will have to decide {lang ? 'together' : 'independently'} who will order which seed for the month. My ordering system doesn’t allow multiple orders per seed, so if you order the same seeds as another farmer, you’ll have to share the profit between yourselves! </p>
-              <p> For example, if all {treatment.playerCount} of you order the same flower worth 9 points, you’ll each earn 9/3=3 points. If only {treatment.playerCount-1} players select the same flower, those {treatment.playerCount-1} players will win 9/2=4.5 points. If you are the only player to select that flower, you will earn all 9 points! </p> </div>}
+              <p> For example, if all {treatment.playerCount} of you order the same flower worth 9 points, you’ll each earn 9/3=3 points. If only {treatment.playerCount-1} players select the same flower, those {treatment.playerCount-1} players will win 9/2=4.5 points. If you are the only player to select that flower, you will earn all 9 points! Notice it is best if all players select <strong>different</strong> flowers. </p> </div>}
 
               {coopMultiBool &&
                 <div><p>I see here that you’re <b>sharing</b> a farm with {treatment.playerCount - 1} other farmers. You and your partners will need to decide {lang ? 'together' : 'independently'} which seed to order. Each player will choose a flower and, as a team, you'll get the sum of your selections divided between the players.</p>
-                <p> For example, if all {treatment.playerCount} players select the same flower worth 9 points, the team will recieve 9/3=3 points. If you select a flower worth 9 points, and your {treatment.playerCount-1} other teammates select a flower worth 10 points, the team will receive 19/3=6.33 points. Double the value!</p> </div>}
+                <p> For example, if all {treatment.playerCount} players select the same flower worth 9 points, the team will recieve 9/3=3 points. If you select a flower worth 9 points, and your {treatment.playerCount-1} other teammates select a flower worth 10 points, the team will receive 19/3=6.33 points. Notice it is best if all players select <strong>different</strong> flowers.</p> </div>}
+                <div> <p>Researchers Note:  We have carefully designed this game so that the maximum profit is worth the time and effort that is required. Your bonus will be much larger if you play the game carefully with your full attention.</p> </div>
+
           <button
             type="button"
             className="bp3-button bp3-intent-nope bp3-icon-double-chevron-left"

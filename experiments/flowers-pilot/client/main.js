@@ -38,7 +38,7 @@ import ExitSurvey from "./exit/ExitSurvey";
 
 import customBreadcrumb from "./game/Breadcrumb.jsx";
 
-//Empirica.header(() => null);
+Empirica.header(() => null);
 
 // Set the Consent Component you want to present players (optional).
 Empirica.consent(Consent);
