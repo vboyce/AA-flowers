@@ -6,7 +6,7 @@ export default class Sorry extends React.Component {
   static stepName = "Sorry";
 
   render() {    
-    const { player, game, hasNext, onSubmit } = this.props;
+    const { player, game, hasNext, onSubmit} = this.props;
     let msg;
     switch (player.exitStatus) {
       case "gameFull":
@@ -34,39 +34,22 @@ export default class Sorry extends React.Component {
         <div className="score">
           <h1>Sorry!</h1>
           <p>{msg}</p>
-          {/*<p>Sorry, you were not able to play today! {msg}</p>*/}
-          {/*{player.exitStatus !== "gameFull" ? (*/}
-          {/*<p>*/}
-          {/*Please return the HIT now so our platform does register your MTurk.*/}
-          {/*Please come back for one of the next batches of Part 1. We will submit new*/}
-          {/*batches on Monday the 6th of August and Tuesday the 7th of August*/}
-          {/*(batches of 100 games every hour starting at 2PM ET until 5PM).*/}
-          {/*</p>*/}
 
           <p>
-            Please submit <em>{game.treatment.submitCode}</em> as the survey code in
-            order to receive the base pay for your time today.
+            Please fill out the survey on the next page, and then you'll recieve the survey code to receive the base pay for your time today.
           </p>
           
-          {/*) : (*/}
-          {/*<p>*/}
-          {/*Please click on: <strong>Reset current session</strong> from the*/}
-          {/*top right side of the page (if it appears for you) to see if there*/}
-          {/*are other games that you could join now. Note you will need to go*/}
-          {/*over the instructions and quiz again (they might be different for*/}
-          {/*different games). Otherwise, Please return the HIT now so our*/}
-          {/*platform does not register your MTurk ID as someone who already*/}
-          {/*participated.*/}
-          {/*</p>*/}
+          
 
           <p>
             {hasNext ? (
               <button
-                className="pt-button pt-intent-primary"
-                type="button"
+              type="button"
+              className="bp3-button bp3-intent-primary"
                 onClick={() => onSubmit()}
               >
-                Done
+                Next
+                <span className="bp3-icon-standard bp3-icon-double-chevron-right bp3-align-right" />
               </button>
             ) : (
               ""

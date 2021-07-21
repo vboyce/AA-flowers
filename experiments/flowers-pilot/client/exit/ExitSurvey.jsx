@@ -387,7 +387,9 @@ export default class ExitSurvey extends React.Component {
                     </div>
                     
                     </div>
-                    <button type="submit" className="pt-button pt-intent-primary">
+                    <button type="submit"  
+                     className="bp3-button bp3-intent-primary"
+>
                         Submit
                         <span className="pt-icon-standard pt-icon-key-enter pt-align-right" />
                     </button>
