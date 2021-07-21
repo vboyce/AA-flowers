@@ -8,21 +8,27 @@ knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
 library(tidyverse)
 library(here)
 library("stringr")
+library(Hmisc)
+library("spacyr")
+library(ggrepel)
+
 ```
 
 ## STEP THREE - Linguistic quantity and complexity
 
-
 ```{r main data, include=TRUE}
+d<- read_csv("~/Downloads/raw_chat.csv")
+d <- d %>% filter(type=="message")
+write_csv(d, "~/Downloads/raw_chat1.csv")
+```
+
+
+```{r main data1, include=TRUE}
 data_target = "pilot0"
 data_location=paste0("data/",data_target)
 
-d_flowers<- read_csv(here(data_location, "raw_chat.csv"))%>%
+d_flowers<- read_csv(here(data_location, "raw_chat1.csv"))%>%
  filter(!is.na(text)) 
-
-
-
-
 
 ```
 
@@ -46,9 +52,8 @@ ggplot(d_flowers_utt_length, aes(x=repNum, y=total_num_words, color=as.factor(pl
   scale_y_continuous(limits = c(0,50))+
   labs(title="Number of words", y="Total number of words", x="Round number", color="playerId")+
   theme(legend.position="bottom") + 
-  theme_bw()
-
-
+  theme_bw() +
+  ggtitle("Number of words per Round")
 
 
 ggplot(d_flowers_utt_length, aes(x=repNum, y=mlu, color=as.factor(playerId)))+
@@ -60,10 +65,8 @@ ggplot(d_flowers_utt_length, aes(x=repNum, y=mlu, color=as.factor(playerId)))+
   scale_y_continuous(limits = c(0,15))+
   labs(title="MLU", y="MLU", x="Round number", color="playerId")+
   theme(legend.position="bottom") + 
-  theme_bw()
-
-
-
+  theme_bw()+
+  ggtitle("MLU per Round")
 
 ```
 
@@ -83,7 +86,8 @@ ggplot(d_flowers_n_turns, aes(x=trialNum, y=n, color=as.factor(playerId)))+
   stat_summary(fun.data = "mean_cl_boot")+
   labs(title="Number of turns", y="Number of turns", x="Round number", color="playerId")+
   theme(legend.position="bottom") + 
-  theme_bw()
+  theme_bw() +
+  ggtitle("Number of turns per Round")
 
 ```
 
@@ -104,14 +108,13 @@ ggplot(d_flowers_n_utt_speaker,
   geom_point(alpha=.1) +
   facet_grid(~playerId) +
   xlab("Round number") + 
-  ylab("Number of turns") + 
+  ylab("Number of utterances") + 
   theme_bw()
+
 ```
 
 ### 3. Parts of speech
 ```{r pos}
-
-library("spacyr")
 
 text <- d_flowers$text
 parsed <- spacy_parse(text,pos=TRUE) %>%
@@ -173,7 +176,8 @@ ggplot(d_flowers_ttr,
   facet_grid(rows =vars(gameId)) +
   xlab("Round number") + 
   ylab("Type_token ratio") + 
-  theme_bw()
+  theme_bw()+
+  ggtitle("TTR per Round")
 
 ```
 
@@ -201,14 +205,15 @@ ggplot(d_flowers_n_utt_dist,
   facet_wrap(~playerId)+
   xlab("Round number") + 
   ylab("Proportion of turns") + 
-  theme_bw()
+  theme_bw()+
+  ggtitle("Proportion of turns per Round")
 
 ```
 
 
 ### 2. Turn-eliciting questions
 
-```{r cars}
+```{r questions}
 
 
 d_flowers_n_utt_speaker <- d_flowers %>%
@@ -235,6 +240,62 @@ ggplot(d_flowers_q,
   geom_point(alpha=.1) +
   xlab("Round number") + 
   ylab("Proportion of questions") + 
+  theme_bw()+
+  ggtitle("Proportion of questions per Round")
+  
+```
+
+### 1. Distribution of speech across speakers
+```{r feedback}
+
+###politeness markers
+
+###backchanneling: (https://www.reading.ac.uk/AcaDepts/ll/app_ling/internal/Cutrone_vol_2.pdf) 
+
+backchanneling<- c("mm", "okay", "uh-huh", "ok", "mm-hm", "uh", "um", "agree", "uhuh", "mmm", "wow", "great", "mm", "hm",  "ummm", "hmmmm", "huh", "un", "um", "ohh", "ooo", "see", "oooo", "ununun", "oh", "ah", "true", "agree", "right", "yeah", "good", "really")
+
+###hedges: (https://www.researchgate.net/publication/280125979_Linguistic_Markers_and_Stylistic_Attributes_of_Hedging_in_English_Academic_Papers_Written_by_Native_and_Non-Native_Speakers_of_English/figures) 
+
+hedging <- c("may", "perhaps", "might", "possible", "likely", "possibly", "maybe", "probable", "appear", "seem", "suggest", "sometimes", "seemingly", "apparently", "often", "could", "usually", "likely", "tend", "sometimes", "probably", "primarily", "tendency", "largely")   
+
+
+d_flowers_feedback <- d_flowers %>%
+  group_by(playerId, trialNum, gameId, blockNum) %>%
+  mutate(text = gsub('[[:punct:] ]+',' ',text)) %>%
+  mutate(text = strsplit(text, " ")) %>%
+  rowwise() %>%
+  mutate(backchannel=list(intersect(backchanneling, text))) %>%
+  mutate(backchannel_length=length(backchannel))%>%
+  mutate(hedge=list(intersect(hedging, text))) %>%
+  mutate(hedge_length=length(hedge))
+
+ggplot(d_flowers_feedback, aes(y=trialNum , x=backchannel_length, label=playerId)) +
+  facet_wrap(~ playerId) +
+  geom_bar(stat="identity")
+
+ggplot(d_flowers_feedback, aes(y=trialNum , x=hedge_length, label=playerId)) +
+  facet_wrap(~ playerId) +
+  geom_bar(stat="identity")
+
+ggplot(d_flowers_feedback, aes(y=trialNum , x=backchannel_length, label=playerId)) +
+  geom_point(alpha = .5)+
+  geom_smooth() +
+  geom_text_repel(aes(label=ifelse(backchannel=="character(0)",  "", backchannel), max.overlaps = 20))+
+  xlim(c(1,5))+
   theme_bw()
+
+ggplot(d_flowers_feedback, aes(y=trialNum , x=hedge_length, label=playerId)) +
+  geom_point(alpha = .5)+
+  geom_smooth() +
+  geom_text_repel(aes(label=ifelse(hedge=="character(0)", "", hedge), max.overlaps = 20))+
+  xlim(c(1,5))+
+  theme_bw()
+  
+```
+
+
+
+
+```{r minimum_edit_distance, include=TRUE}
 
 ```
