@@ -36,7 +36,7 @@ export default class Sorry extends React.Component {
           <p>{msg}</p>
 
           <p>
-            Please fill out the survey on the next page, and then you'll recieve the survey code to receive the base pay for your time today.
+            Please fill out the survey on the next page, and then you'll receive the survey code to receive the base pay for your time today.
           </p>
           
           
