@@ -1,5 +1,11 @@
 library(ggplot2)
 library(dplyr)
+
+
+#install.packages("devtools")
+#devtools::install_github("langcog/langcog")
+
+
 library(langcog)
 library(readr)
 library(tidyr)
@@ -14,7 +20,7 @@ library(purrr)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
-result_files <- "data/pilot0/output.csv"
+result_files <- "data/pilot0/output_alignment.csv"
 #result_files <-  list.files(path = "../data/pilot0/",recursive = TRUE,
  #                           all.files = FALSE, full.names = TRUE,
   #                          pattern = "output.csv")
@@ -57,8 +63,9 @@ return(alignment_data)
 
 alignment_data <- fit_alignment(childes_data) 
 
+alignment_model = stan_model(file = "code/stanmodel.stan")
 
-alignment_model = stan_model(file = "~/Documents/stanmodel.stan")
+#alignment_model = stan_model(file = "~/Documents/stanmodel.stan")
 
 fit<- sampling(alignment_model, data = alignment_data, 
                 iter = 500, warmup = 100, chains = 3 ,
@@ -78,7 +85,7 @@ plot(mu_notab,d2$bna/(d2$bna+d2$nbna))
 
 #checking in on the learned subpopulation values
 eta_ab_subpop <- colMeans(rstan:::extract(fit,"eta_ab_subpop")$eta_ab_subpop)
-eta_subpop <- colMeans(rstan:::extract(fit,"eta_subpop")$eta_subpop) ######this doesn't exist
+#eta_subpop <- colMeans(rstan:::extract(fit,"eta_subpop")$eta_subpop) ######this doesn't exist
 
 d3 <- d2 %>%
   mutate(model_eta = colMeans(rstan:::extract(fit,"eta_ab_observation")$eta_ab_observation))
@@ -101,15 +108,14 @@ ggplot(aes(x = mean, y = subpop), data = d4) +
   theme_bw(base_size = 14) +
   theme(panel.grid = element_blank())
 
-d4 <- d3 %>%
+d5 <- d3 %>%
   group_by(subpop, category) 
 
 #This is the plot for results/children_eta_bywords.pdf
 ggplot(aes(y = subpop, x = model_eta, colour = category,
-), data=d4) + 
+), data=d5) + 
   geom_point()+
   geom_smooth(method = "loess") +
-  scale_color_brewer(palette = "Set1") +
   theme_bw(base_size = 14) +
   theme(panel.grid = element_blank()) +
   labs(title='Model-estimated Alignment to speaker pairs',
