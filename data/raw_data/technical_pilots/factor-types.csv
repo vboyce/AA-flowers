@@ -1,0 +1,15 @@
+﻿_id,name,required,description,type,min,max,createdAt,archivedAt
+LWWjuzWJrQhuWuaeh,playerCount,true,The Number of players participating in the given game.,Integer,1,,2021-04-06T22:57:35Z,
+kJddTH8X4Y6Df7SPA,selectionDuration,true,how many seconds do participants have to complete a tangram selection trial,String,,,2021-04-07T01:06:29Z,
+oTmtc6KmQb77CaDTC,submitCode,true,code for submission to prolific/mturk,String,,,2021-04-07T01:06:29Z,
+uWvpQqxyNi8Dz6CSn,rounds,false,number of rounds,Integer,1,,2021-04-07T01:06:29Z,
+tJ642Av4buu8Q5w73,feedbackDuration,false,how many seconds the feedback is displayed for,Integer,1,100,2021-04-07T01:06:29Z,
+ZkXeabrJhX4KfX8yj,listenerBonus,false,how much a listener is paid per correct answer (in cents),Integer,1,10,2021-04-07T01:06:29Z,2021-06-28T19:36:25Z
+b5miCkhM6uwYKF2Sn,speakerBonus,false,how much bonus the speaker gets *per listener* who gets it right,Integer,0,10,2021-04-07T01:08:22Z,2021-03-31T21:23:37Z
+NdwKxvtL5ibRjTYBh,targetSet,false,which set of imagesets to use,String,1,10,2021-04-30T19:13:42Z,
+vEbTwwQmrSWHfYeF4,condition,false,which condition,String,1,20,2021-04-30T19:13:42Z,
+2YZvnSnu3ft989qpY,numTargets,false,how many images are shown at once,Integer,2,12,2021-04-30T19:13:42Z,
+dXoDyaNp7iLQGpXsP,repsPerBlock,false,how many trials are there per image set,Integer,1,20,2021-04-30T19:13:42Z,
+K86LrpQD9kfzZTT7S,partial,false,is there partial knowledge?,Boolean,,,2021-04-30T19:13:42Z,
+bXvGAr4hy9EPmQ8Kp,scale,false,what the utilities are multiplied by -- should be low for coop and high for competitive,Number,0,10,2021-04-30T19:13:42Z,
+8ZYC2jZrDkoZvXGGS,chatEnabled,true,to enable or disable the language conditions,Boolean,,,2021-06-28T19:34:08Z,

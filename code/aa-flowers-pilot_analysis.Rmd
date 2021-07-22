@@ -6,165 +6,42 @@ output:
 ---
 
 ```{r set-up, include=F}
-#knitr::opts_chunk$set(echo = FALSE, warning=F, message=F)
-#knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"))
-#options(knitr.table.format = "html")
 library(tidyverse)
 library(jsonlite)
 library(here)
-
+source(here("code/preprocessing/00_preprocessing_functions.R"))
 theme_set(theme_bw())
 
-data_target = "collabmulti_pilot0"
+
 ##Data import constants
-data_location=paste0("data/",data_target)
 date_start=lubridate::ymd('2021-07-19')
-image_location=paste0(here("figs",data_target))
+image_location=here("figs")
 
-#library(rlang)
-#library(lme4)
-#library(brms)
-#library(rstan)
-#rstan_options(auto_write = TRUE)
-#options(mc.cores = parallel::detectCores())
-#model_location="code/models"
-
-```
-
-```{r}
-# This was for determining participant bonuses using the version of data with PID
-# d.treatments <- read_csv(here(data_location, 'treatments.csv')) %>% rename(treatmentId=`_id`)
-# 
-# d.games <- read_csv(here(data_location, 'games.csv')) %>%
-#   select(gameId=`_id`, treatmentId, playerIds) %>%
-#   left_join(d.treatments) %>%
-#   mutate(playerIds=str_split(playerIds,",")) %>%
-#   unnest(playerIds) %>%
-#   select(playerId=playerIds, name)
-# 
-# d.players <- read_csv(here(data_location, 'players.csv')) %>%
-#   rename(playerId=`_id`) %>%
-#   left_join(d.games) %>%
-#   select(data.bonus, playerId,id,data.bonus,name) %>%
-#     filter(!is.na(name)) %>%
-#   mutate(pc_bonus=case_when(
-#     name=="fourRotate" ~ 3,
-#     name=="threeRotate" ~ 1.5,
-#     T ~ 0
-#   )) %>%
-#   mutate(bonus=round(data.bonus+pc_bonus,2),
-#          cost=round(bonus*4/3,2)) %>% write_csv(here(data_location, "player_payments.csv")) %>% select(id,bonus) %>% write_csv(here(data_location,"for_prolific.csv"))
 ```
 
 # Pre-process
-
-We need:
-1) game info with treatment parameters
-2) context for each round (what were participant's options? max utility based on game conditions?)
-3) round results (what did participants select each round?)
-4) chat (what did individual participants say each round)
-5) feedback/demographics
-
-```{r helper-functions}
-ParseJSONColumn <- function(x) {
-  str_c("[ ", str_c(x, collapse = ",", sep=" "), " ]")  %>% 
-    fromJSON(flatten = T)
-}
-
-extract_context_info <- function(context_key){
-  return(str_extract(context_key, "[^.]*$"))
-}
+```{r process-data, message=FALSE, warning=FALSE}
+data_list <- c("technical_pilots", "collabmulti_pilot0", 
+               "collabmulti_20", "compet_20")
+process_all_data(data_list)
+join_all_data()
 ```
 
-Get info about the games and treatments
-- We need each game, the 
-```{r game-preprocessing}
-d.games.raw <- read_csv(here(data_location, 'games.csv')) %>% 
-  rename(gameId = `_id`) %>% 
-  filter(createdAt >= date_start) %>%
-  rename_with(~ gsub("data.", "", .x, fixed = TRUE))
-
-d.treatments.raw <- read_csv(here(data_location, 'treatments.csv')) %>% 
-  rename(treatmentId = `_id`) %>%
-  #filter(createdAt >= date_start) %>%
-  mutate(factorIds = str_split(factorIds, pattern=",")) %>%
-  unnest(factorIds) %>% rename(factorId = factorIds)
-
-d.factors.raw <- read_csv(here(data_location, 'factors.csv'))%>% 
-  rename(factorId = `_id`)
-
-d.factor_types.raw <- read_csv(here(data_location, 'factor-types.csv')) %>%
-  rename(factorTypeId = "_id",
-         factorName = "name")
-
-d.factors <- d.factors.raw %>% 
-  left_join(d.factor_types.raw %>% 
-              select(factorTypeId, factorName))
-
-d.treatments <- d.treatments.raw %>% 
-  left_join(d.factors %>% 
-              select(factorId, factorName, value)) %>%
-  pivot_wider(id_cols = c(treatmentId, name, createdAt), 
-              names_from = factorName, values_from = value)
-
-d.players <- read_csv(here(data_location, 'players.csv')) %>%
-  rename(playerId = `_id`) %>% 
-  filter(createdAt >= date_start) %>%
-  rename_with(~ gsub("data.", "", .x, fixed = TRUE))
-
-d.games <- d.games.raw %>% left_join(d.treatments %>% 
-                                       select(-createdAt)) %>%
-  janitor::remove_empty() %>%
-  #select out the nonuseful columns
-  select(-c(gameLobbyId, treatmentId, batchId, targetSet, justStarted, submitCode, roundIds)) %>%
-  separate(col = playerIds, sep = ",", into = c("player_1", "player_2", "player_3")) %>% 
-  pivot_longer(cols = starts_with("player_"), names_to = "playerNum", values_to = "playerId") %>%
-  left_join(d.players %>% select(playerId, readyAt)) %>%
-  mutate(game_length = finishedAt - readyAt) %>%
-  group_by(across(gameId:chatEnabled)) %>%
-  summarize(gameLength = max(game_length)) %>% ungroup()
+```{r read-processed-date, message=FALSE}
+d.players <- read_csv(here("data/processed_data/joined_data/players.csv")) %>% distinct()
+d.games <- read_csv(here("data/processed_data/joined_data/games.csv")) %>% distinct()
+d.rounds <- read_csv(here("data/processed_data/joined_data/rounds.csv")) %>% distinct()
+d.raw_chat <- read_csv(here("data/processed_data/joined_data/raw_chat.csv")) %>% distinct()
 ```
-
-Round info
-For each round, we want to know the context...
-- which flowers were available
-- the utility of each flower
-
-We also want to have a report for each round including...
-- which participants selected which flowers
-- the time the participants took to select
-- the utility of the flower the participants selected
 
 ```{r}
-d.round_results.raw <- read_csv(here(data_location,'rounds.csv'), guess_max=10000) %>% 
-  filter(createdAt >= date_start) %>% 
-  rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% 
-  rename_with ( ~ gsub("room", "player", .x, fixed=T))
+#exclude BLOCKS with <12 completed (all 3 participants responded) rounds
+rounds_exclude <- d.rounds %>% group_by(gameId, blockNum) %>% tally() %>% filter(n!=36) %>% select(gameId,blockNum)
 
-#try pivot_longer instead of gather??
-d.round_results <- d.round_results.raw  %>% 
-  #filter out rounds where no one made a selection
-  filter(!is.na(chat)) %>%
-  select(-chat, -context) %>%
-  mutate_at(vars(starts_with('player')), as.character) %>%
-  pivot_longer(cols = starts_with('player'), 
-               names_to = c('blah', 'playerId', 'info'), 
-               values_to = "value",
-               names_sep = "_",
-               values_drop_na = TRUE) %>%
-  pivot_wider(names_from = "info", values_from = "value") %>%
-  select(-blah) %>%
-  mutate_at(c("time", "utility"), as.numeric) %>%
-  mutate(utility = ifelse(response == "false", 0, utility)) %>%
-  #TODO: some times are negative?? interesting
-  mutate(time = abs(as.numeric(time)/1000)) %>%
-  rename(time_sec = time, playerResponse = response, playerUtility = utility) %>%
-  arrange(createdAt, gameId, blockNum, repNum)
-
-#exclude blocks with <12 completed rounds
-rounds_exclude <- d.round_results %>% group_by(gameId, blockNum) %>% tally() %>% filter(n!=36) %>% select(gameId,blockNum)
-d.round_results.final <-  d.round_results %>% anti_join(rounds_exclude)
+d.rounds.final <-  d.rounds %>% anti_join(rounds_exclude)
+d.raw_chat.final <- d.raw_chat %>% anti_join(rounds_exclude) %>% write_csv(here("data/processed_data/joined_data/filtered_raw_chat.csv"))
 ```
+
 ```{r}
 game_completion <- d.round_results %>% 
   group_by(gameId) %>% 
