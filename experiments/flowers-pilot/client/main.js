@@ -84,7 +84,7 @@ Empirica.round(Round);
 // If you don't return anything, or do not define this function, a default
 // exit screen will be shown.
 Empirica.exitSteps((game, player, treatment) => {
-  if (player.exitStatus !== "finished") {
+   if (player.exitStatus !== "finished") {
     if (game.treatment.chatEnabled == "true") {
     //chat exit survey
     return [Sorry, ExitSurvey, Thanks];}
