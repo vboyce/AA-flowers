@@ -35,7 +35,7 @@ import Round from "./game/Round.jsx";
 import Thanks from "./exit/Thanks.jsx";
 import Sorry from "./exit/Sorry";
 import ExitSurvey from "./exit/ExitSurvey";
-
+import ExitSurveyNochat from "./exit/ExitSurveyNochat.jsx";
 import customBreadcrumb from "./game/Breadcrumb.jsx";
 
 Empirica.header(() => null);
@@ -85,13 +85,18 @@ Empirica.round(Round);
 // exit screen will be shown.
 Empirica.exitSteps((game, player, treatment) => {
   if (player.exitStatus !== "finished") {
-    return [Sorry,ExitSurvey, Thanks];
+    if (game.treatment.chatEnabled == "true") {
+    //chat exit survey
+    return [Sorry, ExitSurvey, Thanks];}
+    else {
+      return [Sorry, ExitSurveyNochat, Thanks];
+    }
   } else {
     if (game.treatment.chatEnabled == "true") {
     //chat exit survey
     return [ExitSurvey, Thanks];}
     else {
-      return [ExitSurvey, Thanks];
+      return [ExitSurveyNochat, Thanks];
     }
   }
 });
