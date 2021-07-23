@@ -28,20 +28,20 @@ get_player_data <- function(data_read_location, date_start) {
 
 get_game_data <- function(data_read_location, date_start, players_data) {
   # gets the game information, factors, and treatment variables for each game
-  d.games.raw <- read_csv(here(data_read_location, 'games.csv')) %>% 
+  d.games.raw <- read_csv(here(data_read_location, 'games.csv'), col_types = cols()) %>% 
     rename(gameId = `_id`) %>% 
     filter(createdAt >= date_start) %>%
     rename_with(~ gsub("data.", "", .x, fixed = TRUE))
   
-  d.treatments.raw <- read_csv(here(data_read_location, 'treatments.csv')) %>% 
+  d.treatments.raw <- read_csv(here(data_read_location, 'treatments.csv'),col_types = cols()) %>% 
     rename(treatmentId = `_id`) %>%
     mutate(factorIds = str_split(factorIds, pattern=",")) %>%
     unnest(factorIds) %>% rename(factorId = factorIds)
   
-  d.factors.raw <- read_csv(here(data_read_location, 'factors.csv'))%>% 
+  d.factors.raw <- read_csv(here(data_read_location, 'factors.csv'),col_types = cols())%>% 
     rename(factorId = `_id`)
   
-  d.factor_types.raw <- read_csv(here(data_read_location, 'factor-types.csv')) %>%
+  d.factor_types.raw <- read_csv(here(data_read_location, 'factor-types.csv'),col_types = cols()) %>%
     rename(factorTypeId = "_id",
            factorName = "name")
   
@@ -70,14 +70,17 @@ get_game_data <- function(data_read_location, date_start, players_data) {
                  values_to = "playerId") %>%
     left_join(players_data %>% select(playerId, readyAt)) %>%
     #calculate game time
-    mutate(game_length = finishedAt - readyAt) %>%
+    mutate(game_length = difftime(finishedAt, readyAt, units = "s")) %>%
     group_by(across(gameId:chatEnabled)) %>%
-    summarize(gameLength = max(game_length)) %>% ungroup()
+    summarize(gameLength = min(game_length)) %>% ungroup() %>%
+    mutate(pilot = ifelse(grepl("Pilot", name),TRUE,FALSE))
+  
   return(d.games)
 }
 
 get_round_data <- function(data_read_location, date_start) {
-  d.round_results.raw <- read_csv(here(data_read_location,'rounds.csv'), guess_max=10000) %>% 
+  d.round_results.raw <- read_csv(here(data_read_location,'rounds.csv'), 
+                                  guess_max=10000,col_types = cols()) %>% 
     filter(createdAt >= date_start) %>% 
     rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% 
     rename_with ( ~ gsub("room", "player", .x, fixed=T))
@@ -105,7 +108,8 @@ get_round_data <- function(data_read_location, date_start) {
 }
 
 get_raw_chat <- function(data_read_location, date_start) {
-  d.chat.raw <-  read_csv(here(data_read_location,'rounds.csv'), guess_max=10000) %>% 
+  d.chat.raw <-  read_csv(here(data_read_location,'rounds.csv'), 
+                          guess_max=10000,col_types = cols()) %>% 
     filter(createdAt >= date_start) %>% 
     rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% 
     rename_with ( ~ gsub("room", "player", .x, fixed=T)) %>%
@@ -136,7 +140,38 @@ add_chat_info <- function(raw_chat_data, player_data, round_data, game_data) {
                                         NA)) %>%
     select(gameId, trialNum, condition, chatEnabled, 
            playerId, name, text, participantAction, everything())
+  
   return(chat.info)
+}
+
+get_alternative_context <- function(data_read_location, date_start) {
+  d.context <- read_csv(here(data_read_location,'rounds.csv'), 
+                        guess_max=10000,col_types = cols())  %>%
+    filter(createdAt >= date_start) %>%
+    mutate(data.context = map(data.context, 
+                              .f = ParseJSONColumn)) %>% 
+    select("_id":"data.numPlayers") %>%
+    mutate(data.context = map(data.context,
+                              function(df) df %>% gather(key, value) %>%
+                                mutate(key = gsub('.', '-', key, fixed=TRUE)) %>%
+                                separate(key, into = c("label", "key"), sep = "-") %>%
+                                spread(key, value))) %>%
+    unnest(data.context) %>%
+    rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>%
+    rename(roundID = `_id`)
+  return(d.context)
+}
+
+get_demographics <- function(data_read_location, date_start, games_data) {
+  read_csv(here(data_read_location, 'player-inputs.csv')) %>%
+    filter(createdAt >= date_start) %>%
+  rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% select(gameId:education)
+}
+
+get_feedback <- function(data_read_location, date_start) {
+  read_csv(here(data_read_location, 'player-inputs.csv')) %>%
+    filter(createdAt >= date_start) %>%
+    rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% select(c(playerId, correctness:time))
 }
 
 preprocess_dataset <- function(data_name, date_start = lubridate::ymd('2021-01-01')) {
@@ -146,14 +181,18 @@ preprocess_dataset <- function(data_name, date_start = lubridate::ymd('2021-01-0
   d.players <- get_player_data(data_read_location, date_start)
   d.games <- get_game_data(data_read_location, date_start, d.players)
   d.rounds <- get_round_data(data_read_location, date_start)
-  d.raw_chat <- get_raw_chat(data_read_location, date_start) %>%
-    add_chat_info(d.players, d.rounds, d.games)
+  d.raw_chat <- get_raw_chat(data_read_location, date_start)
+  d.contexts <- get_alternative_context(data_read_location, date_start)
   
   d.players %>% write_csv(here(data_write_location, "players.csv"))
   d.games %>% write_csv(here(data_write_location, "games.csv"))
   d.rounds %>% write_csv(here(data_write_location, "rounds.csv"))
   d.raw_chat %>% write_csv(here(data_write_location, "raw_chat.csv"))
-  
+  d.contexts %>% write_csv(here(data_write_location, "contexts.csv"))
+  get_demographics(data_read_location, date_start) %>% 
+    write_csv(here(data_write_location, "demographics.csv"))
+  get_feedback(data_read_location, date_start) %>% 
+    write_csv(here(data_write_location, "feedback.csv"))
   return(paste0("Processed ", data_name))
 }
 
@@ -164,12 +203,12 @@ process_all_data <- function(dataset_list) {
 do_join_data <- function(csv_name){
   joined_csv <- list.files(path=here("data/processed_data"), 
                         pattern=glue::glue("{csv_name}.csv$"), recursive = T) %>% 
-    map_df(~read_csv(here("data/processed_data", .))) %>% 
+    map_df(~read_csv(here("data/processed_data", .), col_types = cols())) %>% 
       write_csv(here(glue::glue("data/processed_data/joined_data/{csv_name}.csv")))
   return(glue::glue("Processed {csv_name}"))
 }
 
 join_all_data <- function() {
- lapply(c("players", "games", "rounds", "raw_chat"), do_join_data)
+ lapply(c("players", "games", "rounds", "raw_chat", "contexts", "demographics", "feedback"), do_join_data)
 }
 
