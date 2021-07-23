@@ -1,6 +1,6 @@
-gameId,finishedAt,createdAt,sequence,numBlocks,condition,name,playerCount,selectionDuration,rounds,feedbackDuration,numTargets,repsPerBlock,partial,scale,chatEnabled,gameLength
-hWc3fHAfD2kYNNQwd,2021-07-20T18:25:58Z,2021-07-20T17:54:14Z,"red,white,purple,yellow",4,coopMulti,multiPilot0720,3,180,6,5,6,12,true,1.6,true,35.6333333333333
-ier2nCDT3gEyDmDuw,2021-07-20T18:21:48Z,2021-07-20T17:06:15Z,"white,red,yellow,purple",4,coopMulti,multiPilot0720,3,180,6,5,6,12,true,1.6,true,78.2333333333333
-JvZjCtThY3iTsrXN5,2021-07-20T17:39:10Z,2021-07-20T17:00:47Z,"yellow,red,purple,white",4,coopMulti,multiPilot0720,3,180,6,5,6,12,true,1.6,true,40.35
-KiBJ5D2Gb56scHooG,2021-07-20T17:26:05Z,2021-07-20T16:58:33Z,"yellow,white,purple,red",4,coopMulti,multiPilot0720,3,180,6,5,6,12,true,1.6,true,28.5
-R6fYnby2HvssRxsAM,2021-07-20T17:17:11Z,2021-07-20T17:02:40Z,"red,yellow,white,purple",4,coopMulti,multiPilot0720,3,180,6,5,6,12,true,1.6,true,15.55
+gameId,finishedAt,createdAt,sequence,numBlocks,condition,name,playerCount,selectionDuration,rounds,feedbackDuration,numTargets,repsPerBlock,partial,scale,chatEnabled,gameLength,pilot
+hWc3fHAfD2kYNNQwd,2021-07-20T18:25:58Z,2021-07-20T17:54:14Z,"red,white,purple,yellow",4,coopMulti,multiPilot0720,3,180,6,5,6,12,true,1.6,true,1904,TRUE
+ier2nCDT3gEyDmDuw,2021-07-20T18:21:48Z,2021-07-20T17:06:15Z,"white,red,yellow,purple",4,coopMulti,multiPilot0720,3,180,6,5,6,12,true,1.6,true,4533,TRUE
+JvZjCtThY3iTsrXN5,2021-07-20T17:39:10Z,2021-07-20T17:00:47Z,"yellow,red,purple,white",4,coopMulti,multiPilot0720,3,180,6,5,6,12,true,1.6,true,2302,TRUE
+KiBJ5D2Gb56scHooG,2021-07-20T17:26:05Z,2021-07-20T16:58:33Z,"yellow,white,purple,red",4,coopMulti,multiPilot0720,3,180,6,5,6,12,true,1.6,true,1651,TRUE
+R6fYnby2HvssRxsAM,2021-07-20T17:17:11Z,2021-07-20T17:02:40Z,"red,yellow,white,purple",4,coopMulti,multiPilot0720,3,180,6,5,6,12,true,1.6,true,870,TRUE

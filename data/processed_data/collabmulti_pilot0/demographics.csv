@@ -1,0 +1,16 @@
+gameId,createdAt,age,gender,language,raceWhite,raceBlack,raceAsian,raceNative,raceIslander,raceHispanic,education
+R6fYnby2HvssRxsAM,2021-07-20T17:17:52Z,21,Female,English,TRUE,NA,NA,NA,NA,NA,bachelor
+R6fYnby2HvssRxsAM,2021-07-20T17:18:14Z,23,Female,English,TRUE,NA,NA,NA,NA,NA,bachelor
+R6fYnby2HvssRxsAM,2021-07-20T17:18:27Z,43,Male,English,TRUE,NA,NA,NA,FALSE,NA,someCollege
+KiBJ5D2Gb56scHooG,2021-07-20T17:26:37Z,24,Female,British English,TRUE,NA,NA,NA,NA,NA,master
+KiBJ5D2Gb56scHooG,2021-07-20T17:26:45Z,36,Female,English,TRUE,NA,NA,NA,NA,NA,someCollege
+KiBJ5D2Gb56scHooG,2021-07-20T17:26:54Z,33,male,English,TRUE,NA,NA,NA,NA,NA,someCollege
+JvZjCtThY3iTsrXN5,2021-07-20T17:40:04Z,21,Female,English,TRUE,NA,NA,NA,NA,NA,someCollege
+JvZjCtThY3iTsrXN5,2021-07-20T17:40:18Z,47,Female,English,TRUE,NA,NA,NA,NA,NA,bachelor
+JvZjCtThY3iTsrXN5,2021-07-20T17:40:47Z,28,male,English,TRUE,NA,NA,NA,NA,NA,bachelor
+ier2nCDT3gEyDmDuw,2021-07-20T18:22:46Z,55,female,english,TRUE,NA,NA,NA,NA,NA,bachelor
+ier2nCDT3gEyDmDuw,2021-07-20T18:23:12Z,29,Male,English,TRUE,TRUE,NA,NA,NA,NA,bachelor
+ier2nCDT3gEyDmDuw,2021-07-20T18:23:24Z,23,Male,English,NA,TRUE,NA,NA,NA,NA,someCollege
+hWc3fHAfD2kYNNQwd,2021-07-20T18:26:35Z,31,male,english,TRUE,NA,NA,NA,NA,NA,highSchool
+hWc3fHAfD2kYNNQwd,2021-07-20T18:26:43Z,24,female,english,TRUE,NA,NA,NA,NA,NA,highSchool
+hWc3fHAfD2kYNNQwd,2021-07-20T18:29:28Z,33,female,English,TRUE,NA,NA,NA,NA,NA,bachelor
