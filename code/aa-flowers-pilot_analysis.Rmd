@@ -24,7 +24,7 @@ fig_path=here("figs")
 Remove joined_data and uncomment the following block to rerun the preprocessing scripts
 ```{r process-data, message=FALSE, warning=FALSE}
 data_list <- c("technical_pilots", "collabmulti_pilot0",
-               "collabmulti_20", "compet_20")
+               "collabmulti_20", "compet_20", "multi_nonlang_20")
 process_all_data(data_list)
 join_all_data()
 ```
@@ -206,7 +206,7 @@ d.by_game_metrics %>%
 
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = gameLength/60, y = groupPoints, color = log(groupNumWords))) + 
+  ggplot(aes(x = gameLength/60, y = groupPoints, color = log(groupNumWords+1))) + 
   geom_point(alpha = .5) +
   geom_smooth(method=lm)+
   facet_grid(cols = vars(condition))+ labs(x = "Game length (in Minutes)", y = "Points Earned by Group")+theme_classic() + scale_color_steps()
@@ -320,7 +320,22 @@ d.round_word_counts %>%left_join(d.games %>%
   geom_smooth(method=lm)+
   facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "N. Words")+ theme_classic()
 ```
+log num words
 
+```{r, fig.height=3, fig.width=5}
+d.round_word_counts %>%left_join(d.games %>% 
+                                   select(gameId, condition,chatEnabled)) %>% 
+  mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
+         fullCondition = paste(condition, languageCondition, sep = "-"),
+         block_name = paste0("Block ", blockNum)) %>%
+    filter(languageCondition == "Lang") %>%
+  group_by(gameId, fullCondition,block_name, trialNum, repNum) %>% 
+  summarize(groupNumWords = sum(total_num_words, na.rm = T)) %>%
+  ggplot(aes(x = repNum, y = log(groupNumWords+1), color = fullCondition)) + 
+  geom_point(alpha = .2) +
+  geom_smooth(method=lm)+
+  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "N. Words")+ theme_classic()
+```
 ### Accuracy
 #### N. Overlap
 
