@@ -10,23 +10,80 @@ library(tidyverse)
 library(jsonlite)
 library(here)
 source(here("code/preprocessing/00_preprocessing_functions.R"))
-theme_set(theme_classic())
+
+#add pretty fonts
+library(showtext)
+font_add_google(name = "Assistant", family = "Assistant")
+font_add_google(name = "Roboto", family = "Roboto")
+showtext_auto()
 
 
 ##Data import constants
 date_start=lubridate::ymd('2021-07-19')
 fig_path=here("figs")
+```
 
+```{r}
+#colors/theme
+bay_palette <- function(num_values) {
+  bay_colors <- c(indigo = "#00496F",
+                  teal = "#0F85A0",
+                        green = "#6B9555",
+                        citron = "#ACB64E",
+                        yellow = "#edd746",
+                        orange = "#E58C35",
+                        flame = "#E1672D",
+                        red = "#BD3922",
+                        maroon = "#903B3D",
+                        orchid = "#623D57")
+  color_order <- c("teal", "red","green", "flame",  "orchid","indigo", "yellow", "maroon", "citron", "orange")
+  num_colors <- length(color_order)
+  if (num_values < num_colors) {
+    unname(bay_colors[Filter(
+      function(color) color %in% color_order[1:num_values],
+      names(bay_colors)
+    )])
+  } else {
+    color_indeces <- 0:(num_values - 1) %% num_colors
+    unname(bay_colors[color_indeces + 1])
+  }
+}
+
+scale_colour_bay <- function(...) {
+  ggplot2::discrete_scale("colour", "bay", bay_palette, ...)
+}
+
+scale_color_bay <- function(...) {
+  scale_colour_bay(...)
+}
+
+scale_fill_bay <- function(...) {
+  ggplot2::discrete_scale("fill", "bay", bay_palette, ...)
+}
+
+
+theme_jmank <- function (base_size = 11, base_family = "Assistant", base_line_size = base_size/22, 
+    base_rect_size = base_size/22) 
+{
+    theme_classic(base_size = base_size, base_family = base_family, 
+        base_line_size = base_line_size, base_rect_size = base_rect_size) %+replace% 
+        theme(panel.border = element_blank(), panel.grid.major = element_blank(), 
+            panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", 
+                size = rel(1)), legend.key = element_blank(), 
+            strip.background = element_rect(fill = "white", colour = "black", 
+                size = rel(2)), complete = TRUE) + 
+    theme(plot.title = element_text(face = "bold"))
+}
 ```
 
 
 # Pre-process
 Remove joined_data and uncomment the following block to rerun the preprocessing scripts
 ```{r process-data, message=FALSE, warning=FALSE}
-data_list <- c("technical_pilots", "collabmulti_pilot0",
-               "collabmulti_20", "compet_20", "multi_nonlang_20")
-process_all_data(data_list)
-join_all_data()
+# data_list <- c("technical_pilots", "collabmulti_pilot0",
+#                "collabmulti_20", "compet_20", "multi_nonlang_20")
+# process_all_data(data_list)
+# join_all_data()
 ```
 
 ```{r read-processed-date, message=FALSE}
@@ -49,11 +106,13 @@ d.demographics <- read_csv(here("data/processed_data/joined_data/demographics.cs
 ```{r}
 #exclude BLOCKS with <12 completed (all 3 participants responded) rounds
 #exclude trial runs
-
+# exclude 
 rounds_exclude <- d.rounds %>% group_by(gameId, blockNum) %>% tally() %>% filter(n!=36) %>% select(gameId,blockNum)
 
-d.rounds.final <-  d.rounds %>% anti_join(rounds_exclude)
-d.raw_chat.final <- d.raw_chat %>% anti_join(rounds_exclude) %>% write_csv(here("data/processed_data/joined_data/filtered_raw_chat.csv"))
+d.rounds.final <-  d.rounds %>% left_join(d.games %>% select(gameId, condition)) %>% 
+  filter(condition != "coopCartel")%>% anti_join(rounds_exclude)
+d.raw_chat.final <- d.raw_chat %>% left_join(d.games %>% select(gameId, condition)) %>% 
+  filter(condition != "coopCartel") %>% anti_join(rounds_exclude) %>% write_csv(here("data/processed_data/joined_data/filtered_raw_chat.csv"))
 ```
 
 ```{r}
@@ -103,24 +162,49 @@ d.round_word_counts <- d.raw_chat.final %>%
   summarize(text = paste0(text, collapse = ', '),
             total_num_words = sum(utt_length_words),
             total_num_chars = sum(utt_length_chars))
-  
-d.by_game_metrics <- d.rounds.final%>% 
-  left_join(d.games %>% select(-createdAt)) %>%  
+
+d.max_round <- d.contexts %>%
+  group_by(gameId, repNum, blockNum, trialNum) %>%
+  slice_max(utility, n = 3) %>%
+  summarise(roundMax = sum(utility))
+
+d.by_round_metrics <- d.rounds.final  %>% 
   left_join(d.round_word_counts) %>%
-  left_join(game_completion %>% select(gameId, num_rounds)) %>%
-  mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
-         fullCondition = paste(condition, languageCondition, sep = "-")) %>% 
-  #group by game
-  group_by(gameId, name,condition, languageCondition, fullCondition, gameLength,num_rounds) %>%
+  group_by(gameId, trialNum, repNum, blockNum) %>%
   summarize(groupPoints = sum(playerUtility, na.rm = T),
             groupNumWords = sum(total_num_words, na.rm = T),
-            groupNumChars = sum(total_num_chars, na.rm = T))%>%
-  mutate(groupPoints = ifelse(condition=="coopCartel", 
-                               groupPoints/3, groupPoints)) %>% 
-  #adjust for max
-  mutate(adjustedPoints = case_when(condition == "coopCartel" ~ groupPoints/ ((12*3)*48),
-                                    condition == "coopMulti" ~ groupPoints/ ((12+11+10)*48),
-                                    condition == "competCartel" ~ groupPoints/ ((12+11+10)*48)))
+            groupNumChars = sum(total_num_chars, na.rm = T),
+            numFlowers = n_distinct(playerResponse)) %>%
+  left_join(d.max_round) %>%
+  left_join(game_completion %>% select(gameId, gameComplete)) %>%
+  left_join(d.games %>% select(-createdAt)) %>%  
+  mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
+         fullCondition = paste(condition, languageCondition, sep = "-"),
+         roundPointsAdjusted = groupPoints/roundMax)
+
+d.by_block_metrics <- d.by_round_metrics %>% 
+  group_by(gameId, name, gameComplete, condition, 
+           languageCondition, fullCondition, gameLength, blockNum) %>%
+  summarize(blockPoints = sum(groupPoints, na.rm = T),
+            blockNumWords = sum(groupNumWords, na.rm = T),
+            blockNumChars = sum(groupNumChars, na.rm = T),
+            blockMaxPoints = sum(roundMax),
+            blockNumFlowers = sum(numFlowers)) %>%
+  mutate(blockPointsAdjusted = blockPoints/blockMaxPoints,
+         meanNumFlowers = blockNumFlowers*3/(12*3))
+
+d.by_game_metrics <- d.by_block_metrics %>%
+  #from this point, only look at completed games
+    filter(gameComplete) %>%
+  #group by game
+  group_by(gameId, name, condition, languageCondition, fullCondition, gameLength) %>%
+  summarize(gamePoints = sum(blockPoints, na.rm = T),
+            gameNumWords = sum(blockNumWords, na.rm = T),
+            gameNumChars = sum(blockNumChars, na.rm = T),
+            gameMaxPoints = sum(blockMaxPoints),
+            gameNumFlowers = sum(blockNumFlowers)) %>%
+  mutate(pointsAdjusted = gamePoints/gameMaxPoints,
+         meanNumFlowers = gameNumFlowers*3/ (12*4*3))
 ```
 
 ### Points
@@ -129,145 +213,248 @@ Unadjusted
 
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics%>% 
-  ggplot(aes(x = languageCondition, y = groupPoints, color = condition, shape = languageCondition)) + 
-  geom_jitter(width = .2, alpha = .5) +
+  ggplot(aes(x = languageCondition, y = gamePoints, color = condition, shape = languageCondition)) + 
+  geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  facet_grid(cols = vars(condition)) + labs(x = "Language Condition", y = "Points Earned by Group", title = "Points Earned by Group") + theme_classic() + theme(legend.position = "none")
+  ylim(0, 1400)+
+  facet_grid(cols = vars(condition)) + labs(x = "Language Condition", y = "Points Earned by Group", title = "Points Earned by Group") + scale_color_bay() + theme_jmank() + theme(legend.position = "none")
 
-ggsave(here(fig_path, "points_distirbution_raw.png"))
+ggsave(here(fig_path, "points_distirbution_raw.png"), width = 3, height = 5)
 ```
 
 Max Adjusted
 
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = languageCondition, y = adjustedPoints, color = condition, shape = languageCondition)) + 
-  geom_jitter(width = .2, alpha = .5) +
+  ggplot(aes(x = languageCondition, y = pointsAdjusted, color = condition, shape = languageCondition)) + 
+  geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  facet_grid(cols = vars(condition)) + labs(x = "Language Condition", y = "Points Earned by Group (Max Adjusted)", title = "Adjusted Points by Group") + theme_classic() + theme(legend.position = "none")
+  facet_grid(cols = vars(condition)) + 
+  labs(x = "Language Condition", 
+       y = "Points Earned by Group (Max Adjusted)", 
+       title = "Points by Group") + 
+  ylim(0,1) +
+  scale_color_bay() + theme_jmank() + theme(legend.position = "none")
 
-ggsave(here(fig_path, "points_distirbution_adjusted.png"))
+ggsave(here(fig_path, "points_distirbution_adjusted.png"),  width = 3, height = 5)
 ```
 
 ### Time
-```{r, fig.height=3, fig.width=5}
+```{r, fig.height=5, fig.width=3}
 d.by_game_metrics %>%
-  ggplot(aes(x = languageCondition, y = gameLength/60, color = condition, shape = languageCondition)) + 
-  geom_jitter(width = .2, alpha = .5) +
+  ggplot(aes(x = languageCondition, y = gameLength/60, 
+             color = condition, shape = languageCondition)) + 
+  geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  facet_grid(cols = vars(condition))+ labs(y = "Time (In Minutes)", title = "Game Length")+theme_classic() + theme(legend.position = "none")
+  facet_grid(cols = vars(condition))+ 
+  labs(y = "Time (In Minutes)", title = "Game Length", x = "Language Condition")+
+  ylim(0, 90)+
+  scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
+ggsave(here(fig_path, "time_distirbution.png"),  width = 3, height = 5)
+
 ```
+
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
   ggplot(aes(x = languageCondition, y = log(gameLength/60), color = condition, shape = languageCondition)) + 
-  geom_jitter(width = .2, alpha = .5) +
+  geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  facet_grid(cols = vars(condition))+ labs(y = "Time (In Log Minutes)", title = "Game Length (Log Mins)")+theme_classic() + theme(legend.position = "none")
+  facet_grid(cols = vars(condition)) + 
+  ylim(0, 4.5)+
+  labs(y = "Time (In Log Minutes)", title = "Game Length (Log Mins)")+
+  scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
+
+ggsave(here(fig_path, "time_log_distirbution.png"))
 ```
 
 ### Number of Words
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = languageCondition, y = groupNumWords, color = condition, shape = languageCondition)) + 
-  geom_jitter(width = .2, alpha = .5) +
+  ggplot(aes(x = languageCondition, y = gameNumWords, color = condition, shape = languageCondition)) + 
+  geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  facet_grid(cols = vars(condition))+ labs(y = "N. Words", title = "Number of Words Exchanged")+theme_classic() + theme(legend.position = "none")
+  facet_grid(cols = vars(condition))+ labs(y = "N. Words", title = "Number of Words Exchanged", x = "Language Condition")+scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
+
+ggsave(here(fig_path, "numwords_distirbution.png"), height = 5, width = 3)
+
 ```
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = languageCondition, y = log(groupNumWords), color = condition, shape = languageCondition)) + 
-  geom_jitter(width = .2, alpha = .5) +
+  ggplot(aes(x = languageCondition, y = log(gameNumWords+1), color = condition, shape = languageCondition)) + 
+  geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  facet_grid(cols = vars(condition))+ labs(y = "Log N. Words Exchanged")+theme_classic() + theme(legend.position = "none")
+  facet_grid(cols = vars(condition))+ labs(y = "Log N. Words Exchanged")+
+  scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
+ggsave(here(fig_path, "numwords_log_distirbution.png"))
+
 ```
 
-#### Condition Effects on Language Use
-```{r}
-d.round_word_counts %>%left_join(d.games %>% 
-                                   select(gameId, condition,chatEnabled)) %>% 
-  mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
-         fullCondition = paste(condition, languageCondition, sep = "-"),
-         block_name = paste0("Block ", blockNum)) %>%
-    filter(languageCondition == "Lang") %>%
-  group_by(gameId, fullCondition, languageCondition, condition) %>% 
-  summarize(groupNumWords = sum(total_num_words, na.rm = T)) %>% 
-  ggplot() + geom_density(aes(x = groupNumWords, fill = condition), alpha = .5, adjust = .7)
-```
-
-## Scatters
+## Covariate
 ### Time x Points
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = gameLength/60, y = groupPoints, color = condition)) + 
+  ggplot(aes(x = gameNumWords, y = gameLength/60, color = condition, shape = languageCondition)) + 
   geom_point(alpha = .5) +
-  geom_smooth(method=lm)+
-  facet_grid(cols = vars(condition))+ labs(x = "Game length (in Minutes)", y = "Points Earned by Group")+theme_classic() + theme(legend.position = "none")
+  geom_smooth(method=lm)+ 
+  labs(x = "Game length (in Minutes)", y = "Points Earned by Group")+
+  scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
+ggsave(here(fig_path, "time_words_scatter.png"))
 ```
 
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = gameLength/60, y = groupPoints, color = log(groupNumWords+1))) + 
+  ggplot(aes(x = gameLength/60, y = gamePoints, color = log(gameNumWords+1))) + 
   geom_point(alpha = .5) +
-  geom_smooth(method=lm)+
-  facet_grid(cols = vars(condition))+ labs(x = "Game length (in Minutes)", y = "Points Earned by Group")+theme_classic() + scale_color_steps()
+  geom_smooth(method=lm, color = "black")+
+  facet_grid(cols = vars(condition)) + 
+  labs(x = "Game length (in Minutes)", 
+       y = "Points Earned by Group",
+       color = "Log Num. Words") + 
+  theme_jmank() +  scale_color_steps(low = "#0F85A0", high = "#BD3922")
+
+ggsave(here(fig_path, "all_correlated.png"), height = 3, width = 5)
 ```
 
 ```{r, fig.height=3, fig.width=5}
+ms <- d.by_game_metrics %>%
+  group_by(condition, languageCondition) %>%
+  summarise(mean_len = mean(gameLength/60),
+            ci_len = 1.96 * sd(gameLength/60) / sqrt(length(gameLength)),
+            mean_points = mean(gamePoints),
+            ci_points = 1.96 * sd(gamePoints) / sqrt(length(gameLength)))
+
+
 d.by_game_metrics %>%
-  ggplot(aes(x = gameLength/60, y = groupPoints, color = condition)) + 
-  geom_point(alpha = .5) +
-  geom_smooth(method=lm)+
-  labs(x = "Game length (in Minutes)", y = "Points Earned by Group")+theme_classic()
+  ggplot(aes(x = gameLength/60, y = gamePoints, color = condition, shape = languageCondition)) +#, size = log(groupNumWords+1))) + 
+  geom_smooth(aes(group = condition), method = "lm") +
+  geom_point(alpha = .2) +
+  geom_pointrange(data = ms, aes(x = mean_len, y = mean_points, 
+                                 ymin = mean_points - ci_points,
+                                 ymax = mean_points + ci_points)) +
+  geom_errorbarh(data = ms, aes(x = mean_len, y = mean_points, 
+                                 xmin = mean_len - ci_len,
+                                 xmax = mean_len + ci_len), width = 0) + 
+  # ylim(0,1500) + 
+  xlim(0,90) + 
+  labs(x = "Game length (in Minutes)", y = "Points Earned by Group")+
+  ggthemes::scale_color_solarized() + 
+  scale_color_bay() + theme_jmank() +  
+  theme(legend.position = "bottom")
+
+ggsave(here(fig_path, "time_points_scatter_nofacet.png"))
+
 ```
 
-Log
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>% 
-  ggplot(aes(x = log(gameLength/60), y = groupPoints, color = condition)) + 
+  ggplot(aes(x = log(gameLength/60), y = gamePoints, color = condition)) + 
   geom_point(alpha = .5) +
   geom_smooth(method=lm)+
-  facet_grid(cols = vars(condition))+ labs(x = "Game length (in Log Minutes)",y = "Points Earned by Group")+theme_classic() + theme(legend.position = "none")
-```
-```{r, fig.height=3, fig.width=5}
-d.by_game_metrics %>% 
-  ggplot(aes(x = log(gameLength/60), y = groupPoints, color = condition)) + 
-  geom_point(alpha = .5) +
-  geom_smooth(method=lm)+
-  labs(x = "Game length (in Log Minutes)",y = "Points Earned by Group")+theme_classic()
+  labs(x = "Game length (in Log Minutes)",y = "Points Earned by Group")+scale_color_bay() + theme_jmank()
+
+ggsave(here(fig_path, "log_time_points_scatter_nofacet.png"))
 ```
 ### Language x Points
-#### Faceted
-```{r, fig.height=3, fig.width=5}
+
+```{r}
 d.by_game_metrics %>% filter(languageCondition == "Lang") %>%
-  ggplot(aes(x = groupNumWords, y = groupPoints, color = condition)) + 
+  mutate(langUse = ifelse(gameNumWords > 0, TRUE, FALSE)) %>%
+  ggplot(aes(x = gameNumWords, y = gamePoints, color = condition)) + 
   geom_point(alpha = .5) +
   geom_smooth(method=lm)+
-  facet_grid(cols = vars(condition))+ labs(x = "N. Words Exchanged", y = "Group Points (Raw)")+theme_classic() + theme(legend.position = "none")
+  labs(x = "N. Words Exchanged", y = "Group Points (Raw)")+scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
+
+ms <- d.by_game_metrics %>%
+  mutate(langUse = ifelse(gameNumWords > 0, TRUE, FALSE)) %>% 
+  group_by(condition, fullCondition, languageCondition) %>%
+  summarise(mean_nw = mean(gameNumWords),
+            ci_nw = 1.96 * sd(gameNumWords) / sqrt(length(gameLength)),
+            mean_points = mean(gamePoints),
+            ci_points = 1.96 * sd(gamePoints) / sqrt(length(gameLength)))
+
+d.by_game_metrics %>%
+  mutate(langUse = ifelse(gameNumWords > 0, TRUE, FALSE)) %>% 
+  #filter(langUse) %>%
+  ggplot(aes(x = gameNumWords, y = gamePoints, color = condition, shape = languageCondition)) +
+  #geom_smooth(aes(group = fullCondition), method = "lm") +
+  geom_smooth(aes(group = fullCondition), method=glm, formula=y~poly(x,2), alpha=.3)+
+  geom_point( alpha = .5) +
+  geom_pointrange(data = ms, aes(x = mean_nw, y = mean_points,
+                                ymin = mean_points - ci_points,
+                                ymax = mean_points + ci_points)) +
+  geom_errorbarh(data = ms, aes(x = mean_nw, y = mean_points,
+                                xmin = mean_nw - ci_nw,
+                                xmax = mean_nw + ci_nw), width = 0) +
+  # ylim(0,1500) + 
+  labs(x = "Words Exchanged", y = "Points Earned", title = ) + 
+  scale_color_bay() + theme_jmank() +  
+  theme(legend.position = "bottom")
 ```
-```{r, fig.height=3, fig.width=5}
-d.by_game_metrics %>% filter(languageCondition == "Lang") %>%
-  ggplot(aes(x = groupNumWords, y = adjustedPoints, color = condition)) + 
+
+```{r}
+ms <- d.by_game_metrics %>%
+  mutate(langUse = ifelse(groupNumWords > 0, TRUE, FALSE)) %>% 
+  group_by(condition, langUse) %>%
+  summarise(mean_nw = mean(groupNumWords),
+            ci_nw = 1.96 * sd(groupNumWords) / sqrt(length(gameLength)),
+            mean_points = mean(groupPoints),
+            ci_points = 1.96 * sd(groupPoints) / sqrt(length(gameLength)))
+
+d.by_game_metrics %>%
+  mutate(langUse = ifelse(groupNumWords > 0, TRUE, FALSE)) %>% 
+  ggplot(aes(x = groupNumWords, y = groupPoints, color = condition, shape = langUse)) +
+  #geom_smooth(aes(group = condition), method = "lm") +
   geom_point(alpha = .5) +
-  geom_smooth(method=lm)+
-  facet_grid(cols = vars(condition))+ labs(x = "N. Words Exchanged", y = "Group Points (Adjusted)")+theme_classic() + theme(legend.position = "none")
+  geom_pointrange(data = ms, aes(x = mean_nw, y = mean_points, 
+                                 ymin = mean_points - ci_points,
+                                 ymax = mean_points + ci_points)) +
+  geom_errorbarh(data = ms, aes(x = mean_nw, y = mean_points, 
+                                 xmin = mean_nw - ci_nw,
+                                 xmax = mean_nw + ci_nw), width = 0) + 
+  # ylim(0,1500) + 
+  labs(x = "Words Echanged", y = "Points Earned") + 
+  scale_color_bay() + theme_jmank() +  
+  theme(legend.position = "bottom")
 ```
-#### Non-Faceted
+
+
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>% filter(languageCondition == "Lang") %>%
-  ggplot(aes(x = groupNumWords, y = groupPoints, color = condition)) + 
+  mutate(langUse = ifelse(gameNumWords > 0, TRUE, FALSE)) %>%
+  ggplot(aes(x= gameNumWords, y = pointsAdjusted, color = condition, shape = languageCondition)) + 
   geom_point(alpha = .5) +
-  geom_smooth(method=lm)+
-  labs(x = "N. Words Exchanged", y = "Group Points (Raw)")+theme_classic()
-```
-```{r, fig.height=3, fig.width=5}
-d.by_game_metrics %>% filter(languageCondition == "Lang") %>%
-  ggplot(aes(x = groupNumWords, y = adjustedPoints, color = condition)) + 
-  geom_point(alpha = .5) +
-  geom_smooth(method=lm)+
-  labs(x = "N. Words Exchanged", y = "Group Points (Adjusted)")+theme_classic()
+  geom_smooth(method=lm)+ 
+  labs(x = "N. Words Exchanged", y = "Group Points (Adjusted)")+scale_color_bay() + 
+  theme_jmank() +  theme(legend.position = "none")
+
+ggsave(here(fig_path, "nwords_points_scatter.png"), height = 3, width = 3)
 ```
 
 ### Progress Over Time
+
+tried to make a gif? :/
+```{r}
+trial_num = 1
+randomGame = sample(game_completion %>% filter(chat == T, gameComplete == T) %>% pull(gameId), 1)
+
+save_plot <- function(rep_Num, block_Num, randomGame) {
+  full_data <- d.by_round_metrics %>% 
+    filter(repNum == rep_Num, blockNum == block_Num) %>%
+  left_join(d.games %>% select(gameId, condition, chatEnabled)) %>% filter(chatEnabled)
+
+  to_plot <- full_data %>% ggplot(aes(x = groupNumWords, y = roundPointsAdjusted, 
+                                      shape = condition, color = condition)) + 
+    geom_point(alpha = .2) + 
+    geom_point(data = full_data %>% filter(gameId == randomGame), aes(x = groupNumWords, y = roundPointsAdjusted, 
+                                      shape = condition, color = condition), alpha = 1) + 
+    ggtitle(paste0("Block ", blockNum, ", Trial ", repNum))+
+  theme_jmank() + scale_color_bay() 
+  
+  ggsave(to_plot, file = here(fig_path, "animate", paste0(block_Num, "_", rep_Num, ".png")), height = 3, width = 5)
+  }
+#mapply(save_plot, seq(0,11), rep(0, 12), rep("sTX6ksbxqfnfsmzxe", 12))
+```
+
 
 Including language optional games where they decided not to speak 
 
@@ -283,7 +470,8 @@ d.round_word_counts %>%left_join(d.games %>%
   ggplot(aes(x = repNum, y = groupNumWords, color = fullCondition)) + 
   geom_point(alpha = .2) +
   geom_smooth(method=lm)+
-  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "N. Words")+ theme_classic()
+  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "N. Words")+ scale_color_bay() + theme_jmank()
+ggsave(here(fig_path, "nwords_over_time.png"))
 ```
 
 log (n words+1)
@@ -299,7 +487,9 @@ d.round_word_counts %>%left_join(d.games %>%
   ggplot(aes(x = repNum, y = log(groupNumWords), color = fullCondition)) + 
   geom_point(alpha = .2) +
   geom_smooth(method=lm)+
-  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "Log (N. Words + 1)")+ theme_classic()
+  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "Log (N. Words + 1)")+ scale_color_bay() + theme_jmank()
+ggsave(here(fig_path, "nwords_log_over_time.png"))
+
 ```
 
 
@@ -318,9 +508,8 @@ d.round_word_counts %>%left_join(d.games %>%
   ggplot(aes(x = repNum, y = groupNumWords, color = fullCondition)) + 
   geom_point(alpha = .2) +
   geom_smooth(method=lm)+
-  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "N. Words")+ theme_classic()
+  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "N. Words")+ scale_color_bay() + theme_jmank()
 ```
-log num words
 
 ```{r, fig.height=3, fig.width=5}
 d.round_word_counts %>%left_join(d.games %>% 
@@ -331,13 +520,73 @@ d.round_word_counts %>%left_join(d.games %>%
     filter(languageCondition == "Lang") %>%
   group_by(gameId, fullCondition,block_name, trialNum, repNum) %>% 
   summarize(groupNumWords = sum(total_num_words, na.rm = T)) %>%
+  filter(groupNumWords > 0) %>%
   ggplot(aes(x = repNum, y = log(groupNumWords+1), color = fullCondition)) + 
   geom_point(alpha = .2) +
   geom_smooth(method=lm)+
-  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "N. Words")+ theme_classic()
+  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "N. Words")+ scale_color_bay() + theme_jmank()
+```
+
+
+log num words
+
+```{r, fig.height=3, fig.width=5}
+d.round_word_counts %>%left_join(d.games %>% 
+                                   select(gameId, condition, chatEnabled)) %>% 
+  mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
+         fullCondition = paste(condition, languageCondition, sep = "-"),
+         block_name = paste0("Block ", blockNum)) %>%
+    filter(languageCondition == "Lang") %>%
+  group_by(gameId, fullCondition,block_name, trialNum, repNum) %>% 
+  
+  summarize(groupNumWords = sum(total_num_words, na.rm = T)) %>%
+  #filter(groupNumWords >1) %>%
+  ggplot(aes(x = repNum, y = log(groupNumWords+1), color = fullCondition)) + 
+  geom_point(alpha = .2) +
+  geom_smooth(method=lm)+
+  ylim(0, 6) +
+  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "N. Words")+ scale_color_bay() + theme_jmank()
 ```
 ### Accuracy
-#### N. Overlap
+#### N. Flowers Selected each round
+```{r}
+d.rounds.final %>% group_by(gameId, repNum, blockNum, trialNum) %>% 
+  summarize(num_unique_flowers = n_distinct(playerResponse),
+            mean_response_time = mean(time_sec, na.rm = T))  %>%
+  left_join(d.games %>% select(gameId, condition,chatEnabled)) %>% 
+  mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
+         fullCondition = paste(condition, languageCondition, sep = "-"),
+         block_name = paste0("Block ", blockNum)) %>%
+    filter(condition != "coopCartel") %>%
+  ggplot(aes(x = repNum, y = num_unique_flowers, color = condition, linetype = languageCondition)) + 
+  geom_point(alpha = .1) +
+  geom_smooth(method=lm)+
+  facet_grid(cols = vars(block_name), rows = vars(condition)) + labs(x = "Trial Number", y = "N. Unique Flowers")+ scale_color_bay() + theme_jmank()
+```
+
+```{r}
+d.rounds.final %>% group_by(gameId, repNum, blockNum, trialNum) %>% 
+  summarize(num_unique_flowers = n_distinct(playerResponse),
+            mean_response_time = mean(time_sec, na.rm = T))  %>%
+  left_join(d.games %>% select(gameId, condition,chatEnabled)) %>% 
+  mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
+         fullCondition = paste(condition, languageCondition, sep = "-"),
+         block_name = paste0("Block ", blockNum)) %>%
+    filter(condition != "coopCartel") %>%
+  ggplot(aes(x = repNum, y = log(mean_response_time), color = condition, linetype = languageCondition)) + 
+  geom_point(alpha = .1) +
+  geom_smooth(method=lm)+
+  facet_grid(cols = vars(block_name), rows = vars(languageCondition)) + labs(x = "Trial Number", y = "log Mean response time")+ scale_color_bay() + theme_jmank()
+```
+
+#More Accurate proportion possible/accuracy
+
+Are they getting better over games?
+```{r}
+d.by_round_metrics %>% left_join(d.games %>% select(gameId, condition, chatEnabled))
+```
+
+
 
 ```{r}
 # d.round_results.final %>% left_join(d.games %>% select(gameId, condition, chatEnabled, langUse, gameComplete)) %>%
