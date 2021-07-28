@@ -12,20 +12,22 @@ library(Hmisc)
 library("spacyr")
 library(ggrepel)
 
+source("./theme_specs.R")
 ```
 
 ## STEP THREE - Linguistic quantity and complexity
 
 ```{r main data, include=TRUE}
-d<- read_csv("/Users/lscpuser/Documents/AA-flowers2/AA-flowers/data/processed_data/joined_data/filtered_raw_chat.csv")
+d<- read_csv("../data/processed_data/joined_data/filtered_raw_chat.csv")
 d_flowers <- d %>% 
   filter(type=="message") %>%
   filter(!is.na(text)) %>% 
-  filter(!condition=="coopCartel")
-write_csv(d, "~/Downloads/raw_chat3.csv")
+  filter(!conditionName=="coopCartel")
+
+write_csv(d, "../data/processed_data/raw_chat3.csv")
 
 d_flowers <- d_flowers %>% 
-  filter(!condition=="coopCartel")
+  filter(!conditionName=="coopCartel")
 
 ```
 
@@ -60,7 +62,7 @@ ggplot(d_flowers_utt_length_block, aes(x=blockNum, y=total_num_words, color=cond
   stat_summary(fun.data = "mean_cl_boot")+
   labs(title="Number of words", y="Total number of words", x="Block number")+
   theme(legend.position="bottom") + 
-  theme_bw() +
+  theme_jmank() + scale_color_bay() +
   ggtitle("Number of words per block")#+
  # theme(text = element_text(size = 30))
 #color="gameId" cols = vars(blockNum),
@@ -73,13 +75,12 @@ ggplot(d_flowers_utt_length_block, aes(x=blockNum, y=mlu,  color=condition))+
   geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
   stat_summary(fun.data = "mean_cl_boot")+
  # scale_y_continuous(limits = c(0,15))+
-  labs(title="MLU", y="MLU", x="Block number")+
+  labs(title="Mean Length of Utterance", y="MLU", x="Block number")+
   theme(legend.position="bottom") + 
-  theme_bw()+
-  ggtitle("MLU per block")#+
+  theme_jmank() + scale_color_bay() + theme(legend.position = "bottom")
 #  theme(text = element_text(size = 30))
 #dev.off() 
-
+ggsave("../figs/mean_utt_length_block.png", height = 3, width = 3)
 
 
 d_flowers_utt_length_trial <- d_flowers %>%
@@ -98,7 +99,7 @@ ggplot(d_flowers_utt_length_trial, aes(x=trialNum, y=total_num_words,  color=con
   stat_summary(fun.data = "mean_cl_boot")+
   labs(title="Number of words", y="Total number of words", x="Trial number")+
   theme(legend.position="bottom") + 
-  theme_bw() +
+  theme_jmank() + scale_color_bay() +
   ggtitle("Number of words per trial")#+
 #  theme(text = element_text(size = 30))
 #dev.off() 
@@ -110,13 +111,12 @@ ggplot(d_flowers_utt_length_trial, aes(x=trialNum, y=mlu,  color=condition))+
   geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
   stat_summary(fun.data = "mean_cl_boot")+
  # scale_y_continuous(limits = c(0,15))+
-  labs(title="MLU", y="MLU", x="Trial number")+
-  theme(legend.position="bottom") + 
-  theme_bw()+
-  ggtitle("MLU per trial")#+
+  labs(title="Mean Length of Utterance", y="MLU", x="Trial number")+
+  theme_jmank() + scale_color_bay() + theme(legend.position="bottom") #+ 
   #theme(text = element_text(size = 30))
 #dev.off() 
 
+ggsave("../figs/mean_utt_length.png", height = 5, width = 4)
 
 d_flowers_utt_length_rep <- d_flowers %>%
   mutate(text = gsub('[[:punct:] ]+',' ',text)) %>%
@@ -134,7 +134,7 @@ ggplot(d_flowers_utt_length_rep, aes(x=repNum, y=total_num_words,  color=conditi
   stat_summary(fun.data = "mean_cl_boot")+
   labs(title="Number of words", y="Total number of words", x="Rep number")+
   theme(legend.position="bottom") + 
-  theme_bw() +
+  theme_jmank() + scale_color_bay() +
   ggtitle("Number of words per rep")#+
 #  theme(text = element_text(size = 30))
 #dev.off() 
@@ -148,11 +148,23 @@ ggplot(d_flowers_utt_length_rep, aes(x=repNum, y=mlu,  color=condition))+
  # scale_y_continuous(limits = c(0,15))+
   labs(title="MLU", y="MLU", x="Rep number")+
   theme(legend.position="bottom") + 
-  theme_bw()+
+  theme_jmank() + scale_color_bay() +
   ggtitle("MLU per rep")#+
  # theme(text = element_text(size = 30))
 #dev.off() 
 
+ggplot(d_flowers_utt_length_rep, aes(x=repNum, y=log(mlu+1),  color=condition))+
+#  facet_grid( rows =vars(condition)) +
+  geom_jitter(alpha=.05)+
+  geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
+  stat_summary(fun.data = "mean_cl_boot")+
+ # scale_y_continuous(limits = c(0,15))+
+  labs(title="MLU", y="MLU", x="Rep number")+
+  theme(legend.position="bottom") + 
+  theme_jmank() + scale_color_bay() +
+  ggtitle("MLU per rep")#+
+ # theme(text = element_text(size = 30))
+#dev.off() 
 ```
 
 ### 2. Number of turns
@@ -206,11 +218,12 @@ ggplot(d_flowers_n_turns_block, aes(x=blockNum, y=n,  color=condition))+
   stat_summary(fun.data = "mean_cl_boot")+
   labs(title="Number of turns", y="Number of turns", x="Block number")+
   theme(legend.position="bottom") + 
-  theme_bw() +
+  theme_jmank() + scale_color_bay() + theme(legend.position = "bottom")
   ggtitle("Number of turns per block")#+
  # theme(text = element_text(size = 30))
 #dev.off() 
 
+ggsave("../figs/num_turns_block.png", height = 3, width = 3)
 ```
 
 
