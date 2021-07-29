@@ -67,11 +67,25 @@ d.games
 # exclude 
 rounds_exclude <- d.rounds %>% group_by(gameId, blockNum) %>% tally() %>% filter(n!=36) %>% select(gameId,blockNum)
 
+#exclude cooperative condition
 d.rounds.final <-  d.rounds %>% left_join(d.games %>% select(gameId, conditionName, condition)) %>% 
   filter(conditionName != "coopCartel")%>% anti_join(rounds_exclude)
+
 d.raw_chat.final <- d.raw_chat %>% left_join(d.games %>% select(gameId, conditionName, condition)) %>% 
   filter(conditionName != "coopCartel") %>% anti_join(rounds_exclude) %>% write_csv(here("data/processed_data/joined_data/filtered_raw_chat.csv"))
 ```
+
+Clean up a sharable data csv
+```{r}
+joined_data <- d.raw_chat.final %>% select(-c(index, createdAt, 
+                               submitted, conditionName)) %>% 
+  left_join(d.rounds.final %>% 
+              select(gameId, playerId,repNum, blockNum, trialNum, 
+                     playerResponse, playerEarnings = playerUtility)) %>% 
+  left_join(d.players %>% select(playerId, playerName = name)) %>%
+  left_join(d.contexts %>% select(gameId, repNum, blockNum, trialNum, playerResponse = label, responseRawUtility = utility, blinded))
+```
+
 
 ```{r}
 game_completion <- d.rounds %>% 
@@ -539,7 +553,7 @@ d.rounds.final %>% group_by(gameId, repNum, blockNum, trialNum) %>%
   ggplot(aes(x = repNum, y = log(mean_response_time), color = condition, linetype = languageCondition)) + 
   geom_point(alpha = .1) +
   geom_smooth(method=lm)+
-  facet_grid(cols = vars(block_name), rows = vars(languageCondition)) + labs(x = "Trial Number", y = "log Mean response time")+ scale_color_bay() + theme_jmank()
+  facet_grid(cols = vars(block_name), rows = vars(languageCondition)) + labs(x = "Trial Number", y = "log Mean response time") + scale_color_bay() + theme_jmank()
 ```
 
 #More Accurate proportion possible/accuracy
