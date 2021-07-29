@@ -79,11 +79,24 @@ Clean up a sharable data csv
 ```{r}
 joined_data <- d.raw_chat.final %>% select(-c(index, createdAt, 
                                submitted, conditionName)) %>% 
+  # merge chat condition
+  left_join(d.games %>% select(gameId, chatEnabled)) %>%
+  #merge player selections aligned with chat
   left_join(d.rounds.final %>% 
               select(gameId, playerId,repNum, blockNum, trialNum, 
                      playerResponse, playerEarnings = playerUtility)) %>% 
+  #merge player names
   left_join(d.players %>% select(playerId, playerName = name)) %>%
-  left_join(d.contexts %>% select(gameId, repNum, blockNum, trialNum, playerResponse = label, responseRawUtility = utility, blinded))
+  #merge the raw utility for the selections
+  left_join(d.contexts %>% select(gameId, repNum, blockNum, trialNum, 
+                                  playerResponse = label, responseRawUtility = utility, blinded)) %>%
+  #to avoid confusion, drop any round info thats actually a message
+   mutate(playerResponse = ifelse(type == "message", NA, playerResponse),
+         playerEarnings = ifelse(type == "message", NA, playerEarnings),
+         responseRawUtility = ifelse(type == "message", NA, responseRawUtility),
+         blinded = ifelse(type == "message", NA, blinded)) %>%
+  select(gameId, condition, chatEnabled,roundID, repNum:trialNum, playerId, 
+         playerName, text,  type, playerResponse:responseRawUtility, blinded,everything()) %>% write_csv(here("data/interpretable_transcript.csv"))
 ```
 
 
