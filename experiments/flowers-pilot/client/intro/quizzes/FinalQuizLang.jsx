@@ -5,40 +5,53 @@ import { Centered, AlertToaster } from "meteor/empirica:core";
 import { Radio, RadioGroup } from "@blueprintjs/core";
 
 export default class FinalQuizLang extends React.Component {
-  state = {
-    selection: ""};
 
+    componentDidMount() {
+      const { game, player } = this.props;
+      document.querySelector("main").scrollTo(0,0)
+    }
+  
     handleChange = (event) => {
+      const { game, player } = this.props;
       const el = event.currentTarget;
-      this.setState({ [el.name]: el.value.trim().toLowerCase() });
+      player.set(el.name, el.value.trim().toLowerCase());
     };
-
+  
     handleRadioChange = (event) => {
+      const { game, player } = this.props;
       const el = event.currentTarget;
       console.log("el", el);
       console.log("ev", event);
-      this.setState({ [el.name]: el.value });
+      player.set(el.name, el.value)
+    };
+  
+    handleEnabledChange = (event) => {
+      const { game, player } = this.props;
+      const el = event.currentTarget;
+      player.set(el.name, !player.get(el.name))
+  
     };
 
     handleSubmit = (event) => {
       event.preventDefault();
+      const { game, player } = this.props; 
 
       //we can accept different answers based on the language condition so if the participant is in the nonlang codition, we'll accept any of the 3 high paying bars.
-      if (this.state.selection == "A") {
+      if (player.get("selection") == "A") {
         //lang condition
         AlertToaster.show({
           message:
             "The bars above the flowers represent their worth, so there are better solutions on the page. Please try again!",
         });
       }
-      else if (this.state.selection == "B" || this.state.selection == "F") {
+      else if (player.get("selection") == "B" || player.get("selection") == "F") {
         //nonlang condition
         AlertToaster.show({
           message:
             "Remember: the flowers hidden from you are revealed to your teammates. There is a better option on the page. Please try again!",
         });
       }
-      else if (this.state.selection == "C" || this.state.selection == "D") {
+      else if (player.get("selection") == "C" || player.get("selection") == "D") {
         AlertToaster.show({
           message:
             "This flower will already be chosen by another player. There is a better option on the page. Please try again!",
@@ -54,7 +67,7 @@ export default class FinalQuizLang extends React.Component {
   }
 
   render() {
-    const { hasPrev, onPrev, game, treatment } = this.props;
+    const { hasPrev, onPrev, game, player, treatment } = this.props;
     return (
       <Centered>
         <div className="quiz">
@@ -67,7 +80,7 @@ export default class FinalQuizLang extends React.Component {
                 <RadioGroup
                   label="In the above image, which flower should you select?"
                   onChange={this.handleRadioChange}
-                  selectedValue={this.state.selection}
+                  selectedValue={player.get("selection")}
                   name="selection"
                   required
                 >

@@ -7,53 +7,46 @@ import { Radio, RadioGroup } from "@blueprintjs/core";
 import { Checkbox } from "@blueprintjs/core";
 
 export default class GroupQuizCoop extends React.Component {
-  state = {
-    nParticipants: "",
-    knowledge: "",
-    imageCount: "",
-    timeOut: "",
-    questionOne: "",
-    questionTwo:"",
-    pictures: "",
-    flowerWorth: ""
-  };
 
   componentDidMount() {
-    const { game } = this.props;
+    const { game, player } = this.props;
     document.querySelector("main").scrollTo(0,0)
-    this.state.num_players = game.treatment.playerCount;
   }
 
   handleChange = (event) => {
+    const { game, player } = this.props;
     const el = event.currentTarget;
-    this.setState({ [el.name]: el.value.trim().toLowerCase() });
+    player.set(el.name, el.value.trim().toLowerCase());
   };
 
   handleRadioChange = (event) => {
+    const { game, player } = this.props;
     const el = event.currentTarget;
     console.log("el", el);
     console.log("ev", event);
-    this.setState({ [el.name]: el.value });
+    player.set(el.name, el.value)
   };
 
   handleEnabledChange = (event) => {
+    const { game, player } = this.props;
     const el = event.currentTarget;
-    this.setState({ [el.name]: !this.state[el.name] });
+    player.set(el.name, !player.get(el.name))
+
   };
 
   handleSubmit = (event) => {
     event.preventDefault();
+    const { game, player } = this.props; 
 
-    //it should be this.state.nParticipants !== "3" but we don't have "treatment" in QUIZ
     if (
-      this.state.nParticipants !== this.state.num_players.toString() ||
-      this.state.knowledge !== "everyplayersomeflower" ||
-      this.state.imageCount !== "6"  ||
-      this.state.timeOut !== "0" ||
-      this.state.flowerWorth !== "9" ||
-      this.state.questionOne !== "C" ||
-      this.state.questionTwo !== "C" ||
-      this.state.pictures !== "different") {
+      player.get("nParticipants") !== game.treatment.num_players.toString() ||
+      player.get("knowledge") !== "everyplayersomeflower" ||
+      player.get("imageCount") !== "6"  ||
+      player.get("timeOut") !== "0" ||
+      player.get("flowerWorth") !== "9" ||
+      player.get("questionOne") !== "C" ||
+      player.get("questionTwo") !== "C" ||
+      player.get("pictures") !== "different") {
       AlertToaster.show({
         message:
           "Sorry, you have one or more mistakes. Please ensure that you answer the questions correctly, or go back to the instructions",
@@ -64,7 +57,7 @@ export default class GroupQuizCoop extends React.Component {
   };
 
   render() {
-    const { hasPrev, onPrev, game, treatment } = this.props;
+    const { hasPrev, onPrev, game, player, treatment } = this.props;
     return (
       <Centered>
         <div className="quiz">
@@ -84,7 +77,7 @@ export default class GroupQuizCoop extends React.Component {
                   step="1"
                   dir="auto"
                   name="nParticipants"
-                  value={this.state.nParticipants}
+                  value={player.get("nParticipants")}
                   onChange={this.handleChange}
                   required
                 />
@@ -105,7 +98,7 @@ export default class GroupQuizCoop extends React.Component {
                   step="1"
                   dir="auto"
                   name="imageCount"
-                  value={this.state.imageCount}
+                  value={player.get("imageCount")}
                   onChange={this.handleChange}
                   required
                 />
@@ -117,7 +110,7 @@ export default class GroupQuizCoop extends React.Component {
                 <RadioGroup
                   label="Select the true statement:"
                   onChange={this.handleRadioChange}
-                  selectedValue={this.state.knowledge}
+                  selectedValue={player.get("knowledge")}
                   name="knowledge"
                   required
                 >
@@ -144,7 +137,7 @@ export default class GroupQuizCoop extends React.Component {
                 <RadioGroup
                   label=""
                   onChange={this.handleRadioChange}
-                  selectedValue={this.state.questionOne}
+                  selectedValue={player.get("questionOne")}
                   name="questionOne"
                   required
                 >
@@ -174,7 +167,7 @@ export default class GroupQuizCoop extends React.Component {
               <img width ="400px" src="/experiment/tutorial_images/quiz-example-hard.png"  border="1" HSPACE="25"/>
                 <RadioGroup
                   onChange={this.handleRadioChange}
-                  selectedValue={this.state.questionTwo}
+                  selectedValue={player.get("questionTwo")}
                   name="questionTwo"
                   required
                 >
@@ -203,7 +196,7 @@ export default class GroupQuizCoop extends React.Component {
                 <RadioGroup
                   label="Select the true statement about the pictures:"
                   onChange={this.handleRadioChange}
-                  selectedValue={this.state.pictures}
+                  selectedValue={player.get("pictures")}
                   name="pictures"
                   required
                 >
@@ -234,7 +227,7 @@ export default class GroupQuizCoop extends React.Component {
                   step="1"
                   dir="auto"
                   name="timeOut"
-                  value={this.state.timeOut}
+                  value={player.get("timeOut")}
                   onChange={this.handleChange}
                   required
                 />
@@ -255,7 +248,7 @@ export default class GroupQuizCoop extends React.Component {
                   step="1"
                   dir="auto"
                   name="flowerWorth"
-                  value={this.state.flowerWorth}
+                  value={player.get("flowerWorth")}
                   onChange={this.handleChange}
                   required
                 />

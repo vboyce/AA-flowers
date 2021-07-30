@@ -7,41 +7,41 @@ import { Radio, RadioGroup } from "@blueprintjs/core";
 import { Checkbox } from "@blueprintjs/core";
 
 export default class AdvancedInterfaceQuiz extends React.Component{
-  state = {
-    timeAmount:"",
-    timeOut: "",
-  };
+
 
   componentDidMount() {
-    const { game } = this.props;
+    const { game, player } = this.props;
     document.querySelector("main").scrollTo(0,0)
-    this.state.num_players = game.treatment.playerCount;
   }
 
   handleChange = (event) => {
+    const { game, player } = this.props;
     const el = event.currentTarget;
-    this.setState({ [el.name]: el.value.trim().toLowerCase() });
+    player.set(el.name, el.value.trim().toLowerCase());
   };
 
   handleRadioChange = (event) => {
+    const { game, player } = this.props;
     const el = event.currentTarget;
     console.log("el", el);
     console.log("ev", event);
-    this.setState({ [el.name]: el.value });
+    player.set(el.name, el.value)
   };
 
   handleEnabledChange = (event) => {
+    const { game, player } = this.props;
     const el = event.currentTarget;
-    this.setState({ [el.name]: !this.state[el.name] });
+    player.set(el.name, !player.get(el.name))
+
   };
 
   handleSubmit = (event) => {
     event.preventDefault();
+    const { game, player } = this.props; 
 
-    //it should be this.state.nParticipants !== "3" but we don't have "treatment" in QUIZ
     if (
-      this.state.timeOut !== "0" ||
-      this.state.timeAmount !== "3") {
+      player.get("timeOut") !== "0" ||
+      player.get("timeAmount") !== "3") {
       AlertToaster.show({
         message:
           "Sorry, you have one or more mistakes. Please ensure that you answer the questions correctly, or go back to the instructions",
@@ -52,7 +52,7 @@ export default class AdvancedInterfaceQuiz extends React.Component{
   };
 
   render() {
-    const { hasPrev, onPrev, game, treatment } = this.props;
+    const { hasPrev, onPrev, game, player, treatment } = this.props;
     return (
       <Centered>
         <div className="quiz">
@@ -73,7 +73,7 @@ export default class AdvancedInterfaceQuiz extends React.Component{
                 step="1"
                 dir="auto"
                 name="timeAmount"
-                value={this.state.timeAmount}
+                value={player.get("timeAmount")}
                 onChange={this.handleChange}
                 required
               />
@@ -94,7 +94,7 @@ export default class AdvancedInterfaceQuiz extends React.Component{
                   step="1"
                   dir="auto"
                   name="timeOut"
-                  value={this.state.timeOut}
+                  value={player.get("timeOut")}
                   onChange={this.handleChange}
                   required
                 />
