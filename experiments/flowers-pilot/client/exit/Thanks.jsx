@@ -20,7 +20,7 @@ export default class Thanks extends React.Component {
           <p>
             Your final{" "}
             <strong>
-              <em>performance bonus is ${player.get("bonus").toFixed(2) || 0}.</em>
+              <em>performance bonus is ${(player.get("bonus") || 0).toFixed(2)}.</em>
             </strong>{" "}
           </p>
           <p>
