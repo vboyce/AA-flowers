@@ -13,6 +13,9 @@ export default class SocialInteractions extends React.Component {
           {player.get("name")}
           {self ? " (You)" :  ""}
         </span>
+        <span className="name" style={{ color: player.get("nameColor") }}>
+          ${(player.get("bonus")||0).toFixed(2)}
+        </span>
       </div>
     );
   }

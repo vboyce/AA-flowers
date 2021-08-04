@@ -38,10 +38,15 @@ Empirica.gameInit((game, treatment) => {
 
 
   game.set("targetSet", treatment.targetSet);
-  game.set("sequence", _.shuffle(sequences[treatment.targetSet]))  
-  game.set("numBlocks", game.get("sequence").length)
+  let sequence=  _.shuffle(sequences[treatment.targetSet])
+  //game.set("numBlocks", game.get("sequence").length)
+  game.set("color", sequence[0])
+  game.set("othercolor", sequence[1])
+  game.set("flowers", targetSets[game.get("color")]) 
+  game.set("otherflowers", targetSets[game.get("othercolor")])// secondary color used for testing at the end
+  game.set("numBlocks", treatment.numBlocks) //hard code for now
   game.set("condition", treatment.condition)
-  console.log(game.get('sequence'))
+  //console.log(game.get('sequence'))
   const numTargets = treatment.numTargets; 
   const repsPerBlock = treatment.repsPerBlock 
   const numBlocks = game.get("numBlocks")
@@ -60,8 +65,8 @@ Empirica.gameInit((game, treatment) => {
 
     // Loop through repetition blocks
     _.times(numBlocks, blockNum => {
-        const color=game.get('sequence')[blockNum] 
-
+        //const color=game.get('sequence')[blockNum] 
+        const color=game.get("color")
       _.times(repsPerBlock, repNum => {      
         const round = game.addRound();
         //round.set('target', mixed_targets[targetNum]);

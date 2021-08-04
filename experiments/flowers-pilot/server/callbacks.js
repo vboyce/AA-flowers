@@ -12,7 +12,6 @@ Empirica.onGameStart((game) => {
   console.debug("game ", game._id, " started");
 
   //const targets = Map(game.get('context'));
-
   players.forEach((player, i) => {
     //player.set("tangrams", _.shuffle(targets));
     player.set("name", names[i]);
@@ -116,8 +115,25 @@ Empirica.onRoundEnd((game, round) => {
 // onRoundEnd is triggered when the game ends.
 // It receives the same options as onGameStart.
 Empirica.onGameEnd((game) => {
+  const players = game.players;
+
   console.debug("The game", game._id, "has ended");
-});
+   //const targets = Map(game.get('context'));
+   const flowers= game.get("flowers")
+   const flower_names = _.zipObject(flowers.map(a => a.label),flowers.map( ()=> ""))
+   const otherflowers=game.get("otherflowers")
+   const otherflower_names = _.zipObject(otherflowers.map(a => a.label),otherflowers.map( ()=> ""))
+   
+   players.forEach((player, i) => {
+     //player.set("tangrams", _.shuffle(targets));
+     player.set("flower_labels", flower_names)
+     player.set("otherflower_labels", otherflower_names)
+     player.set("flowers", _.shuffle(flowers))
+     player.set("otherflowers", _.shuffle(otherflowers))
+   });
+ });
+ 
+
 
 // ===========================================================================
 // => onSet, onAppend and onChanged ==========================================

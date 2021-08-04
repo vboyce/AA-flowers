@@ -31,6 +31,9 @@ import UIOverview from "./intro/UIOverview.jsx";
 //import GroupQuizCompet from "./intro/GroupQuizCompet.jsx";
 //import GroupQuizCoop from "./intro/GroupQuizCoop.jsx";
 
+import { GroupPostTest } from "./exit/GroupPostTest.jsx";
+import PostTestInstructions from "./exit/PostTestInstructions.jsx";
+
 import Round from "./game/Round.jsx";
 import Thanks from "./exit/Thanks.jsx";
 import Sorry from "./exit/Sorry";
@@ -67,7 +70,7 @@ Empirica.introSteps((game, treatment) => {
   //steps.push(MoreAboutBonus);
 
   return steps;
-  //return [];
+  //return[]
 });
 
 // The Round component containing the game UI logic.
@@ -85,16 +88,16 @@ Empirica.round(Round);
 // exit screen will be shown.
 Empirica.exitSteps((game, player, treatment) => {
    if (player.exitStatus !== "finished") {
-    if (game.treatment.chatEnabled == "true") {
+    if (game.treatment.chatEnabled) {
     //chat exit survey
     return [Sorry, ExitSurvey, Thanks];}
     else {
       return [Sorry, ExitSurveyNochat, Thanks];
     }
   } else {
-    if (game.treatment.chatEnabled == "true") {
+    if (game.treatment.chatEnabled) {
     //chat exit survey
-    return [ExitSurvey, Thanks];}
+    return [PostTestInstructions,GroupPostTest,ExitSurvey, Thanks];}
     else {
       return [ExitSurveyNochat, Thanks];
     }

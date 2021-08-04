@@ -63,8 +63,8 @@ export default class Tangram extends React.Component {
     }*/
 
 
-    console.log(tangram)
-    console.log(utility)
+    //console.log(tangram)
+    //console.log(utility)
     let feedback = []; // = [<img src={utility} key={"utility"} />]
     if (stage.name=="feedback"){
       players.forEach(p => {

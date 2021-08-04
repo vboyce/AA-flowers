@@ -1,160 +1,20 @@
 treatments:
-  - name: coop_choose_3
+  - name: test
     factorIds:
       - xWQjpcmpuWmZXGA7P
       - pWeADdnYht6s2XmXy
       - Yf7NcrEDFdYq4TrjF
       - XxGKfzAdshtarMJ8v
       - tbrmbrEbCZovKMq64
-      - pa4NDkMQdTxqe6xL6
-      - b6Mw4aN3PPoPvg9zQ
-      - Sw72ohJbi6YPGaoij
-      - FGGd9n4Xwadi4Mfxo
-      - ZTgP4QLnadb66di5E
-  - factorIds:
-      - xWQjpcmpuWmZXGA7P
-    archivedAt: 2021-06-14T23:33:33.060Z
-  - name: Pair-coop
-    factorIds:
-      - xWQjpcmpuWmZXGA7Q
-      - pWeADdnYht6s2XmXy
-      - PhWBYRyqGv7hpZbKm
-      - XxGKfzAdshtarMJ8v
-      - tbrmbrEbCZovKMq64
-      - BhQi7sMQc7Xn8XfvN
-      - b6Mw4aN3PPoPvg9zQ
-      - Sw72ohJbi6YPGaoij
-    archivedAt: 2021-04-24T01:55:22.420Z
-  - name: Trio-coop-partial
-    factorIds:
-      - xWQjpcmpuWmZXGA7P
-      - pWeADdnYht6s2XmXy
-      - PhWBYRyqGv7hpZbKm
-      - XxGKfzAdshtarMJ8v
-      - tbrmbrEbCZovKMq64
-      - BhQi7sMQc7Xn8XfvN
-      - b6Mw4aN3PPoPvg9zQ
-      - Sw72ohJbi6YPGaoij
-      - FGGd9n4Xwadi4Mfxo
-    archivedAt: 2021-06-14T23:33:27.280Z
-  - name: trio-competitive-partial
-    factorIds:
-      - xWQjpcmpuWmZXGA7P
-      - pWeADdnYht6s2XmXy
-      - PhWBYRyqGv7hpZbKm
-      - XxGKfzAdshtarMJ8v
-      - tbrmbrEbCZovKMq64
       - ttoh8hn8bSDbSJ3gu
       - b6Mw4aN3PPoPvg9zQ
-      - Sw72ohJbi6YPGaoij
-      - FGGd9n4Xwadi4Mfxo
-      - ZTgP4QLnadb66di5E
-    archivedAt: 2021-06-14T23:33:27.305Z
-  - name: may28coop
-    factorIds:
-      - xWQjpcmpuWmZXGA7P
-      - pWeADdnYht6s2XmXy
-      - 8s4mWKpqFF83FP3X6
-      - XxGKfzAdshtarMJ8v
-      - tbrmbrEbCZovKMq64
-      - ttoh8hn8bSDbSJ3gu
-      - b6Mw4aN3PPoPvg9zQ
-      - Sw72ohJbi6YPGaoij
-      - FGGd9n4Xwadi4Mfxo
-      - 5XZDmt9Lfoe5HjZBN
-    archivedAt: 2021-05-28T18:56:19.234Z
-  - name: coopmay28
-    factorIds:
-      - 5XZDmt9Lfoe5HjZBN
-      - FGGd9n4Xwadi4Mfxo
-      - Sw72ohJbi6YPGaoij
-      - b6Mw4aN3PPoPvg9zQ
-      - BhQi7sMQc7Xn8XfvN
-      - tbrmbrEbCZovKMq64
-      - XxGKfzAdshtarMJ8v
-      - pWeADdnYht6s2XmXy
-      - PhWBYRyqGv7hpZbKm
-      - xWQjpcmpuWmZXGA7P
-  - name: compmay28
-    factorIds:
-      - xWQjpcmpuWmZXGA7P
-      - pWeADdnYht6s2XmXy
-      - PhWBYRyqGv7hpZbKm
-      - XxGKfzAdshtarMJ8v
-      - ttoh8hn8bSDbSJ3gu
-      - tbrmbrEbCZovKMq64
-      - b6Mw4aN3PPoPvg9zQ
-      - Sw72ohJbi6YPGaoij
-      - FGGd9n4Xwadi4Mfxo
+      - ixtbTCunjhtyqRL4b
+      - 5adDrqJL34YTqhSdX
       - Yh3z6HadySgFoyADL
-  - name: coopLangJune
-    factorIds:
-      - xWQjpcmpuWmZXGA7P
-      - pWeADdnYht6s2XmXy
-      - 8s4mWKpqFF83FP3X6
-      - XxGKfzAdshtarMJ8v
-      - tbrmbrEbCZovKMq64
-      - BhQi7sMQc7Xn8XfvN
-      - b6Mw4aN3PPoPvg9zQ
-      - Sw72ohJbi6YPGaoij
-      - FGGd9n4Xwadi4Mfxo
-      - 5XZDmt9Lfoe5HjZBN
-      - hYDX9FFidvBYBfGhQ
-    archivedAt: 2021-06-14T23:40:10.238Z
-  - name: compNonlangJune
-    factorIds:
-      - xWQjpcmpuWmZXGA7P
-      - pWeADdnYht6s2XmXy
-      - 8s4mWKpqFF83FP3X6
-      - XxGKfzAdshtarMJ8v
-      - tbrmbrEbCZovKMq64
-      - ttoh8hn8bSDbSJ3gu
-      - b6Mw4aN3PPoPvg9zQ
-      - Sw72ohJbi6YPGaoij
-      - FGGd9n4Xwadi4Mfxo
-      - BtojAaAq4T5Fju83x
-      - b9WB3TiLzyAbEXeKf
-  - name: compLangJune
-    factorIds:
-      - xWQjpcmpuWmZXGA7P
-      - pWeADdnYht6s2XmXy
-      - 8s4mWKpqFF83FP3X6
-      - XxGKfzAdshtarMJ8v
-      - tbrmbrEbCZovKMq64
-      - ttoh8hn8bSDbSJ3gu
-      - b6Mw4aN3PPoPvg9zQ
-      - Sw72ohJbi6YPGaoij
-      - FGGd9n4Xwadi4Mfxo
-      - Yh3z6HadySgFoyADL
-      - hYDX9FFidvBYBfGhQ
-  - name: coopLangJune2
-    factorIds:
-      - xWQjpcmpuWmZXGA7P
-      - pWeADdnYht6s2XmXy
-      - 8s4mWKpqFF83FP3X6
-      - XxGKfzAdshtarMJ8v
-      - BhQi7sMQc7Xn8XfvN
-      - tbrmbrEbCZovKMq64
-      - b6Mw4aN3PPoPvg9zQ
-      - Sw72ohJbi6YPGaoij
-      - FGGd9n4Xwadi4Mfxo
-      - 5XZDmt9Lfoe5HjZBN
-      - hYDX9FFidvBYBfGhQ
-  - name: coopNonlangJune
-    factorIds:
-      - xWQjpcmpuWmZXGA7P
-      - pWeADdnYht6s2XmXy
-      - 8s4mWKpqFF83FP3X6
-      - XxGKfzAdshtarMJ8v
-      - BhQi7sMQc7Xn8XfvN
-      - tbrmbrEbCZovKMq64
-      - b6Mw4aN3PPoPvg9zQ
-      - Sw72ohJbi6YPGaoij
-      - FGGd9n4Xwadi4Mfxo
-      - KN7WR3PnKhPnzBCL5
-      - b9WB3TiLzyAbEXeKf
+      - 9aRuS92NuSK5XRmew
+      - Ft7GqqHSz3B3EozsZ
 factorTypes:
-  - _id: zzEuG3B2DtcSPzzHB
+  - _id: 6XPncC5gGRc8cWyS9
     name: playerCount
     description: The Number of players participating in the given game.
     required: true
@@ -226,19 +86,30 @@ factorTypes:
     description: to enable or disable the language conditions
     required: true
     type: Boolean
+  - _id: BtcAcGR5xtdBNXgSR
+    name: numBlocks
+    description: How many blocks are there? This * repsPerBlock is how many are seen
+    required: false
+    type: Integer
+    min: 1
+    max: 10
 factors:
-  - _id: FGGd9n4Xwadi4Mfxo
+  - _id: 5adDrqJL34YTqhSdX
     name: 'true'
     value: true
     factorTypeId: K86LrpQD9kfzZTT7S
-  - _id: qvZvPSfDPy5JEg3PB
+  - _id: 9aRuS92NuSK5XRmew
+    name: 'true'
+    value: true
+    factorTypeId: 8ZYC2jZrDkoZvXGGS
+  - _id: WHo5Hf8sT55Zb7gok
     name: 'false'
     value: false
-    factorTypeId: K86LrpQD9kfzZTT7S
+    factorTypeId: 8ZYC2jZrDkoZvXGGS
   - _id: xWQjpcmpuWmZXGA7P
     name: Triad
     value: 3
-    factorTypeId: zzEuG3B2DtcSPzzHB
+    factorTypeId: 6XPncC5gGRc8cWyS9
   - _id: XxGKfzAdshtarMJ8v
     name: five
     value: 5
@@ -251,20 +122,12 @@ factors:
     name: setA
     value: setA
     factorTypeId: NdwKxvtL5ibRjTYBh
-  - _id: BhQi7sMQc7Xn8XfvN
-    name: cooperativeCartel
-    value: coopCartel
-    factorTypeId: vEbTwwQmrSWHfYeF4
   - _id: b6Mw4aN3PPoPvg9zQ
     name: Six
     value: 6
     factorTypeId: 2YZvnSnu3ft989qpY
-  - _id: Sw72ohJbi6YPGaoij
-    name: Twelve
-    value: 12
-    factorTypeId: dXoDyaNp7iLQGpXsP
   - _id: ttoh8hn8bSDbSJ3gu
-    name: competitiveCartel
+    name: competitive
     value: competCartel
     factorTypeId: vEbTwwQmrSWHfYeF4
   - _id: 5XZDmt9Lfoe5HjZBN
@@ -280,42 +143,13 @@ factors:
     value: TEST
     factorTypeId: oTmtc6KmQb77CaDTC
   - _id: pa4NDkMQdTxqe6xL6
-    name: coop_choose_3
+    name: cooperative
     value: coopMulti
     factorTypeId: vEbTwwQmrSWHfYeF4
   - _id: ZTgP4QLnadb66di5E
     name: 'null'
     value: 1
     factorTypeId: bXvGAr4hy9EPmQ8Kp
-  - _id: hYDX9FFidvBYBfGhQ
-    name: 'true'
-    value: true
-    factorTypeId: 8ZYC2jZrDkoZvXGGS
-  - _id: b9WB3TiLzyAbEXeKf
-    name: 'false'
-    value: false
-    factorTypeId: 8ZYC2jZrDkoZvXGGS
-  - _id: PhWBYRyqGv7hpZbKm
-    name: prolificPilot
-    value: 3B021164
-    factorTypeId: oTmtc6KmQb77CaDTC
-  - _id: xWQjpcmpuWmZXGA7Q
-    name: Pair
-    value: 2
-    factorTypeId: zzEuG3B2DtcSPzzHB
-  - _id: xWQjpcmpuWmZXGA7R
-    name: Quad
-    value: 4
-    factorTypeId: zzEuG3B2DtcSPzzHB
-  - _id: 8s4mWKpqFF83FP3X6
-    name: test
-    value: LCX2Y5GM
-    factorTypeId: oTmtc6KmQb77CaDTC
-  - _id: 9ib83Q4z4ZSEigvvN
-    name: coopNonlang
-    value: 0.2
-    factorTypeId: bXvGAr4hy9EPmQ8Kp
-    archivedAt: 2021-06-14T23:39:40.185Z
   - _id: KN7WR3PnKhPnzBCL5
     name: coopNonlang
     value: 0.25
@@ -324,6 +158,18 @@ factors:
     name: compNonlang
     value: 0.7
     factorTypeId: bXvGAr4hy9EPmQ8Kp
+  - _id: ixtbTCunjhtyqRL4b
+    name: Test
+    value: 1
+    factorTypeId: dXoDyaNp7iLQGpXsP
+  - _id: Ft7GqqHSz3B3EozsZ
+    name: '4'
+    value: 4
+    factorTypeId: BtcAcGR5xtdBNXgSR
+  - _id: 9MTe4aE2Cg7qS9C3R
+    name: '6'
+    value: 6
+    factorTypeId: dXoDyaNp7iLQGpXsP
 lobbyConfigs:
   - timeoutType: lobby
     timeoutInSeconds: 300
