@@ -78,11 +78,12 @@ export const utilities = [
   {'utility': 7, 'utility_image': "/experiment/prop_bars/7.png"},
   {'utility': 8, 'utility_image': "/experiment/prop_bars/8.png"},
   {'utility': 9, 'utility_image': "/experiment/prop_bars/9.png"},
+]
+
+export const high_utilities=[
   {'utility': 10, 'utility_image': "/experiment/prop_bars/10.png"},
   {'utility': 11, 'utility_image': "/experiment/prop_bars/11.png"},
   {'utility': 12, 'utility_image': "/experiment/prop_bars/12.png"},
-  
-
 ]
 export const names = [
     "Repi",

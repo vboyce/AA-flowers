@@ -44,7 +44,7 @@ import customBreadcrumb from "./game/Breadcrumb.jsx";
 Empirica.header(() => null);
 
 // Set the Consent Component you want to present players (optional).
-Empirica.consent(Consent);
+//Empirica.consent(Consent);
 
 // Introduction pages to show before they play the game (optional).
 // At this point they have been assigned a treatment. You can return
@@ -69,8 +69,8 @@ Empirica.introSteps((game, treatment) => {
   //}
   //steps.push(MoreAboutBonus);
 
-  return steps;
-  //return[]
+  //return steps;
+  return[]
 });
 
 // The Round component containing the game UI logic.

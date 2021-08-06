@@ -32,6 +32,9 @@ Empirica.onRoundStart((game, round) => {
   players.forEach(player => {
     player.set('clicked', false);
     player.set('timeClick', false);
+    player.set('scoreIncrement', false);
+    player.set('clickLength', false)
+    player.set('rawScore',false)
     player.set('imageOrder', _.shuffle(tangramlist))
   });
 });
@@ -59,52 +62,53 @@ Empirica.onStageEnd((game, round, stage) => {
     const scale = game.treatment.scale || 1
     const type = game.treatment.condition
     // 
-    if (type=="coopMulti"){ // this depends on total clicks
-      let rawScore=0
-      let clicked=[]
-      _.forEach(players, p => {
-        clicked.push(p.get("clicked"))
-      })
-      clicked=_.uniq(clicked) // no duplicates
-      _.forEach(clicked, tangram => {
-        rawScore=rawScore+tangrams[tangram]["utility"]
-      })
-      rawScore=rawScore/players.length
-      let scoreIncrement=rawScore*scale*.01
-      _.forEach(players, player => {
-        const currScore = player.get("bonus") || 0;      
-        player.set("bonus", scoreIncrement + currScore);
-        player.set("scoreIncrement", scoreIncrement)
-        player.set("clickLength", clicked.length) //how many unique flowers were clicked
-        player.set("rawScore", rawScore)
-      })
-    }
-    else{ // these conditions score depends only on others who clicked the same thing
+
+      let total=0
+      let collide=0 
       _.forEach(_.keys(tangrams), tangram => {
         let click=[]
         _.forEach(players, p => {
           if (p.get("clicked")==tangram){click.push(p)}
         })
-        let rawScore=tangrams[tangram]["utility"]
-        if (type=="coopCartel"){rawScore=rawScore*click.length}
-        if (type=="competCartel"){rawScore=rawScore/click.length}
+        if (click){
+          let rawScore=click.length==1?tangrams[tangram]["utility"]:2
+          let scoreIncrement=rawScore*scale*.01
+          collide=collide >click.length? collide: click.length
+            _.forEach(click, player=> {
+              total=total+rawScore
+              console.log(rawScore)
+              if (type=="competCartel"){
+                const currScore = player.get("bonus") || 0;      
+                player.set("bonus", scoreIncrement + currScore);
+                player.set("scoreIncrement", scoreIncrement)
+                player.set("clickLength", click.length)
+                player.set("rawScore", rawScore)
+              }
+            })
+          }
+        })
+    
+      if (type=="coopMulti"){
+        let rawScore=total/players.length //average
         let scoreIncrement=rawScore*scale*.01
-        _.forEach(click, player=> {
-          const currScore = player.get("bonus") || 0;      
-          player.set("bonus", scoreIncrement + currScore);
-          player.set("scoreIncrement", scoreIncrement)
-          player.set("clickLength", click.length)
-          player.set("rawScore", rawScore)
+        _.forEach(players, player => {
+          const currScore = player.get("bonus") || 0;  
+          if (player.get("clicked")){    // according to instructions, if you don't click you get nothing
+            player.set("bonus", scoreIncrement + currScore);
+            player.set("scoreIncrement", scoreIncrement)
+            player.set("clickLength", collide) //how many unique flowers were clicked
+            player.set("rawScore", rawScore)
+            console.log(player.get("rawScore"))
+          }
         })
-        })
-    }  
+      }
     players.forEach(player => {
       round.set('player_' + player._id + '_response', player.get('clicked'));
       round.set('player_' + player._id + '_time', player.get('timeClick'));
       round.set('player_' + player._id + '_utility', player.get('rawScore'));
 
     });
-}
+  }
 });
 
 // onRoundEnd is triggered after each round.

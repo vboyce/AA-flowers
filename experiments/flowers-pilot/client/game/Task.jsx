@@ -44,40 +44,31 @@ export default class Task extends React.Component {
     if (stage.name=="selection"){
      instructions =  "Click on what you want to plant."}
     if (stage.name=="feedback"){
-      incrementView = "\+" + player.get("scoreIncrement").toFixed(2)
+      incrementView = "\+" + (player.get("scoreIncrement")||0).toFixed(2)
       let condition = game.get("condition")
       let clickLength = player.get("clickLength")
 
       if(player.get("clicked") == false) {
         instructions = "You didn't select an image!"
-      } else if(condition == "coopCartel") {
-
-        if(clickLength == 3) {
-          instructions = "Great! You all selected the same image!"
-          explanation = "You got the full bonus!"
-        } else {
-          let numPeople = clickLength == 2 ? "One person" : "Two people"
-          instructions =  "Uh oh! " + numPeople + " selected a different image."
-          explanation = "This lowered your bonus."
-          }
       } else if(condition == "competCartel") {
 
         if(clickLength == 1) {
           instructions = "Great! No one else selected the same image!"
           explanation = "You got the full bonus!"
         } else {
-          let numPeople = clickLength == 2 ? "Two people" : "One person"
-          instructions =  "Uh oh! " + numPeople + " selected the same image."
-          explanation = "This lowered your bonus."
+          let numPeople = clickLength == 2 ?  "One person" : "Two people"
+          let all = clickLength ==2 ? "both" : "all"
+          instructions =  "Uh oh! " + numPeople + " selected the same image as you."
+          explanation = "So you "+all+" got clover instead! This lowered your bonus."
           }
         }
         else if (condition=="coopMulti"){
-          if(clickLength==3){
-            instructions="Great! 3 flowers were selected!"
-            explanation = "This increased your bonus!"
+          if(clickLength==1){
+            instructions="Great! You all selected different images!"
+            explanation = "You got the full bonuses!"
           }else{
-            let numFlowers = clickLength == 2 ? "2 flowers were" : "1 flower was"
-            instructions="Uh oh! Only "+numFlowers+" selected."
+            let numPeople = clickLength==2 ? "Some people": "Everyone"
+            instructions="Uh oh! "+ numPeople+" selected the same image and got clover instead."
             explanation="This lowered your bonus."
           }
         }

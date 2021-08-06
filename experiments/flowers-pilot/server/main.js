@@ -1,10 +1,10 @@
 import Empirica from "meteor/empirica:core";
 
 import "./callbacks.js";
-import { targetSets, utilities , sequences} from "./constants";
+import { targetSets, utilities , high_utilities, sequences} from "./constants";
 import _ from "lodash";
 
-function chooseImages(flowers, utilities, number, players, blinded){
+function chooseImages(flowers, low, high, number, players, blinded){
   //takes a list of flower objects, a list of utilties and a number to select
   //returns the context
   // if blinded, then each flower is labelled with which player won't its utils
@@ -14,10 +14,13 @@ function chooseImages(flowers, utilities, number, players, blinded){
     blinds=order.map(i => _.assign({},{"blinded":players[i]}))
   }
   const f=_.slice(_.shuffle(flowers),0,number)
-  const u=_.slice(_.shuffle(utilities),0,number)
+  const l=_.slice(_.shuffle(low),0,number-1) // choose n-1 from the normal range
+  const h=_.slice(_.shuffle(high),0,1) //choose 1 high
+  const u=_.concat(l,h)
   const values=_.zipWith(f,u,blinds, (a,b,c)=>_.assign({},a,b,c))
   const names=_.map(f, (a)=>a.label)
   const all=_.zipObject(names,values)
+  //console.log(all)
   return all
 }
 
@@ -70,7 +73,7 @@ Empirica.gameInit((game, treatment) => {
       _.times(repsPerBlock, repNum => {      
         const round = game.addRound();
         //round.set('target', mixed_targets[targetNum]);
-        round.set('context', chooseImages(targetSets[color],utilities,numTargets, playerIds, treatment.partial))
+        round.set('context', chooseImages(targetSets[color],utilities,high_utilities, numTargets, playerIds, treatment.partial))
         round.set('repNum', repNum);
         round.set('blockNum', blockNum);
         round.set('trialNum', blockNum * repsPerBlock + repNum);
