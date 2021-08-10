@@ -18,7 +18,8 @@ export default class Tangram extends React.Component {
         playerId: player._id,
         target: round.get('target'),
         role: player.get('role'),
-        type: "alert"
+        type: "selectionAlert",
+        time: Date.now()
       });
 
     }

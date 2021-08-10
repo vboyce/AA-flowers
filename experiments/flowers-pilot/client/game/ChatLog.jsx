@@ -21,7 +21,8 @@ export default class ChatLog extends React.Component {
         playerId: player._id,
         target: round.get('target'),
         role: player.get('role'),
-        type: "message"
+        type: "message",
+        time: Date.now()
       });
       this.setState({ comment: "" });
     }
