@@ -126,14 +126,18 @@ Empirica.onGameEnd((game) => {
    const flowers= game.get("flowers")
    const flower_names = _.zipObject(flowers.map(a => a.label),flowers.map( ()=> ""))
    const otherflowers=game.get("otherflowers")
-   const otherflower_names = _.zipObject(otherflowers.map(a => a.label),otherflowers.map( ()=> ""))
-   
+   //const otherflower_names = _.zipObject(otherflowers.map(a => a.label),otherflowers.map( ()=> ""))
+
    players.forEach((player, i) => {
      //player.set("tangrams", _.shuffle(targets));
      player.set("flower_labels", flower_names)
-     player.set("otherflower_labels", otherflower_names)
      player.set("flowers", _.shuffle(flowers))
-     player.set("otherflowers", _.shuffle(otherflowers))
+     let othersample = _.slice(_.shuffle(otherflowers),0,4) //randomly choose 4 to show
+     player.set("otherflowers", othersample) 
+     player.set("otherflower_labels",_.zipObject(othersample.map(a => a.label),othersample.map( ()=> "")))
+     let otherplayers=_.filter(_.map(game.players,(a) => a.get("name")), a => a!==player.get("name"))
+     player.set("p1",otherplayers[0])
+     player.set("p2",otherplayers[1])
    });
  });
  

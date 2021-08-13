@@ -34,16 +34,22 @@ export default class ExitSurvey extends React.Component {
         chatUseful: "",
         feedback: "",
         time: "",
+        player1:"",
+        player2:"",
+        p1like:"",
+        p2like:""
     };
 
     handleChange = (event) => {
         const el = event.currentTarget;
         this.setState({ [el.name]: el.value });
+        console.log(el.name)
     };
 
     handleEnabledChange = (event) => {
         const el = event.currentTarget;
         this.setState({ [el.name]: !this.state[el.name] });
+        console.log(el.name)
       };
     handleSubmit = (event) => {
       event.preventDefault();
@@ -52,7 +58,7 @@ export default class ExitSurvey extends React.Component {
     };
 
 
-    exitForm = () => {
+    exitForm = (p1,p2) => {
         const {
             age,
             gender,
@@ -71,8 +77,13 @@ export default class ExitSurvey extends React.Component {
             chatUseful,
             feedback,
             time,
+            player1,
+            player2,
+            p1like,
+            p2like,
         } = this.state;
-
+        let likep1="How much do you like "+p1+" ?"
+        let likep2="How much do you like "+p2+" ?"
         return (
             <div>
               {" "}
@@ -302,6 +313,77 @@ export default class ExitSurvey extends React.Component {
                         </div>
                     </div>
 
+                    <div className="pt-form-group">
+                        <div className="pt-form-content">
+                            <RadioGroup
+                                name="p1like"
+                                label={likep1}
+                                onChange={this.handleChange}
+                                selectedValue={p1like}
+                            >
+                                <Radio
+                                    label="Strongly agree"
+                                    value="stronglyAgree"
+                                    className={"pt-inline"}
+                                />
+                                <Radio label="Agree" value="agree" className={"pt-inline"} />
+                                <Radio
+                                    label="Neutral"
+                                    value="neutral"
+                                    className={"pt-inline"}
+                                />
+
+                                <Radio
+                                    label="Disagree"
+                                    value="disagree"
+                                    className={"pt-inline"}
+                                />
+
+                                <Radio
+                                    label="Strongly disagree"
+                                    value="stronglyDisagree"
+                                    className={"pt-inline"}
+                                />
+                            </RadioGroup>
+                        </div>
+                    </div>
+
+                    <div className="pt-form-group">
+                        <div className="pt-form-content">
+                            <RadioGroup
+                                name="p2like"
+                                label={likep2}
+                                onChange={this.handleChange}
+                                selectedValue={p2like}
+                            >
+                                <Radio
+                                    label="Strongly agree"
+                                    value="stronglyAgree"
+                                    className={"pt-inline"}
+                                />
+                                <Radio label="Agree" value="agree" className={"pt-inline"} />
+                                <Radio
+                                    label="Neutral"
+                                    value="neutral"
+                                    className={"pt-inline"}
+                                />
+
+                                <Radio
+                                    label="Disagree"
+                                    value="disagree"
+                                    className={"pt-inline"}
+                                />
+
+                                <Radio
+                                    label="Strongly disagree"
+                                    value="stronglyDisagree"
+                                    className={"pt-inline"}
+                                />
+                            </RadioGroup>
+                        </div>
+                    </div>
+
+
                     <div className="form-line thirds">
 
                         <FormGroup
@@ -401,11 +483,13 @@ export default class ExitSurvey extends React.Component {
     componentWillMount() {}
 
     render() {
-        const { player, game } = this.props;
+      const { player, game } = this.props;
+      let p1=player.get("p1")
+      let p2=player.get("p2")
         return (
             <Centered>
                 <div className="exit-survey">
-                    {this.exitForm()}
+                    {this.exitForm(p1,p2)}
                 </div>
             </Centered>
         );

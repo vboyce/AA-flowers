@@ -31,7 +31,7 @@ import UIOverview from "./intro/UIOverview.jsx";
 //import GroupQuizCompet from "./intro/GroupQuizCompet.jsx";
 //import GroupQuizCoop from "./intro/GroupQuizCoop.jsx";
 
-import { GroupPostTest } from "./exit/GroupPostTest.jsx";
+import { OwnColorTest, OtherColorTest} from "./exit/GroupPostTest.jsx";
 import PostTestInstructions from "./exit/PostTestInstructions.jsx";
 
 import Round from "./game/Round.jsx";
@@ -97,7 +97,7 @@ Empirica.exitSteps((game, player, treatment) => {
   } else {
     if (game.treatment.chatEnabled) {
     //chat exit survey
-    return [PostTestInstructions,GroupPostTest,ExitSurvey, Thanks];}
+    return [PostTestInstructions,OwnColorTest,OtherColorTest,ExitSurvey, Thanks];}
     else {
       return [ExitSurveyNochat, Thanks];
     }
