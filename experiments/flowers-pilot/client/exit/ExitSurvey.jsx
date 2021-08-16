@@ -36,8 +36,10 @@ export default class ExitSurvey extends React.Component {
         time: "",
         player1:"",
         player2:"",
-        p1like:"",
-        p2like:""
+        p1nice:"",
+        p2nice:"",
+        p1again:"",
+        p2again:""
     };
 
     handleChange = (event) => {
@@ -79,11 +81,15 @@ export default class ExitSurvey extends React.Component {
             time,
             player1,
             player2,
-            p1like,
-            p2like,
+            p1nice,
+            p2nice,
+            p1again,
+            p2again,
         } = this.state;
-        let likep1="How much do you like "+p1+" ?"
-        let likep2="How much do you like "+p2+" ?"
+        let hownicep1="How nice was "+p1+" ?"
+        let hownicep2="How nice was "+p2+" ?"
+        let wantagainp1="How much would you want to be paired with "+p1+" again if you played another round?"
+        let wantagainp2="How much would you want to be paired with "+p2+" again if you played another round?"
         return (
             <div>
               {" "}
@@ -316,34 +322,19 @@ export default class ExitSurvey extends React.Component {
                     <div className="pt-form-group">
                         <div className="pt-form-content">
                             <RadioGroup
-                                name="p1like"
-                                label={likep1}
+                                name="p1nice"
+                                label={hownicep1}
                                 onChange={this.handleChange}
-                                selectedValue={p1like}
+                                selectedValue={p1nice}
                             >
-                                <Radio
-                                    label="Strongly agree"
-                                    value="stronglyAgree"
-                                    className={"pt-inline"}
-                                />
-                                <Radio label="Agree" value="agree" className={"pt-inline"} />
-                                <Radio
-                                    label="Neutral"
-                                    value="neutral"
-                                    className={"pt-inline"}
-                                />
-
-                                <Radio
-                                    label="Disagree"
-                                    value="disagree"
-                                    className={"pt-inline"}
-                                />
-
-                                <Radio
-                                    label="Strongly disagree"
-                                    value="stronglyDisagree"
-                                    className={"pt-inline"}
-                                />
+                                <Radio label="Not nice at all" value="1" className={"pt-inline"}/>
+                                <Radio label="" value="2" className={"pt-inline"}/>
+                                <Radio label="" value="3" className={"pt-inline"}/>
+                                <Radio label="" value="4" className={"pt-inline"}/>
+                                <Radio label="" value="5" className={"pt-inline"}/>
+                                <Radio label="" value="6" className={"pt-inline"}/>
+                                <Radio label="Very nice" value="7" className={"pt-inline"}/>
+ 
                             </RadioGroup>
                         </div>
                     </div>
@@ -351,34 +342,59 @@ export default class ExitSurvey extends React.Component {
                     <div className="pt-form-group">
                         <div className="pt-form-content">
                             <RadioGroup
-                                name="p2like"
-                                label={likep2}
+                                name="p2nice"
+                                label={hownicep2}
                                 onChange={this.handleChange}
-                                selectedValue={p2like}
+                                selectedValue={p2nice}
                             >
-                                <Radio
-                                    label="Strongly agree"
-                                    value="stronglyAgree"
-                                    className={"pt-inline"}
-                                />
-                                <Radio label="Agree" value="agree" className={"pt-inline"} />
-                                <Radio
-                                    label="Neutral"
-                                    value="neutral"
-                                    className={"pt-inline"}
-                                />
+                                <Radio label="Not nice at all" value="1" className={"pt-inline"}/>
+                                <Radio label="" value="2" className={"pt-inline"}/>
+                                <Radio label="" value="3" className={"pt-inline"}/>
+                                <Radio label="" value="4" className={"pt-inline"}/>
+                                <Radio label="" value="5" className={"pt-inline"}/>
+                                <Radio label="" value="6" className={"pt-inline"}/>
+                                <Radio label="Very nice" value="7" className={"pt-inline"}/>
+ 
+                            </RadioGroup>
+                        </div>
+                    </div>
 
-                                <Radio
-                                    label="Disagree"
-                                    value="disagree"
-                                    className={"pt-inline"}
-                                />
+                    <div className="pt-form-group">
+                        <div className="pt-form-content">
+                            <RadioGroup
+                                name="p1again"
+                                label={wantagainp1}
+                                onChange={this.handleChange}
+                                selectedValue={p1again}
+                            >
+                                <Radio label="Would NOT want to be paired" value="1" className={"pt-inline"}/>
+                                <Radio label="" value="2" className={"pt-inline"}/>
+                                <Radio label="" value="3" className={"pt-inline"}/>
+                                <Radio label="" value="4" className={"pt-inline"}/>
+                                <Radio label="" value="5" className={"pt-inline"}/>
+                                <Radio label="" value="6" className={"pt-inline"}/>
+                                <Radio label="Would want to be paired" value="7" className={"pt-inline"}/>
+ 
+                            </RadioGroup>
+                        </div>
+                    </div>
 
-                                <Radio
-                                    label="Strongly disagree"
-                                    value="stronglyDisagree"
-                                    className={"pt-inline"}
-                                />
+                    <div className="pt-form-group">
+                        <div className="pt-form-content">
+                            <RadioGroup
+                                name="p2again"
+                                label={wantagainp2}
+                                onChange={this.handleChange}
+                                selectedValue={p2again}
+                            >
+                                <Radio label="Would NOT want to be paired" value="1" className={"pt-inline"}/>
+                                <Radio label="" value="2" className={"pt-inline"}/>
+                                <Radio label="" value="3" className={"pt-inline"}/>
+                                <Radio label="" value="4" className={"pt-inline"}/>
+                                <Radio label="" value="5" className={"pt-inline"}/>
+                                <Radio label="" value="6" className={"pt-inline"}/>
+                                <Radio label="Would want to be paired" value="7" className={"pt-inline"}/>
+ 
                             </RadioGroup>
                         </div>
                     </div>
