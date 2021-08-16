@@ -16,7 +16,7 @@ function chooseImages(flowers, low, high, number, players, blinded){
   const f=_.slice(_.shuffle(flowers),0,number)
   const l=_.slice(_.shuffle(low),0,number-1) // choose n-1 from the normal range
   const h=_.slice(_.shuffle(high),0,1) //choose 1 high
-  const u=_.concat(l,h)
+  const u=_.shuffle(_.concat(l,h))
   const values=_.zipWith(f,u,blinds, (a,b,c)=>_.assign({},a,b,c))
   const names=_.map(f, (a)=>a.label)
   const all=_.zipObject(names,values)
