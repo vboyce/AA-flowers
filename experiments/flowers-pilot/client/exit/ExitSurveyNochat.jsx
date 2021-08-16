@@ -33,6 +33,12 @@ export default class ExitSurveyNochat extends React.Component {
         fair: "",
         feedback: "",
         time: "",
+        player1:"",
+        player2:"",
+        p1nice:"",
+        p2nice:"",
+        p1again:"",
+        p2again:""
     };
 
     handleChange = (event) => {
@@ -51,8 +57,8 @@ export default class ExitSurveyNochat extends React.Component {
     };
 
 
-    exitForm = () => {
-        const {
+    exitForm = (p1,p2) => {
+      const {
             age,
             gender,
             language,
@@ -68,9 +74,17 @@ export default class ExitSurveyNochat extends React.Component {
             workedWell,
             fair,
             feedback,
-            time,
+            time,player1,
+            player2,
+            p1nice,
+            p2nice,
+            p1again,
+            p2again,
         } = this.state;
-
+        let hownicep1="How nice was "+p1+" ?"
+        let hownicep2="How nice was "+p2+" ?"
+        let wantagainp1="How much would you want to be paired with "+p1+" again if you played another round?"
+        let wantagainp2="How much would you want to be paired with "+p2+" again if you played another round?"
         return (
             <div>
               {" "}
@@ -300,6 +314,86 @@ export default class ExitSurveyNochat extends React.Component {
                         </div>
                     </div>
 
+                    <div className="pt-form-group">
+                        <div className="pt-form-content">
+                            <RadioGroup
+                                name="p1nice"
+                                label={hownicep1}
+                                onChange={this.handleChange}
+                                selectedValue={p1nice}
+                            >
+                                <Radio label="Not nice at all" value="1" className={"pt-inline"}/>
+                                <Radio label="" value="2" className={"pt-inline"}/>
+                                <Radio label="" value="3" className={"pt-inline"}/>
+                                <Radio label="" value="4" className={"pt-inline"}/>
+                                <Radio label="" value="5" className={"pt-inline"}/>
+                                <Radio label="" value="6" className={"pt-inline"}/>
+                                <Radio label="Very nice" value="7" className={"pt-inline"}/>
+ 
+                            </RadioGroup>
+                        </div>
+                    </div>
+
+                    <div className="pt-form-group">
+                        <div className="pt-form-content">
+                            <RadioGroup
+                                name="p2nice"
+                                label={hownicep2}
+                                onChange={this.handleChange}
+                                selectedValue={p2nice}
+                            >
+                                <Radio label="Not nice at all" value="1" className={"pt-inline"}/>
+                                <Radio label="" value="2" className={"pt-inline"}/>
+                                <Radio label="" value="3" className={"pt-inline"}/>
+                                <Radio label="" value="4" className={"pt-inline"}/>
+                                <Radio label="" value="5" className={"pt-inline"}/>
+                                <Radio label="" value="6" className={"pt-inline"}/>
+                                <Radio label="Very nice" value="7" className={"pt-inline"}/>
+ 
+                            </RadioGroup>
+                        </div>
+                    </div>
+
+                    <div className="pt-form-group">
+                        <div className="pt-form-content">
+                            <RadioGroup
+                                name="p1again"
+                                label={wantagainp1}
+                                onChange={this.handleChange}
+                                selectedValue={p1again}
+                            >
+                                <Radio label="Would NOT want to be paired" value="1" className={"pt-inline"}/>
+                                <Radio label="" value="2" className={"pt-inline"}/>
+                                <Radio label="" value="3" className={"pt-inline"}/>
+                                <Radio label="" value="4" className={"pt-inline"}/>
+                                <Radio label="" value="5" className={"pt-inline"}/>
+                                <Radio label="" value="6" className={"pt-inline"}/>
+                                <Radio label="Would want to be paired" value="7" className={"pt-inline"}/>
+ 
+                            </RadioGroup>
+                        </div>
+                    </div>
+
+                    <div className="pt-form-group">
+                        <div className="pt-form-content">
+                            <RadioGroup
+                                name="p2again"
+                                label={wantagainp2}
+                                onChange={this.handleChange}
+                                selectedValue={p2again}
+                            >
+                                <Radio label="Would NOT want to be paired" value="1" className={"pt-inline"}/>
+                                <Radio label="" value="2" className={"pt-inline"}/>
+                                <Radio label="" value="3" className={"pt-inline"}/>
+                                <Radio label="" value="4" className={"pt-inline"}/>
+                                <Radio label="" value="5" className={"pt-inline"}/>
+                                <Radio label="" value="6" className={"pt-inline"}/>
+                                <Radio label="Would want to be paired" value="7" className={"pt-inline"}/>
+ 
+                            </RadioGroup>
+                        </div>
+                    </div>
+
                     <div className="form-line thirds">
 
                         <FormGroup
@@ -379,11 +473,13 @@ export default class ExitSurveyNochat extends React.Component {
     componentWillMount() {}
 
     render() {
-        const { player, game } = this.props;
+      const { player, game } = this.props;
+      let p1=player.get("p1")
+      let p2=player.get("p2")
         return (
             <Centered>
                 <div className="exit-survey">
-                    {this.exitForm()}
+                    {this.exitForm(p1,p2)}
                 </div>
             </Centered>
         );
