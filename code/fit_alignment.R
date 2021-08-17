@@ -1,7 +1,3 @@
-library(ggplot2)
-library(dplyr)
-
-
 #install.packages("devtools")
 #devtools::install_github("langcog/langcog")
 
@@ -16,32 +12,51 @@ library(lubridate)
 library(lme4)
 library(rstan)
 library(purrr)
+library(dplyr)
+library(ggplot2)
 
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
-result_files <- "data/pilot0/output_alignment.csv"
+##############prepare data 
+
+result_files <- "data/processed_data/joined_data/output_alignment.csv"
 #result_files <-  list.files(path = "../data/pilot0/",recursive = TRUE,
- #                           all.files = FALSE, full.names = TRUE,
-  #                          pattern = "output.csv")
+#all.files = FALSE, full.names = TRUE, pattern = "output.csv")
+
+#add condition to alignment data
+o<- read_csv("data/processed_data/joined_data/filtered_raw_chat.csv")
+coop_players <- o %>% 
+  filter(condition == "coopMulti") 
+list_coop_players <- unique(coop_players$playerId)
+comp_players <- o %>% 
+  filter(condition == "competCartel") 
+list_comp_players <- unique(comp_players$playerId)
+
 
 setup_alignment_data <- function(corpus_df) {
   corpus_df %>%
     group_by(category, subpop) %>%
     summarise_each(funs(sum), ba, nba, bna, nbna) %>%
-    filter(ba + bna > 1) %>%
+    filter(as.numeric(ba) + as.numeric(bna) > 1) %>%
     ungroup() %>%
     mutate(category_num = as.numeric(as.factor(category)),
            subpop_num = as.numeric(as.factor(subpop))) 
 }
 
-
 childes_data <- lapply(result_files, read_csv) %>%
   bind_rows() %>%
   rename(Speaker = speakerId, Replier = replierId) %>%
-  mutate(subpop = paste(Speaker,  "-", Replier)) %>%
-  filter(Speaker != Replier) 
+ # mutate(subpop = paste(Speaker,  "-", Replier)) %>%
+  mutate(subpop= ifelse(Replier %in% list_coop_players, "coop", ifelse(Replier %in% list_comp_players, "comp", ifelse(Speaker %in% list_comp_players, "comp",ifelse(Speaker %in% list_coop_players, "coop","no"))))) %>% 
+ # filter(Speaker != Replier) %>%
+  filter(subpop !="no") 
 
+columns <-c("ba", "nba", "bna", "nbna")
+childes_data[, columns] <- lapply(columns, function(x) as.numeric(childes_data[[x]]))
+
+
+########################### apply stanmodel
 childes_data <- childes_data %>%
   setup_alignment_data()
 
@@ -117,13 +132,9 @@ ggplot(aes(y = subpop, x = model_eta, colour = category,
   geom_point()+
   geom_smooth(method = "loess") +
   theme_bw(base_size = 14) +
+  geom_text_repel(aes(label=category))+
   theme(panel.grid = element_blank()) +
   labs(title='Model-estimated Alignment to speaker pairs',
        y='Speaker pairs',
        x='Alignment (delta log-odds)',
        colour='Alignment')
-
-
-
-
-
