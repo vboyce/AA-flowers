@@ -166,7 +166,7 @@ Empirica.onGameEnd((game) => {
 
 // // onSet is called when the experiment code call the .set() method
 // // on games, rounds, stages, players, playerRounds or playerStages.
-Empirica.onSet(
+/*Empirica.onSet(
   (
     game,
     round,
@@ -182,7 +182,7 @@ Empirica.onSet(
     if (key === "clicked") {
     }
   }
-);
+);*/
 
 // // onSet is called when the experiment code call the `.append()` method
 // // on games, rounds, stages, players, playerRounds or playerStages.
