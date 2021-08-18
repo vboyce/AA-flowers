@@ -99,9 +99,9 @@ Empirica.exitSteps((game, player, treatment) => {
   } else {
     if (game.treatment.chatEnabled) {
     //chat exit survey
-    return [PostTestInstructions,OwnColorTest,OtherColorTest,ExitSurvey, Thanks];}
+    return [PostTestInstructions, OwnColorTest, OtherColorTest,ExitSurvey, Thanks];}
     else {
-      return [ExitSurveyNochat, Thanks];
+      return [PostTestInstructions, OtherColorTest, ExitSurveyNochat, Thanks];
     }
   }
 });
