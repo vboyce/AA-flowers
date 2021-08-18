@@ -1,0 +1,138 @@
+---
+title: "simulate_game"
+author: "Jessica Mankewitz"
+date: "7/30/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r setup}
+library(here)
+source(here("code/theme_specs.R"))
+library(png)
+library(ggimage)
+library(tidyverse)
+```
+
+```{r pressure, echo=FALSE}
+d.players <- read_csv(here("data/processed_data/joined_data/players.csv"),
+                      col_types = cols()) %>% distinct()
+d.games <- read_csv(here("data/processed_data/joined_data/games.csv"),
+                      col_types = cols()) %>% distinct()
+d.rounds <- read_csv(here("data/processed_data/joined_data/rounds.csv"),
+                      col_types = cols()) %>% distinct()
+d.raw_chat <- read_csv(here("data/processed_data/joined_data/raw_chat.csv"),
+                      col_types = cols()) %>% distinct()
+d.contexts <- read_csv(here("data/processed_data/joined_data/contexts.csv"),
+                      col_types = cols()) %>% distinct()
+d.feedback <- read_csv(here("data/processed_data/joined_data/feedback.csv"),
+                      col_types = cols()) %>% distinct()
+d.demographics <- read_csv(here("data/processed_data/joined_data/demographics.csv"),
+                      col_types = cols()) %>% distinct()
+
+d.events <- read.csv(here("data/interpretable_transcript.csv"))
+```
+
+1) Figure out plotting t0 state of board (flowers available + maybe hidden markers?)
+2) Figure out plotting t final state of board (selections)
+3) Figure out plotting selections through events
+
+For each round, need list of flowers available, assign coordinates?
+
+```{r}
+#available flowers are stored in d.contexts, which also has the image paths (woo!)
+library(cowplot)
+
+d.contexts %>%
+  filter(gameId == "ExXQbCn35Xznf9tM5", trialNum == 0) %>%
+  mutate(fullLocation = paste0(here(), "experiment/yellow_similar/image_06676.jpg")) %>%
+  ggdraw() + draw_image(fullLocation)
+```
+
+#simulate utility structures?
+# how often is each flower in the top 3 if 6 flowers are sampled from the 12 without replacement and the worth is assigned with a normal distribution?
+
+```{r}
+num_games <- 14400
+#6 flowers for 24 trials for 100 games
+
+utility_samples_low <- replicate(num_games,sample(1:17, size = 5, replace = FALSE, prob = 17:1))
+dimnames(utility_samples_low) <- list(flower_num = 1:5, sample_num = 1:num_games)
+
+
+flower_utility <- replicate(num_games,sample(18:20, size = 1, replace = FALSE))
+
+d.utility_samples <- as.data.frame(as.table(utility_samples_low)) %>% 
+  rename(flower_utility = Freq) %>% 
+  mutate(flower_num = as.numeric(flower_num), 
+         sample_num = as.numeric(sample_num)) %>%
+  rbind(as.data.frame(flower_utility) %>% 
+              mutate(flower_num = as.numeric(6), 
+                     sample_num = as.numeric(1:num_games))) %>% arrange(sample_num, flower_num) 
+
+d.utility_samples$game <- rep(1:600, each=6*24)
+```
+
+
+```{r}
+#flower samples
+
+flower_samples <- replicate(num_games, sample(1:12, size = 6, replace = FALSE))
+dimnames(flower_samples) <- list(flower_num = 1:6, sample_num = 1:num_games)
+
+d.flower_samples <- as.data.frame(as.table(flower_samples)) %>% 
+  rename(flower_name = Freq) %>% 
+  mutate(flower_name = paste0("flower_", flower_name),
+         flower_num = as.numeric(flower_num),
+         sample_num = as.numeric(sample_num))
+
+d.sampled_context = d.flower_samples %>% left_join(d.utility_samples) %>% rename(trial = sample_num)
+```
+
+#how often is each flower the highest?
+```{r}
+
+#top flower
+d.sampled_context %>% group_by(game, trial) %>% 
+  slice_max(order_by = flower_utility, n = 1) %>% 
+  group_by(game, flower_name) %>%
+  summarize(count = n()) %>%
+  group_by(flower_name) %>%
+  summarize(mean = mean(count),
+            median = median(count))
+
+#in the top 3
+d.sampled_context %>% group_by(game, trial) %>% 
+  slice_max(order_by = flower_utility, n = 3) %>% 
+  group_by(game, flower_name) %>%
+  summarize(count = n()) %>%
+  group_by(flower_name) %>%
+  summarize(mean = mean(count),
+            sd = sd(count))
+
+#estimated points (communication)
+d.sampled_context %>% group_by(game, trial) %>% 
+  slice_max(order_by = flower_utility, n = 3) %>% 
+  summarize(trial_utility = sum(flower_utility)) %>%
+  group_by(game) %>%
+  summarize(mean_game_points = mean(trial_utility),
+            sd_game_points = sd(trial_utility))
+
+#penalty amount, if collision get n points
+collision_penalty = 10
+#estimated points with collisions
+d.sampled_context %>% group_by(game, trial) %>%
+  #take top 2
+  slice_max(order_by = flower_utility, n = 2) %>% 
+  #take smaller of top 2 (participant with the highest hidden)
+  slice_min(order_by = flower_utility, n = 1) %>% 
+  mutate(trial_utility = sum(flower_utility+(collision_penalty*2))) %>%
+  group_by(game) %>%
+  summarize(mean_game_points = mean(trial_utility),
+            sd_game_points = sd(trial_utility))
+```
+

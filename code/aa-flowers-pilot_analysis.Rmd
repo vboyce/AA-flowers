@@ -576,12 +576,30 @@ Are they getting better over games?
 d.by_round_metrics %>% left_join(d.games %>% 
                                    select(gameId, condition, chatEnabled))%>%
   mutate(blockName = paste0("Block ", blockNum))%>% 
-  ggplot(aes(x = groupNumWords, y = roundPointsAdjusted, 
+  ggplot(aes(x = log(groupNumWords+1), y = roundPointsAdjusted, 
              color = condition)) + 
   geom_point(alpha = .25) + theme_jmank() + scale_color_bay() + facet_wrap(~blockName) +
   labs(title = "Number of points per trial")
 ```
 
+### Selecting Hidden Flowers?
+
+```{r}
+d.rounds.final %>% left_join(d.games %>% 
+                                   select(gameId, condition, chatEnabled)) %>%
+  left_join(d.contexts %>% select(gameId, blockNum, trialNum, repNum, playerResponse = label, blinded)) %>%
+  mutate(select_blinded = playerId == blinded) %>% 
+  group_by(gameId, blockNum, trialNum, repNum, chatEnabled, condition) %>%
+  summarize(numSelectHidden = sum(select_blinded)) %>% 
+  mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
+         fullCondition = paste(condition, languageCondition, sep = "-"),
+         block_name = paste0("Block ", blockNum)) %>%
+    filter(condition != "coopCartel") %>%
+  ggplot(aes(x = repNum, y = numSelectHidden, color = condition, linetype = languageCondition)) + 
+  geom_point(alpha = .1) +
+  geom_smooth(method=lm)+
+  facet_grid(cols = vars(block_name), rows = vars(languageCondition)) + labs(x = "Trial Number", y = "N. Select Hidden")+ scale_color_bay() + theme_jmank()
+```
 
 # Language Results
 
