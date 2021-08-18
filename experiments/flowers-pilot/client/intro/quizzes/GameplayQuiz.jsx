@@ -7,7 +7,7 @@ import { Radio, RadioGroup } from "@blueprintjs/core";
 import { Checkbox } from "@blueprintjs/core";
 
 export default class GameplayQuiz extends React.Component {
-  
+
   componentDidMount() {
     const { game, player } = this.props;
     document.querySelector("main").scrollTo(0,0)
@@ -36,11 +36,11 @@ export default class GameplayQuiz extends React.Component {
 
   handleSubmit = (event) => {
     event.preventDefault();
-    const { game, player } = this.props; 
+    const { game, player } = this.props;
 
     if (
       player.get("knowledge") !== "everyplayersomeflower" ||
-      player.get("flowerWorth") !== "1") {
+      player.get("collision") !== "clover") {
       AlertToaster.show({
         message:
           "Sorry, you have one or more mistakes. Please ensure that you answer the questions correctly, or go back to the instructions",
@@ -84,24 +84,26 @@ export default class GameplayQuiz extends React.Component {
             </div>
 
             <div className="bp3-form-group">
-              <label className="bp3-label" htmlFor="flower-worth">
-                If you and your 2 other partners select a flower worth $3, how much $ will you get?
-              </label>
-              <div className="bp3-form-content">
-                <input
-                  id="flowerWorth"
-                  className="bp3-input"
-                  type="number"
-                  min="-10"
-                  max="10"
-                  step="1"
-                  dir="auto"
-                  name="flowerWorth"
-                  value={player.get("flowerWorth")}
-                  onChange={this.handleChange}
-                  required
-                />
-              </div>
+            <RadioGroup
+              label="What happens if two players select the same flower?"
+              onChange={this.handleRadioChange}
+              selectedValue={player.get("collision")}
+              name="collision"
+              required
+            >
+              <Radio
+                label="They both get the full value of their selection."
+                value="fullvalue"
+              />
+              <Radio
+                label="The profit is shared 50/50 between the players."
+                value="sharedprofit"
+              />
+              <Radio
+                label="Both players get a very low value item, instead."
+                value="clover"
+              />
+            </RadioGroup>
             </div>
 
             <button

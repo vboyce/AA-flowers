@@ -36,21 +36,19 @@ export default class GameplayInstructions extends React.Component {
           <div className="instruction-example">
           {lang &&
             <div className="instruction-image">
-            {coopCartelBool && <img src="/experiment/tutorial_images/7-feedback-collab-lang.png" ALIGN="left"/>}
-            {competCartelBool && <img src="/experiment/tutorial_images/7-feedback-compet-lang.png" ALIGN="left"/>}
-            {coopMultiBool && <img src="/experiment/tutorial_images/7-feedback-multi-lang.png" ALIGN="left"/>}
+            <img src="/experiment/tutorial_images/7-feedback-lang.png" ALIGN="left"/>
             </div>}
           {nonlang &&
             <div className="instruction-image">
-            {coopCartelBool && <img src="/experiment/tutorial_images/7-feedback-collab-nonlang.png" ALIGN="left"/>}
-            {competCartelBool && <img src="/experiment/tutorial_images/7-feedback-compet-nonlang.png" ALIGN="left"/>}
-            {coopMultiBool && <img src="/experiment/tutorial_images/7-feedback-multi-nonlang.png" ALIGN="left"/>}
+            <img src="/experiment/tutorial_images/7-feedback-nonlang.png" ALIGN="left"/>
             </div>}
 
             <hr />
             <p>When you have decided which flower to plant, you will click on your choice. <strong> You will only have one opportunity to make your selection, and your selection is final.</strong> Please be sure of your decision before making your selection.</p>
 
             <p> Once all three players have made their selection, or the time runs out, you'll be told who selected which flower. You'll also get some information about how your score was calculated at the top! </p>
+
+            <p>Remember, if more than one person selects an item, their orders will be replaced with very low value items! You will get the best bonus if you are the <strong>only</strong> person to select an item.</p>
           </div>
           </div>
 

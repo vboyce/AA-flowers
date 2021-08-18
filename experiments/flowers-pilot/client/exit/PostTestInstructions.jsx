@@ -25,9 +25,10 @@ export default class PostTestInstructions extends React.Component {
           <h1> Thanks for participating!! </h1>
           <br />
           <p>
-            Before you go, we have a few final questions for you.
-            TODO MORE TEXT HERE
-          </p>
+            Before you go, we have a few final questions for you! The following exit quizzes and surveys should take 10-15 minutes. </p>
+
+            <p>Researcher Note: Please answer the questions to the best of your ability. This is an important part of our research, and we appreciate your full attention!</p>
+          
 
           <p>
             {hasNext ? (

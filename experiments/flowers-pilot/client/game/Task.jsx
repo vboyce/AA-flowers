@@ -37,7 +37,7 @@ export default class Task extends React.Component {
           />
       ));
     }
-      
+
     let instructions = ""
     let explanation;
     let incrementView;
@@ -59,7 +59,7 @@ export default class Task extends React.Component {
           let numPeople = clickLength == 2 ?  "One person" : "Two people"
           let all = clickLength ==2 ? "both" : "all"
           instructions =  "Uh oh! " + numPeople + " selected the same image as you."
-          explanation = "So you "+all+" got clover instead! This lowered your bonus."
+          explanation = "So you "+all+" got a clover instead! This lowered your bonus."
           }
         }
         else if (condition=="coopMulti"){
@@ -68,7 +68,7 @@ export default class Task extends React.Component {
             explanation = "You got the full bonuses!"
           }else{
             let numPeople = clickLength==2 ? "Some people": "Everyone"
-            instructions="Uh oh! "+ numPeople+" selected the same image and got clover instead."
+            instructions="Uh oh! "+ numPeople+" selected the same image and got a clover instead."
             explanation="This lowered your bonus."
           }
         }

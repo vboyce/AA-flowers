@@ -51,7 +51,9 @@ Empirica.header(() => null);
 // different instruction steps depending on the assigned treatment.
 Empirica.introSteps((game, treatment) => {
 
-  const steps = [Overview, BasicInterfaceInstructions, BasicInterfaceQuiz, AdvancedInterfaceInstructions, AdvancedInterfaceQuiz, GameplayInstructions, GameplayQuiz];
+  const steps = [Overview, BasicInterfaceInstructions, BasicInterfaceQuiz,
+    AdvancedInterfaceInstructions, AdvancedInterfaceQuiz,
+    GameplayInstructions, GameplayQuiz];
   if (treatment.chatEnabled) {
     steps.push(FinalQuizLang);
   }
@@ -69,8 +71,8 @@ Empirica.introSteps((game, treatment) => {
   //}
   //steps.push(MoreAboutBonus);
 
-  //return steps;
-  return[]
+  return steps;
+  //return[]
 });
 
 // The Round component containing the game UI logic.
