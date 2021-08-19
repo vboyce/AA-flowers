@@ -2,6 +2,10 @@
 
 #These functions cover reading in the raw data, converting to tidy formats, filtering out unfinished rounds, and writing tidy processed csvs.
 
+#note: The most recent version of this is tweaked to support the most recent version of the data collection. 
+
+#The previous data (pre-timestamp recording, post-test quiz, and clovers) is at commit 5bbeb59490dffe6f52483b97956afa4b779aca02
+
 # Libraries
 library(tidyverse)
 library(jsonlite)
@@ -53,7 +57,8 @@ get_game_data <- function(data_read_location, date_start, players_data) {
     left_join(d.factors %>% 
                 select(factorId, factorName, value)) %>%
     pivot_wider(id_cols = c(treatmentId, name, createdAt), 
-                names_from = factorName, values_from = value)
+                names_from = factorName, values_from = value) %>%
+    mutate(numBlocks = as.numeric(numBlocks))
   
   d.games <- d.games.raw %>% 
     #add treatment variables
@@ -63,7 +68,7 @@ get_game_data <- function(data_read_location, date_start, players_data) {
     #select out the nonuseful columns
     select(-c(gameLobbyId, treatmentId, batchId, targetSet, 
               justStarted, submitCode, roundIds)) %>%
-    #separate out player info
+    #separate out player info, to reliably calculate game time
     separate(col = playerIds, sep = ",", into = c("player_1", "player_2", "player_3")) %>% 
     pivot_longer(cols = starts_with("player_"), 
                  names_to = "playerNum", 
@@ -120,23 +125,37 @@ get_raw_chat <- function(data_read_location, date_start) {
               ends_with('time'), 
               ends_with('utility'), 
               context, stageIds)) %>%
-    #mutate(chat = ifelse(is.na(chat), '{}', chat)) %>%
     rename(roundID = `_id`) %>%
     mutate(chat = map(chat, .f = ParseJSONColumn)) %>%
-    unnest(chat)
+    unnest(chat) %>%
+    mutate(time = as.numeric(time)/1000)
+  
   return(d.chat.raw)
 }
 
 add_chat_info <- function(raw_chat_data, player_data, round_data, game_data) {
-  chat.info <- raw_chat_data %>%
+  # reallign the message and selection timestamps
+  # get the chat timestamp first alert
+  min_chat_alert <- raw_chat_data %>% group_by(gameId, trialNum) %>%
+    filter(type == "selectionAlert") %>% 
+    summarize(first_chat_time = min(time))
+  
+  # get get the selection timestamp first alert
+  min_round_alert <- round_data %>% group_by(gameId, trialNum) %>%
+    summarize(round_time = min(time_sec))
+  
+  chat.info <-  raw_chat_data %>% left_join(min_chat_alert) %>% left_join(min_round_alert) %>%
+    mutate(adjusted_chat_time = time - first_chat_time,
+           time = adjusted_chat_time + round_time) %>%
+    select(-c(first_chat_time, round_time, adjusted_chat_time)) %>%
     arrange(createdAt, gameId, blockNum, repNum) %>% 
     left_join(player_data %>% select(playerId, name)) %>%
     left_join(round_data %>% select(gameId, blockNum, repNum, trialNum, playerId, playerResponse, playerUtility)) %>%
     left_join(game_data %>% select(gameId, condition, chatEnabled)) %>%
-    mutate("participantAction" = ifelse(type == "alert", 
+    mutate("participantAction" = ifelse(type == "selectionAlert", 
                                         paste(name, "selected", 
                                               playerResponse, "for", 
-                                              playerUtility, "point(s)"), 
+                                              round(playerUtility, 2), "point(s)"), 
                                         NA)) %>%
     select(gameId, trialNum, condition, chatEnabled, 
            playerId, name, text, participantAction, everything())

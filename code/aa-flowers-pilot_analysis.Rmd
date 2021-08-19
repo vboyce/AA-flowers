@@ -28,10 +28,9 @@ fig_path=here("figs")
 # Pre-process
 Remove joined_data and uncomment the following block to rerun the preprocessing scripts
 ```{r process-data, message=FALSE, warning=FALSE}
-# data_list <- c("technical_pilots", "collabmulti_pilot0",
-#                "collabmulti_20", "compet_20", "multi_nonlang_20")
-# process_all_data(data_list)
-# join_all_data()
+data_list <- c("pilots")
+process_all_data(data_list)
+join_all_data()
 ```
 
 ```{r read-processed-date, message=FALSE}
@@ -65,38 +64,30 @@ d.games
 #exclude BLOCKS with <12 completed (all 3 participants responded) rounds
 #exclude trial runs
 # exclude 
-rounds_exclude <- d.rounds %>% group_by(gameId, blockNum) %>% tally() %>% filter(n!=36) %>% select(gameId,blockNum)
+rounds_exclude <- d.rounds %>% group_by(gameId, blockNum) %>% tally() %>% filter(n!=18) %>% select(gameId,blockNum)
 
 #exclude cooperative condition
 d.rounds.final <-  d.rounds %>% left_join(d.games %>% select(gameId, conditionName, condition)) %>% 
   filter(conditionName != "coopCartel")%>% anti_join(rounds_exclude)
 
-d.raw_chat.final <- d.raw_chat %>% left_join(d.games %>% select(gameId, conditionName, condition)) %>% 
-  filter(conditionName != "coopCartel") %>% anti_join(rounds_exclude) %>% write_csv(here("data/processed_data/joined_data/filtered_raw_chat.csv"))
+d.raw_chat.final <- d.raw_chat %>% left_join(d.games %>% select(gameId, conditionName, condition)) %>% anti_join(rounds_exclude) %>% write_csv(here("data/processed_data/joined_data/filtered_raw_chat.csv"))
 ```
 
 Clean up a sharable data csv
 ```{r}
-joined_data <- d.raw_chat.final %>% select(-c(index, createdAt, 
-                               submitted, conditionName)) %>% 
-  # merge chat condition
-  left_join(d.games %>% select(gameId, chatEnabled)) %>%
-  #merge player selections aligned with chat
-  left_join(d.rounds.final %>% 
-              select(gameId, playerId,repNum, blockNum, trialNum, 
-                     playerResponse, playerEarnings = playerUtility)) %>% 
-  #merge player names
-  left_join(d.players %>% select(playerId, playerName = name)) %>%
-  #merge the raw utility for the selections
-  left_join(d.contexts %>% select(gameId, repNum, blockNum, trialNum, 
-                                  playerResponse = label, responseRawUtility = utility, blinded)) %>%
-  #to avoid confusion, drop any round info thats actually a message
+interpretable_data <- d.raw_chat.final %>% 
+  add_chat_info(d.players, d.rounds.final, d.games) %>% 
+    left_join(d.contexts %>% select(gameId, repNum, blockNum, trialNum, 
+                                  playerResponse = label, 
+                                  responseRawUtility = utility, blinded)) %>%
+   #to avoid confusion, drop any round info thats actually a message
    mutate(playerResponse = ifelse(type == "message", NA, playerResponse),
-         playerEarnings = ifelse(type == "message", NA, playerEarnings),
+         playerUtility = ifelse(type == "message", NA, playerUtility),
          responseRawUtility = ifelse(type == "message", NA, responseRawUtility),
          blinded = ifelse(type == "message", NA, blinded)) %>%
-  select(gameId, condition, chatEnabled,roundID, repNum:trialNum, playerId, 
-         playerName, text,  type, playerResponse:responseRawUtility, blinded,everything()) %>% write_csv(here("data/interpretable_transcript.csv"))
+  select(gameId, trialNum, condition, chatEnabled, playerId, name, text, 
+         participantAction, type, repNum, 
+         blockNum, time, everything(), - submitted, -index, -createdAt) %>% write_csv(here("data/interpretable_transcript.csv"))
 ```
 
 
@@ -105,13 +96,13 @@ game_completion <- d.rounds %>%
   group_by(gameId) %>% 
   summarize(num_rounds=max(trialNum+1)) %>% 
   left_join(d.games%>% ungroup() %>% select(gameId, condition, chat=chatEnabled, gameLength)) %>%
-  mutate(gameComplete = ifelse(num_rounds == 48, TRUE, FALSE))
+  mutate(gameComplete = ifelse(num_rounds == 24, TRUE, FALSE))
 
 #knitr::kable(summary)
 message("Full games")
-game_completion %>% filter(num_rounds==48)
+game_completion %>% filter(num_rounds==24)
 message("Partial games")
-game_completion %>% filter(num_rounds!=48) 
+game_completion %>% filter(num_rounds!=24) 
 ```
 
 Game counts
@@ -202,7 +193,6 @@ d.by_game_metrics%>%
   ggplot(aes(x = languageCondition, y = gamePoints, color = condition, shape = languageCondition)) + 
   geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  ylim(0, 1400)+
   facet_grid(cols = vars(condition)) + labs(x = "Language Condition", y = "Points Earned by Group", title = "Points Earned by Group") + scale_color_bay() + theme_jmank() + theme(legend.position = "none")
 
 ggsave(here(fig_path, "points_distirbution_raw.png"), width = 3, height = 5)
