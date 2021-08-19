@@ -28,9 +28,9 @@ fig_path=here("figs")
 # Pre-process
 Remove joined_data and uncomment the following block to rerun the preprocessing scripts
 ```{r process-data, message=FALSE, warning=FALSE}
-data_list <- c("pilots")
+data_list <- c("pilots", "collab_lang_20", "compet_lang_20")
 process_all_data(data_list)
-join_all_data()
+#join_all_data()
 ```
 
 ```{r read-processed-date, message=FALSE}
@@ -108,7 +108,7 @@ game_completion %>% filter(num_rounds!=24)
 Game counts
 ```{r}
 #pull out pilots
-d.games %>% group_by(conditionName, chatEnabled,pilot)%>% tally()
+game_completion %>% group_by(condition, chat, gameComplete)%>% tally()
 ```
 
 # Demographics
@@ -216,17 +216,16 @@ ggsave(here(fig_path, "points_distirbution_adjusted.png"),  width = 3, height = 
 ```
 
 ### Time
-```{r, fig.height=5, fig.width=3}
+```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = languageCondition, y = gameLength/60, 
+  ggplot(aes(x = condition, y = gameLength/60, 
              color = condition, shape = languageCondition)) + 
   geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  facet_grid(cols = vars(condition))+ 
-  labs(y = "Time (In Minutes)", title = "Game Length", x = "Language Condition")+
-  ylim(0, 90)+
+  #facet_grid(cols = vars(condition))+ 
+  labs(y = "Time (In Minutes)", title = "Game Length", x = "Condition")+
   scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
-ggsave(here(fig_path, "time_distirbution.png"),  width = 3, height = 5)
+ggsave(here(fig_path, "time_distirbution.png"),  width = 5, height = 3)
 
 ```
 
@@ -246,20 +245,22 @@ ggsave(here(fig_path, "time_log_distirbution.png"))
 ### Number of Words
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = languageCondition, y = gameNumWords, color = condition, shape = languageCondition)) + 
+  ggplot(aes(x = condition, y = gameNumWords, color = condition, shape = languageCondition)) + 
   geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  facet_grid(cols = vars(condition))+ labs(y = "N. Words", title = "Number of Words Exchanged", x = "Language Condition")+scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
+  #facet_grid(cols = vars(condition))+ 
+  labs(y = "N. Words", title = "Number of Words Exchanged", x = "Condition")+scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
 
 ggsave(here(fig_path, "numwords_distirbution.png"), height = 5, width = 3)
 
 ```
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = languageCondition, y = log(gameNumWords+1), color = condition, shape = languageCondition)) + 
+  ggplot(aes(x = condition, y = log(gameNumWords+1), color = condition, shape = languageCondition)) + 
   geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  facet_grid(cols = vars(condition))+ labs(y = "Log N. Words Exchanged")+
+  #facet_grid(cols = vars(condition))+ 
+  labs(y = "Log N. Words Exchanged")+
   scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
 ggsave(here(fig_path, "numwords_log_distirbution.png"))
 
@@ -368,10 +369,10 @@ d.by_game_metrics %>%
   theme(legend.position = "bottom")
 ```
 
-```{r}
+```{r, fig.width=5, fig.height=3}
 ms <- d.by_game_metrics %>%
   mutate(langUse = ifelse(gameNumWords > 0, TRUE, FALSE)) %>% 
-  group_by(condition, langUse) %>%
+  group_by(condition) %>%
   summarise(mean_nw = mean(gameNumWords),
             ci_nw = 1.96 * sd(gameNumWords) / sqrt(length(gameLength)),
             mean_points = mean(gamePoints),
@@ -379,7 +380,7 @@ ms <- d.by_game_metrics %>%
 
 d.by_game_metrics %>%
   mutate(langUse = ifelse(gameNumWords > 0, TRUE, FALSE)) %>% 
-  ggplot(aes(x = gameNumWords, y = gamePoints, color = condition, shape = langUse)) +
+  ggplot(aes(x = gameNumWords, y = gamePoints, color = condition)) +
   #geom_smooth(aes(group = condition), method = "lm") +
   geom_point(alpha = .5) +
   geom_pointrange(data = ms, aes(x = mean_nw, y = mean_points, 
@@ -389,7 +390,7 @@ d.by_game_metrics %>%
                                  xmin = mean_nw - ci_nw,
                                  xmax = mean_nw + ci_nw), width = 0) + 
   # ylim(0,1500) + 
-  labs(x = "Words Echanged", y = "Points Earned") + 
+  labs(x = "Words Exchanged (Game)", y = "Points Earned (Game)") + 
   scale_color_bay() + theme_jmank() +  
   theme(legend.position = "bottom")
 ```
@@ -566,7 +567,7 @@ Are they getting better over games?
 d.by_round_metrics %>% left_join(d.games %>% 
                                    select(gameId, condition, chatEnabled))%>%
   mutate(blockName = paste0("Block ", blockNum))%>% 
-  ggplot(aes(x = log(groupNumWords+1), y = roundPointsAdjusted, 
+  ggplot(aes(x = groupNumWords, y = roundPointsAdjusted, 
              color = condition)) + 
   geom_point(alpha = .25) + theme_jmank() + scale_color_bay() + facet_wrap(~blockName) +
   labs(title = "Number of points per trial")

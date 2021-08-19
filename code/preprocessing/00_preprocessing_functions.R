@@ -23,10 +23,12 @@ extract_context_info <- function(context_key){
 
 get_player_data <- function(data_read_location, date_start) {
   d.players <- read_csv(here(data_read_location, 'players.csv'), 
-                        col_types = cols(data.timeClick = col_number())) %>%
+                        col_types = cols(data.timeClick = col_number(),
+                                         data.rawScore = col_number())) %>%
     rename(playerId = `_id`) %>% 
     filter(createdAt >= date_start) %>%
-    rename_with(~ gsub("data.", "", .x, fixed = TRUE))
+    rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>%
+    select(-c(clicked:clickLength)) 
   return(d.players)
 }
 
@@ -182,7 +184,8 @@ get_alternative_context <- function(data_read_location, date_start) {
 }
 
 get_demographics <- function(data_read_location, date_start, games_data) {
-  read_csv(here(data_read_location, 'player-inputs.csv')) %>%
+  read_csv(here(data_read_location, 'player-inputs.csv'), 
+           col_types = cols(data.age = col_number())) %>%
     filter(createdAt >= date_start) %>%
   rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% select(gameId:education)
 }
