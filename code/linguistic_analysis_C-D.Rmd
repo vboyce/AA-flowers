@@ -473,8 +473,6 @@ ggplot(d_flowers_n_utt_dist,
   #theme(text = element_text(size = 30))
 #dev.off() 
 
-
-
 d_flowers_n_utt_speaker <- d_flowers %>%
   group_by(playerId, blockNum, gameId, condition) %>%
   summarise(n_utt_speaker=n())

@@ -28,7 +28,7 @@ fig_path=here("figs")
 # Pre-process
 Remove joined_data and uncomment the following block to rerun the preprocessing scripts
 ```{r process-data, message=FALSE, warning=FALSE}
-data_list <- c("pilots", "collab_lang_20", "compet_lang_20")
+data_list <- c("pilots", "collab_lang_20", "compet_lang_20", "nonlang_pilots", "compet_nonlang_15", "collab_nonlang_15")
 process_all_data(data_list)
 #join_all_data()
 ```
@@ -62,15 +62,18 @@ d.games
 
 ```{r}
 #exclude BLOCKS with <12 completed (all 3 participants responded) rounds
-#exclude trial runs
-# exclude 
-rounds_exclude <- d.rounds %>% group_by(gameId, blockNum) %>% tally() %>% filter(n!=18) %>% select(gameId,blockNum)
+# exclude incomplete games (not just incomplete rounds)
+
+games_exclude <- d.rounds %>% group_by(gameId) %>% tally() %>% filter(n!=3*24) %>% select(gameId)
 
 #exclude cooperative condition
 d.rounds.final <-  d.rounds %>% left_join(d.games %>% select(gameId, conditionName, condition)) %>% 
-  filter(conditionName != "coopCartel")%>% anti_join(rounds_exclude)
+  filter(conditionName != "coopCartel") %>% anti_join(games_exclude)
 
-d.raw_chat.final <- d.raw_chat %>% left_join(d.games %>% select(gameId, conditionName, condition)) %>% anti_join(rounds_exclude) %>% write_csv(here("data/processed_data/joined_data/filtered_raw_chat.csv"))
+d.raw_chat.final <- d.raw_chat %>% 
+  left_join(d.games %>% select(gameId, conditionName, condition)) %>% 
+  anti_join(games_exclude) %>% 
+  write_csv(here("data/processed_data/joined_data/filtered_raw_chat.csv"))
 ```
 
 Clean up a sharable data csv
@@ -92,6 +95,7 @@ interpretable_data <- d.raw_chat.final %>%
 
 
 ```{r}
+#how many games are we left with
 game_completion <- d.rounds %>% 
   group_by(gameId) %>% 
   summarize(num_rounds=max(trialNum+1)) %>% 
@@ -108,7 +112,8 @@ game_completion %>% filter(num_rounds!=24)
 Game counts
 ```{r}
 #pull out pilots
-game_completion %>% group_by(condition, chat, gameComplete)%>% tally()
+d.rounds.final %>% left_join(d.games %>% select(gameId, chatEnabled)) %>% group_by(condition, chatEnabled) %>% 
+  summarize(n_games = n_distinct(gameId)) %>% arrange(condition, chatEnabled)
 ```
 
 # Demographics
@@ -122,9 +127,12 @@ d.feedback %>% ggplot(aes(x = human)) + geom_bar(stat = "count") + theme_jmank()
 ```
 
 # Basic Analyses
-```{r}
-#get the # of raw points, max adjusted points, game legnth, # of words exchanged
-d.round_word_counts <- d.raw_chat.final %>% 
+
+Break out the by-player statistics for each round
+```{r player-stats}
+
+#player language per round
+d.player_word_counts <- d.raw_chat.final %>% 
   filter(type == "message") %>%
   full_join(d.rounds.final, c("gameId", "trialNum", "repNum", 
                               "playerId", "numPlayers", "blockNum")) %>%
@@ -138,28 +146,45 @@ d.round_word_counts <- d.raw_chat.final %>%
             total_num_words = sum(utt_length_words),
             total_num_chars = sum(utt_length_chars))
 
+# player points per round
+d.by_player_metrics <- d.rounds.final  %>% 
+  left_join(d.player_word_counts) %>%
+  left_join(game_completion %>% 
+              select(gameId, gameComplete)) %>%
+  left_join(d.games %>% select(-c(createdAt, flowers:scale), condition)) %>%  
+  mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
+         fullCondition = paste(condition, languageCondition, sep = "-"))
+
+```
+
+Round info
+```{r round-stats}
+#get the # of raw points, max adjusted points, game legnth, # of words exchanged
 d.max_round <- d.contexts %>%
   group_by(gameId, repNum, blockNum, trialNum) %>%
   #top 3 flowers
   slice_max(utility, n = 3) %>%
   summarise(roundMax = sum(utility))
 
-d.by_round_metrics <- d.rounds.final  %>% 
-  left_join(d.round_word_counts) %>%
+d.by_round_metrics <- d.by_player_metrics  %>% 
   group_by(gameId, trialNum, repNum, blockNum) %>%
   summarize(groupPoints = sum(playerUtility, na.rm = T),
             groupNumWords = sum(total_num_words, na.rm = T),
             groupNumChars = sum(total_num_chars, na.rm = T),
             numFlowers = n_distinct(playerResponse)) %>%
   left_join(d.max_round) %>%
-  left_join(game_completion %>% select(gameId, gameComplete)) %>%
-  left_join(d.games %>% select(-createdAt)) %>%  
+  left_join(game_completion %>% 
+              select(gameId, gameComplete)) %>%
+  left_join(d.games %>% select(-c(createdAt, flowers:scale), condition)) %>%  
   mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
          fullCondition = paste(condition, languageCondition, sep = "-"),
          roundPointsAdjusted = groupPoints/roundMax)
+```
 
+by block
+```{r}
 d.by_block_metrics <- d.by_round_metrics %>% 
-  group_by(gameId, name, gameComplete, condition, 
+  group_by(gameId, gameComplete, condition, 
            languageCondition, fullCondition, gameLength, blockNum) %>%
   summarize(blockPoints = sum(groupPoints, na.rm = T),
             blockNumWords = sum(groupNumWords, na.rm = T),
@@ -167,29 +192,38 @@ d.by_block_metrics <- d.by_round_metrics %>%
             blockMaxPoints = sum(roundMax),
             blockNumFlowers = sum(numFlowers)) %>%
   mutate(blockPointsAdjusted = blockPoints/blockMaxPoints,
-         meanNumFlowers = blockNumFlowers*3/(12*3))
+         meanNumFlowers = blockNumFlowers*3/(6*3))
+```
 
+by game
+```{r by-game}
 d.by_game_metrics <- d.by_block_metrics %>%
   #from this point, only look at completed games
     filter(gameComplete) %>%
   #group by game
-  group_by(gameId, name, condition, languageCondition, fullCondition, gameLength) %>%
+  group_by(gameId, condition, languageCondition, fullCondition, gameLength) %>%
   summarize(gamePoints = sum(blockPoints, na.rm = T),
             gameNumWords = sum(blockNumWords, na.rm = T),
             gameNumChars = sum(blockNumChars, na.rm = T),
             gameMaxPoints = sum(blockMaxPoints),
             gameNumFlowers = sum(blockNumFlowers)) %>%
   mutate(pointsAdjusted = gamePoints/gameMaxPoints,
-         meanNumFlowers = gameNumFlowers*3/ (12*4*3))
+         meanNumFlowers = gameNumFlowers*3/ (6*4*3))
 ```
 
+```{r}
+d.by_player_metrics %>% group_by(gameId, condition, languageCondition, playerId) %>% 
+  summarize(mean_player_utility = mean(playerUtility)) %>%
+  group_by(condition, languageCondition) %>% 
+  summarize_at("mean_player_utility", funs(mean, min, max, sd))
+```
 ## Simple Distributions
 ### Points
 
 Unadjusted
 
 ```{r, fig.height=3, fig.width=5}
-d.by_game_metrics%>% 
+d.by_game_metrics %>% 
   ggplot(aes(x = languageCondition, y = gamePoints, color = condition, shape = languageCondition)) + 
   geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
@@ -218,11 +252,11 @@ ggsave(here(fig_path, "points_distirbution_adjusted.png"),  width = 3, height = 
 ### Time
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = condition, y = gameLength/60, 
+  ggplot(aes(x = languageCondition, y = gameLength/60, 
              color = condition, shape = languageCondition)) + 
   geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  #facet_grid(cols = vars(condition))+ 
+  facet_grid(cols = vars(condition))+ 
   labs(y = "Time (In Minutes)", title = "Game Length", x = "Condition")+
   scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
 ggsave(here(fig_path, "time_distirbution.png"),  width = 5, height = 3)
@@ -245,10 +279,10 @@ ggsave(here(fig_path, "time_log_distirbution.png"))
 ### Number of Words
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = condition, y = gameNumWords, color = condition, shape = languageCondition)) + 
+  ggplot(aes(x = languageCondition, y = gameNumWords, color = condition, shape = languageCondition)) + 
   geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  #facet_grid(cols = vars(condition))+ 
+  facet_grid(cols = vars(condition))+ 
   labs(y = "N. Words", title = "Number of Words Exchanged", x = "Condition")+scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
 
 ggsave(here(fig_path, "numwords_distirbution.png"), height = 5, width = 3)
@@ -256,10 +290,10 @@ ggsave(here(fig_path, "numwords_distirbution.png"), height = 5, width = 3)
 ```
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = condition, y = log(gameNumWords+1), color = condition, shape = languageCondition)) + 
+  ggplot(aes(x = languageCondition, y = log(gameNumWords+1), color = condition, shape = languageCondition)) + 
   geom_jitter(width = .1, alpha = .5) +
   stat_summary(fun.data = "mean_cl_boot")+
-  #facet_grid(cols = vars(condition))+ 
+  facet_grid(cols = vars(condition))+ 
   labs(y = "Log N. Words Exchanged")+
   scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
 ggsave(here(fig_path, "numwords_log_distirbution.png"))
@@ -270,7 +304,7 @@ ggsave(here(fig_path, "numwords_log_distirbution.png"))
 ### Time x Points
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>%
-  ggplot(aes(x = gameNumWords, y = gameLength/60, color = condition, shape = languageCondition)) + 
+  ggplot(aes(y = gamePoints, x = gameLength/60, color = condition, shape = languageCondition)) + 
   geom_point(alpha = .5) +
   geom_smooth(method=lm)+ 
   labs(x = "Game length (in Minutes)", y = "Points Earned by Group")+
@@ -335,13 +369,6 @@ ggsave(here(fig_path, "log_time_points_scatter_nofacet.png"))
 ### Language x Points
 
 ```{r}
-d.by_game_metrics %>% filter(languageCondition == "Lang") %>%
-  mutate(langUse = ifelse(gameNumWords > 0, TRUE, FALSE)) %>%
-  ggplot(aes(x = gameNumWords, y = gamePoints, color = condition)) + 
-  geom_point(alpha = .5) +
-  geom_smooth(method=lm)+
-  labs(x = "N. Words Exchanged", y = "Group Points (Raw)")+scale_color_bay() + theme_jmank() +  theme(legend.position = "none")
-
 ms <- d.by_game_metrics %>%
   mutate(langUse = ifelse(gameNumWords > 0, TRUE, FALSE)) %>% 
   group_by(condition, fullCondition, languageCondition) %>%
@@ -368,33 +395,6 @@ d.by_game_metrics %>%
   scale_color_bay() + theme_jmank() +  
   theme(legend.position = "bottom")
 ```
-
-```{r, fig.width=5, fig.height=3}
-ms <- d.by_game_metrics %>%
-  mutate(langUse = ifelse(gameNumWords > 0, TRUE, FALSE)) %>% 
-  group_by(condition) %>%
-  summarise(mean_nw = mean(gameNumWords),
-            ci_nw = 1.96 * sd(gameNumWords) / sqrt(length(gameLength)),
-            mean_points = mean(gamePoints),
-            ci_points = 1.96 * sd(gamePoints) / sqrt(length(gameLength)))
-
-d.by_game_metrics %>%
-  mutate(langUse = ifelse(gameNumWords > 0, TRUE, FALSE)) %>% 
-  ggplot(aes(x = gameNumWords, y = gamePoints, color = condition)) +
-  #geom_smooth(aes(group = condition), method = "lm") +
-  geom_point(alpha = .5) +
-  geom_pointrange(data = ms, aes(x = mean_nw, y = mean_points, 
-                                 ymin = mean_points - ci_points,
-                                 ymax = mean_points + ci_points)) +
-  geom_errorbarh(data = ms, aes(x = mean_nw, y = mean_points, 
-                                 xmin = mean_nw - ci_nw,
-                                 xmax = mean_nw + ci_nw), width = 0) + 
-  # ylim(0,1500) + 
-  labs(x = "Words Exchanged (Game)", y = "Points Earned (Game)") + 
-  scale_color_bay() + theme_jmank() +  
-  theme(legend.position = "bottom")
-```
-
 
 ```{r, fig.height=3, fig.width=5}
 d.by_game_metrics %>% filter(languageCondition == "Lang") %>%
@@ -433,17 +433,17 @@ save_plot <- function(rep_Num, block_Num, randomGame) {
 #mapply(save_plot, seq(0,11), rep(0, 12), rep("sTX6ksbxqfnfsmzxe", 12))
 ```
 
-
-Including language optional games where they decided not to speak 
+Including language _optional_ games where they decided not to speak 
 
 ```{r, fig.height=3, fig.width=5}
-d.round_word_counts %>%left_join(d.games %>% 
-                                   select(gameId, condition,chatEnabled)) %>% 
+d.player_word_counts %>%
+  left_join(d.games %>% 
+              select(gameId, condition,chatEnabled)) %>% 
   mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
          fullCondition = paste(condition, languageCondition, sep = "-"),
          block_name = paste0("Block ", blockNum)) %>%
     filter(languageCondition == "Lang") %>%
-  group_by(gameId, fullCondition,block_name, trialNum, repNum) %>% 
+  group_by(gameId, fullCondition, block_name, trialNum, repNum) %>% 
   summarize(groupNumWords = sum(total_num_words, na.rm = T)) %>%
   ggplot(aes(x = repNum, y = groupNumWords, color = fullCondition)) + 
   geom_point(alpha = .2) +
@@ -454,7 +454,7 @@ ggsave(here(fig_path, "nwords_over_time.png"))
 
 log (n words+1)
 ```{r, fig.height=3, fig.width=5}
-d.round_word_counts %>%left_join(d.games %>% 
+d.player_word_counts %>%left_join(d.games %>% 
                                    select(gameId, condition,chatEnabled)) %>% 
   mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
          fullCondition = paste(condition, languageCondition, sep = "-"),
@@ -472,10 +472,10 @@ ggsave(here(fig_path, "nwords_log_over_time.png"), height = 3, width = 5)
 ```
 
 
-Only games where language was used
+Only games where language was _used_
 
 ```{r, fig.height=3, fig.width=5}
-d.round_word_counts %>%left_join(d.games %>% 
+d.player_word_counts %>%left_join(d.games %>% 
                                    select(gameId, condition,chatEnabled)) %>% 
   mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
          fullCondition = paste(condition, languageCondition, sep = "-"),
@@ -489,9 +489,9 @@ d.round_word_counts %>%left_join(d.games %>%
   geom_smooth(method=lm)+
   facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "N. Words")+ scale_color_bay() + theme_jmank()
 ```
-
+log num words
 ```{r, fig.height=3, fig.width=5}
-d.round_word_counts %>%left_join(d.games %>% 
+d.player_word_counts %>%left_join(d.games %>% 
                                    select(gameId, condition,chatEnabled)) %>% 
   mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
          fullCondition = paste(condition, languageCondition, sep = "-"),
@@ -503,52 +503,37 @@ d.round_word_counts %>%left_join(d.games %>%
   ggplot(aes(x = repNum, y = log(groupNumWords+1), color = fullCondition)) + 
   geom_point(alpha = .2) +
   geom_smooth(method=lm)+
-  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "N. Words")+ scale_color_bay() + theme_jmank()
+  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "Log N. Words")+ scale_color_bay() + theme_jmank()
 ```
 
-
-log num words
-
-```{r, fig.height=3, fig.width=5}
-d.round_word_counts %>%left_join(d.games %>% 
-                                   select(gameId, condition, chatEnabled)) %>% 
-  mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
-         fullCondition = paste(condition, languageCondition, sep = "-"),
-         block_name = paste0("Block ", blockNum)) %>%
-    filter(languageCondition == "Lang") %>%
-  group_by(gameId, fullCondition,block_name, trialNum, repNum) %>% 
-  
-  summarize(groupNumWords = sum(total_num_words, na.rm = T)) %>%
-  #filter(groupNumWords >1) %>%
-  ggplot(aes(x = repNum, y = log(groupNumWords+1), color = fullCondition)) + 
-  geom_point(alpha = .2) +
-  geom_smooth(method=lm)+
-  ylim(0, 6) +
-  facet_grid(cols = vars(block_name)) + labs(x = "Trial Number", y = "N. Words")+ scale_color_bay() + theme_jmank()
-```
 ### Accuracy
 #### N. Flowers Selected each round
 ```{r}
-d.rounds.final %>% group_by(gameId, repNum, blockNum, trialNum) %>% 
-  summarize(num_unique_flowers = n_distinct(playerResponse),
-            mean_response_time = mean(time_sec, na.rm = T))  %>%
-  left_join(d.games %>% select(gameId, condition,chatEnabled)) %>% 
-  mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
-         fullCondition = paste(condition, languageCondition, sep = "-"),
-         block_name = paste0("Block ", blockNum)) %>%
-    filter(condition != "coopCartel") %>%
-  ggplot(aes(x = repNum, y = num_unique_flowers, color = condition, linetype = languageCondition)) + 
+d.by_round_metrics %>% 
+  mutate(block_name = paste0("Block ", blockNum)) %>%
+  ggplot(aes(x = repNum, y = numFlowers, color = condition, linetype = languageCondition)) + 
   geom_point(alpha = .1) +
   geom_smooth(method=lm)+
   facet_grid(cols = vars(block_name), rows = vars(condition)) + labs(x = "Trial Number", y = "N. Unique Flowers")+ scale_color_bay() + theme_jmank()
 
-ggsave(ggsave(here(fig_path, "collisions.png")))
+
+ggsave(ggsave(here(fig_path, "collisions_conditionfacet.png")))
+```
+```{r}
+d.by_round_metrics %>% 
+  mutate(block_name = paste0("Block ", blockNum)) %>%
+  ggplot(aes(x = repNum, y = numFlowers, color = condition, linetype = languageCondition)) + 
+  geom_point(alpha = .1) +
+  geom_smooth(method=lm)+
+  facet_grid(cols = vars(block_name), rows = vars(languageCondition)) + labs(x = "Trial Number", y = "N. Unique Flowers")+ scale_color_bay() + theme_jmank()
+
+ggsave(ggsave(here(fig_path, "collisions_language_facet.png")))
 ```
 
+Response Time
 ```{r}
 d.rounds.final %>% group_by(gameId, repNum, blockNum, trialNum) %>% 
-  summarize(num_unique_flowers = n_distinct(playerResponse),
-            mean_response_time = mean(time_sec, na.rm = T))  %>%
+  summarize(mean_response_time = mean(time_sec, na.rm = T))  %>%
   left_join(d.games %>% select(gameId, condition,chatEnabled)) %>% 
   mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
          fullCondition = paste(condition, languageCondition, sep = "-"),
@@ -564,14 +549,71 @@ d.rounds.final %>% group_by(gameId, repNum, blockNum, trialNum) %>%
 
 Are they getting better over games?
 ```{r}
-d.by_round_metrics %>% left_join(d.games %>% 
-                                   select(gameId, condition, chatEnabled))%>%
+d.by_round_metrics %>%
   mutate(blockName = paste0("Block ", blockNum))%>% 
   ggplot(aes(x = groupNumWords, y = roundPointsAdjusted, 
              color = condition)) + 
   geom_point(alpha = .25) + theme_jmank() + scale_color_bay() + facet_wrap(~blockName) +
   labs(title = "Number of points per trial")
 ```
+### Over/underpowered participants
+
+```{r}
+d.point_propotions <- d.by_player_metrics %>% 
+  #points for entire game
+  group_by(condition, languageCondition, gameId, playerId) %>% 
+  summarize(player_total = sum(playerUtility)) %>% 
+  group_by(condition, gameId) %>% mutate(game_total = sum(player_total)) %>% ungroup() %>%
+  mutate(player_proportion = player_total/game_total)
+
+#min
+min_prop <- d.point_propotions %>% 
+  group_by(condition, languageCondition, gameId) %>% 
+  #lowest earned
+  slice_min(order_by = player_proportion, n = 1) %>% 
+  filter(condition == "Competitive") %>% select(-condition) %>% 
+  mutate(player_placement = "Lowest Earning")
+
+#max
+max_prop <- d.point_propotions %>% 
+  group_by(condition, languageCondition, gameId) %>% 
+  slice_max(order_by = player_proportion, n = 1) %>% 
+  filter(condition == "Competitive") %>% 
+  select(-condition) %>% 
+  mutate(player_placement = "Highest Earning")
+
+rbind(min_prop, max_prop) %>%
+  ggplot(aes(x = languageCondition, y = player_proportion, color = condition)) + 
+  geom_hline(yintercept=.33, linetype = "dashed", alpha = .5)+
+  geom_jitter(width = .1, alpha = .5) +
+  facet_grid(cols = vars(player_placement)) + 
+  stat_summary(fun.data = "mean_cl_boot")+
+  labs(x = "Participant Placement", y = "Points earned by participant in place") + scale_color_bay() + theme_jmank() + theme(legend.position = "none")
+
+```
+### Entropy
+
+
+```{r}
+entropy_func <- function(p1, p2, p3){
+  return((p1 * log(p1)) + (p2 * log(p2)) + (p3 * log(p3)))
+  #return((entropy_list[1] * log(entropy_list[1])) + (entropy_list[2] * log(entropy_list[2])) + (entropy_list[3] * log(entropy_list[3])))
+}
+d.game_entropies <- d.point_propotions %>% select(condition, languageCondition, gameId, player_proportion) %>% 
+  mutate(p_num = rep(c("p1","p2","p3"), nrow(d.point_propotions)/3)) %>% 
+  pivot_wider(names_from = p_num, values_from = player_proportion) %>% 
+  mutate(entropy = 0-entropy_func(p1, p2, p3)) %>% select(-c(p1,p2,p3)) 
+
+d.game_entropies %>% filter(condition == "Competitive") %>% 
+  ggplot(aes(x = languageCondition, y = entropy)) + 
+  geom_hline(yintercept=(0-entropy_func(1/3, 1/3, 1/3)), linetype = "dashed", alpha = .5)+
+  #minimum is tricky? this is 12, 1, and 2 which is the least fair a game _could possible_ be, but isnt adjusted per game
+  #geom_hline(yintercept=(0-entropy_func(12/15, 1/15, 2/15)), linetype = "dashed", alpha = .5)+
+  geom_jitter(width = .1, alpha = .5) +
+  stat_summary(fun.data = "mean_cl_boot")+
+  labs(x = "Condition", y = "Entropy of Player Scores (by game)") + scale_color_bay() + theme_jmank() + theme(legend.position = "none")
+```
+
 
 ### Selecting Hidden Flowers?
 

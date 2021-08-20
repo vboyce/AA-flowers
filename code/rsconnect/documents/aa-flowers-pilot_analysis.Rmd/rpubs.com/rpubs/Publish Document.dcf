@@ -1,0 +1,11 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/800846/c5c816b4718542ee84b5a2a233051097
+bundleId: https://api.rpubs.com/api/v1/document/800846/c5c816b4718542ee84b5a2a233051097
+url: http://rpubs.com/jmankewitz/800846
+when: 1629493193.98284
+lastSyncTime: 1629493193.98285
