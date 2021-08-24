@@ -211,12 +211,20 @@ d.by_game_metrics <- d.by_block_metrics %>%
          meanNumFlowers = gameNumFlowers*3/ (6*4*3))
 ```
 
+What is the spread of participant earnings over entire games, is there a diff here? 
+
 ```{r}
 d.by_player_metrics %>% group_by(gameId, condition, languageCondition, playerId) %>% 
   summarize(mean_player_utility = mean(playerUtility)) %>%
   group_by(condition, languageCondition) %>% 
   summarize_at("mean_player_utility", funs(mean, min, max, sd))
 ```
+What is the spread of participant earnings in ind. trials (average earning per participant per trial)
+```{r}
+d.by_player_metrics %>% group_by(condition, languageCondition) %>% 
+  summarize_at("playerUtility", funs(mean, min, max, sd))
+```
+
 ## Simple Distributions
 ### Points
 
