@@ -80,7 +80,7 @@ ggplot(d_flowers_utt_length_block, aes(x=blockNum, y=mlu,  color=condition))+
   theme_jmank() + scale_color_bay() + theme(legend.position = "bottom")
 #  theme(text = element_text(size = 30))
 #dev.off() 
-ggsave("../figs/mean_utt_length_block.png", height = 3, width = 3)
+#ggsave("../figs/mean_utt_length_block.png", height = 3, width = 3)
 
 
 d_flowers_utt_length_trial <- d_flowers %>%
@@ -283,76 +283,76 @@ ggplot(d_flowers_n_utt_speaker,
 ```
 
 ### 3. Parts of speech
-```{r pos}
+```{r pos, eval=FALSE, include=FALSE}
 
-text <- d_flowers$text
-parsed <- spacy_parse(text,pos=TRUE) %>%
-  select(doc_id, pos) %>%
-  group_by(doc_id) %>%
-  mutate(pos = paste(pos, collapse=",")) %>%
-  distinct()
-  
-d_flowers_pos  <- cbind(d_flowers, parsed) %>%
-  separate_rows(pos, convert = TRUE) %>%
-  group_by(condition, blockNum, gameId, pos) %>%
-  filter(pos=="NOUN"| pos=="VERB" | pos=="ADJ"| pos=="ADP"| pos=="DET" | pos=="PRON") %>%
-  summarise(pos_count=n()) %>%
-  left_join(d_flowers_utt_length_block) %>%
-  mutate(prop_pos=pos_count/total_num_words)
-        
-#jpeg("~/Desktop/plots/pos_block.jpg", width = 950, height = 950)
-ggplot(d_flowers_pos, 
-       aes(x=blockNum, y=prop_pos, label=gameId,  color=condition)) + 
-  geom_smooth(method = "lm", formula = y~x) + 
-  geom_point(alpha=.1) +
-  facet_grid( cols=vars(pos)) +
-  xlab("Block number") + 
-  ylab("Proportion of pos") + 
-  theme_bw()#+
- # theme(text = element_text(size = 30))
-#dev.off() 
-
-d_flowers_pos  <- cbind(d_flowers, parsed) %>%
-  separate_rows(pos, convert = TRUE) %>%
-  group_by(condition, trialNum, gameId, pos) %>%
-  filter(pos=="NOUN"| pos=="VERB" | pos=="ADJ"| pos=="ADP"| pos=="DET" | pos=="PRON") %>%
-  summarise(pos_count=n()) %>%
-  left_join(d_flowers_utt_length_trial) %>%
-  mutate(prop_pos=pos_count/total_num_words)
-        
-#jpeg("~/Desktop/plots/pos_trial.jpg", width = 950, height = 950)
-ggplot(d_flowers_pos, 
-       aes(x=trialNum, y=prop_pos, label=gameId,  color=condition)) + 
-  geom_smooth(method = "lm", formula = y~x) + 
-  geom_point(alpha=.1) +
-  facet_grid( cols=vars(pos)) +
-  xlab("Trial number") + 
-  ylab("Proportion of pos") + 
-  ylim(0,5)+
-  theme_bw()#+
-  #theme(text = element_text(size = 30))
-#dev.off() 
-
-d_flowers_pos  <- cbind(d_flowers, parsed) %>%
-  separate_rows(pos, convert = TRUE) %>%
-  group_by(condition, repNum, gameId, pos) %>%
-  filter(pos=="NOUN"| pos=="VERB" | pos=="ADJ"| pos=="ADP"| pos=="DET" | pos=="PRON") %>%
-  summarise(pos_count=n()) %>%
-  left_join(d_flowers_utt_length_rep) %>%
-  mutate(prop_pos=pos_count/total_num_words)
-        
-#jpeg("~/Desktop/plots/pos_rep.jpg", width = 950, height = 950)
-ggplot(d_flowers_pos, 
-       aes(x=repNum, y=prop_pos, label=gameId, color=condition)) + 
-  geom_smooth(method = "lm", formula = y~x) + 
-  geom_point(alpha=.1) +
-  facet_grid(cols=vars(pos)) +
-  xlab("Rep number") + 
-  ylab("Proportion of pos") +
-  ylim(0,5)+
-  theme_bw()#+
- # theme(text = element_text(size = 30))
-#dev.off() 
+# text <- d_flowers$text
+# parsed <- spacy_parse(text,pos=TRUE) %>%
+#   select(doc_id, pos) %>%
+#   group_by(doc_id) %>%
+#   mutate(pos = paste(pos, collapse=",")) %>%
+#   distinct()
+#   
+# d_flowers_pos  <- cbind(d_flowers, parsed) %>%
+#   separate_rows(pos, convert = TRUE) %>%
+#   group_by(condition, blockNum, gameId, pos) %>%
+#   filter(pos=="NOUN"| pos=="VERB" | pos=="ADJ"| pos=="ADP"| pos=="DET" | pos=="PRON") %>%
+#   summarise(pos_count=n()) %>%
+#   left_join(d_flowers_utt_length_block) %>%
+#   mutate(prop_pos=pos_count/total_num_words)
+#         
+# #jpeg("~/Desktop/plots/pos_block.jpg", width = 950, height = 950)
+# ggplot(d_flowers_pos, 
+#        aes(x=blockNum, y=prop_pos, label=gameId,  color=condition)) + 
+#   geom_smooth(method = "lm", formula = y~x) + 
+#   geom_point(alpha=.1) +
+#   facet_grid( cols=vars(pos)) +
+#   xlab("Block number") + 
+#   ylab("Proportion of pos") + 
+#   theme_bw()#+
+#  # theme(text = element_text(size = 30))
+# #dev.off() 
+# 
+# d_flowers_pos  <- cbind(d_flowers, parsed) %>%
+#   separate_rows(pos, convert = TRUE) %>%
+#   group_by(condition, trialNum, gameId, pos) %>%
+#   filter(pos=="NOUN"| pos=="VERB" | pos=="ADJ"| pos=="ADP"| pos=="DET" | pos=="PRON") %>%
+#   summarise(pos_count=n()) %>%
+#   left_join(d_flowers_utt_length_trial) %>%
+#   mutate(prop_pos=pos_count/total_num_words)
+#         
+# #jpeg("~/Desktop/plots/pos_trial.jpg", width = 950, height = 950)
+# ggplot(d_flowers_pos, 
+#        aes(x=trialNum, y=prop_pos, label=gameId,  color=condition)) + 
+#   geom_smooth(method = "lm", formula = y~x) + 
+#   geom_point(alpha=.1) +
+#   facet_grid( cols=vars(pos)) +
+#   xlab("Trial number") + 
+#   ylab("Proportion of pos") + 
+#   ylim(0,5)+
+#   theme_bw()#+
+#   #theme(text = element_text(size = 30))
+# #dev.off() 
+# 
+# d_flowers_pos  <- cbind(d_flowers, parsed) %>%
+#   separate_rows(pos, convert = TRUE) %>%
+#   group_by(condition, repNum, gameId, pos) %>%
+#   filter(pos=="NOUN"| pos=="VERB" | pos=="ADJ"| pos=="ADP"| pos=="DET" | pos=="PRON") %>%
+#   summarise(pos_count=n()) %>%
+#   left_join(d_flowers_utt_length_rep) %>%
+#   mutate(prop_pos=pos_count/total_num_words)
+#         
+# #jpeg("~/Desktop/plots/pos_rep.jpg", width = 950, height = 950)
+# ggplot(d_flowers_pos, 
+#        aes(x=repNum, y=prop_pos, label=gameId, color=condition)) + 
+#   geom_smooth(method = "lm", formula = y~x) + 
+#   geom_point(alpha=.1) +
+#   facet_grid(cols=vars(pos)) +
+#   xlab("Rep number") + 
+#   ylab("Proportion of pos") +
+#   ylim(0,5)+
+#   theme_bw()#+
+#  # theme(text = element_text(size = 30))
+# #dev.off() 
 ```
 
 ### 4. Lexical Diversity (TTR)
@@ -802,8 +802,3 @@ ggplot(d_flowers_feedback, aes(y=prop_hedge_words , x=repNum, label=gameId,  col
 ```
 
 
-
-
-```{r minimum_edit_distance, include=TRUE}
-
-```

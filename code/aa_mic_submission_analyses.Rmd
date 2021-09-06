@@ -1,0 +1,105 @@
+---
+title: "aa_mic_submission_analyses"
+author: "Jessica Mankewitz"
+date: "9/6/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This notebook reads in the preprocessed and joined data, runs the basic processing/summarizing code, and generates figures and numbers for the 2021 MIC workshop submission.
+
+```{r setup}
+library(here)
+library(tidyverse)
+
+#for plotting
+source(here("code/theme_specs.R"))
+
+#Data import constants
+date_start=lubridate::ymd('2021-07-19')
+fig_path=here("figs")
+read_data_path <- "data/processed_data/joined_data/"
+```
+# Summary Processing
+## Read data
+
+```{r read-data}
+d.players <- read_csv(here(paste(read_data_path, "players.csv", sep = "")),
+                      col_types = cols()) %>% distinct()
+d.games <- read_csv(here(paste(read_data_path, "games.csv", sep = "")),
+                      col_types = cols()) %>% distinct()
+d.rounds <- read_csv(here(paste(read_data_path, 
+                                "rounds.csv", 
+                                sep="")),
+                      col_types = cols()) %>% distinct()
+d.raw_chat <- read_csv(here(paste(read_data_path, 
+                                  "raw_chat.csv", 
+                                  sep="")),
+                      col_types = cols()) %>% distinct()
+d.contexts <- read_csv(here(paste(read_data_path, 
+                                  "contexts.csv", 
+                                  sep="")),
+                      col_types = cols()) %>% distinct()
+d.feedback <- read_csv(here(paste(read_data_path, 
+                                  "feedback.csv", 
+                                  sep = "")),
+                      col_types = cols()) %>% distinct()
+d.demographics <- read_csv(here(paste(read_data_path,
+                                      "demographics.csv", 
+                                      sep="")),
+                      col_types = cols()) %>% distinct()
+```
+
+## Rename Conditions
+Rename conditions for readability/alignment with ms
+```{r}
+d.games <- d.games %>% 
+  mutate(conditionName = condition, 
+         condition = case_when(conditionName == "coopMulti" ~ "Shared Utilities",
+                               conditionName == "competCartel" ~ "Individual Utilities",
+                               conditionName == "coopCartel" ~ "Old Cooperative",
+                               TRUE ~ conditionName))
+```
+
+## Identify complete games
+
+For the purposes of this ms, we're removing all unfinished games from the analyses 
+```{r}
+n_players = 3
+n_rounds = 24
+games_exclude <- d.rounds %>% group_by(gameId) %>% tally() %>% filter(n!=n_players*n_rounds) %>% select(gameId)
+
+d.rounds.final <-  d.rounds %>% 
+  left_join(d.games %>% select(gameId, conditionName, condition)) %>% 
+  filter(conditionName != "coopCartel") %>% 
+  mutate(game_complete = !(gameId %in% games_exclude$gameId)) 
+
+d.raw_chat.final <- d.raw_chat %>% 
+  left_join(d.games %>% select(gameId, conditionName, condition)) %>% 
+  mutate(game_complete = !(gameId %in% games_exclude$gameId)) 
+```
+
+# Summary Stats
+## Game counts
+```{r}
+d.games %>% 
+  mutate(game_complete = !(gameId %in% games_exclude$gameId)) %>%
+  group_by(-game_complete, condition, chatEnabled) %>%
+  count()
+```
+
+
+## Game lengths
+## Bonus Payments
+
+# Points x Time x Num. Words
+
+# Avg. Points Per Round
+
+# Language Reduction
+
+# Georgia Analyses
+

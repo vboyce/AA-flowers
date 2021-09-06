@@ -36,10 +36,10 @@ scale_fill_bay <- function(...) {
   ggplot2::discrete_scale("fill", "bay", bay_palette, ...)
 }
 
-theme_jmank <- function (base_size = 11, base_family = "Roboto", base_line_size = base_size/22, 
+theme_jmank <- function (base_size = 11, base_line_size = base_size/22, 
                          base_rect_size = base_size/22) 
 {
-  theme_classic(base_size = base_size, base_family = base_family, 
+  theme_classic(base_size = base_size, 
                 base_line_size = base_line_size, base_rect_size = base_rect_size) %+replace% 
     theme(panel.border = element_blank(), panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", 
