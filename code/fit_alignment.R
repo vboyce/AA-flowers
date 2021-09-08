@@ -27,10 +27,10 @@ result_files <- "data/processed_data/joined_data/output_alignment.csv"
 #add condition to alignment data
 o<- read_csv("data/processed_data/joined_data/filtered_raw_chat.csv")
 coop_players <- o %>% 
-  filter(condition == "coopMulti") 
+  filter(condition == "Shared Utilities") 
 list_coop_players <- unique(coop_players$playerId)
 comp_players <- o %>% 
-  filter(condition == "competCartel") 
+  filter(condition == "Individual Utilities") 
 list_comp_players <- unique(comp_players$playerId)
 
 
@@ -46,9 +46,10 @@ setup_alignment_data <- function(corpus_df) {
 
 childes_data <- lapply(result_files, read_csv) %>%
   bind_rows() %>%
+  distinct() %>%
   rename(Speaker = speakerId, Replier = replierId) %>%
  # mutate(subpop = paste(Speaker,  "-", Replier)) %>%
-  mutate(subpop= ifelse(Replier %in% list_coop_players, "coop", ifelse(Replier %in% list_comp_players, "comp", ifelse(Speaker %in% list_comp_players, "comp",ifelse(Speaker %in% list_coop_players, "coop","no"))))) %>% 
+  mutate(subpop= ifelse(Replier %in% list_coop_players, "Shared Utilities", ifelse(Replier %in% list_comp_players, "Individual Utilities", ifelse(Speaker %in% list_comp_players, "Individual Utilities",ifelse(Speaker %in% list_coop_players, "Shared Utilities","no"))))) %>% 
  # filter(Speaker != Replier) %>%
   filter(subpop !="no") 
 
@@ -111,11 +112,34 @@ d3$model_mu <- log(colMeans(rstan:::extract(fit,"mu_ab")$mu_ab)) -
 d3$model_dnm <- colMeans(rstan:::extract(fit,"mu_ab")$mu_ab) - 
   colMeans(rstan:::extract(fit,"mu_notab")$mu_notab)
 
+write.csv(d3, "data/processed_data/joined_data/output_stan_model.csv")
 
 d4 <- d3 %>%
   group_by(subpop) %>%
   multi_boot_standard("model_eta", na.rm = F)
 
+
+options(ggrepel.max.overlaps = 20)
+ggplot(aes(y = model_eta, x = subpop, colour = subpop,
+), data=d3) + 
+  #geom_line(aes(group=category))+
+  geom_point(data=d3)+
+  #geom_smooth(method = "loess") +
+  theme_bw(base_size = 14) +
+  geom_text_repel(aes(label=category))+
+  theme(panel.grid = element_blank()) +
+  labs(title='Model-estimated Alignment for speaker pairs',
+       y='Alignment (delta log-odds)',
+       x='Conditions',
+       colour='Alignment')+
+  geom_pointrange(data=d4, mapping=aes(y = mean, x = subpop, ymax = ci_upper, ymin = ci_lower), col="black")+
+ylim(-0.5,0.5)+
+  grids(linetype = "dashed")
+  
+
+
+
+######## more plots
 ggplot(aes(x = mean, y = subpop), data = d4) +
   geom_pointrange(aes(xmax = ci_upper, xmin = ci_lower)) +
   geom_smooth(method = "loess") +
@@ -127,10 +151,9 @@ d5 <- d3 %>%
   group_by(subpop, category) 
 
 #This is the plot for results/children_eta_bywords.pdf
-ggplot(aes(y = subpop, x = model_eta, colour = category,
-), data=d5) + 
+ggplot(aes(y = subpop, x = model_eta,
+), data=d3) + 
   geom_point()+
-  geom_smooth(method = "loess") +
   theme_bw(base_size = 14) +
   geom_text_repel(aes(label=category))+
   theme(panel.grid = element_blank()) +
