@@ -11,6 +11,9 @@ library("stringr")
 library(Hmisc)
 library("spacyr")
 library(ggrepel)
+library(cowplot)
+library(grid)
+library(gridExtra)
 
 source("./theme_specs.R")
 ```
@@ -21,13 +24,7 @@ source("./theme_specs.R")
 d<- read_csv("../data/processed_data/joined_data/filtered_raw_chat.csv")
 d_flowers <- d %>% 
   filter(type=="message") %>%
-  filter(!is.na(text)) %>% 
-  filter(!conditionName=="coopCartel")
-
-write_csv(d, "../data/processed_data/raw_chat3.csv")
-
-d_flowers <- d_flowers %>% 
-  filter(!conditionName=="coopCartel")
+  filter(!is.na(text)) 
 
 ```
 
@@ -41,7 +38,7 @@ d_flowers <- d_flowers %>%
 
 ```
 
-### 1. Utt Length
+### Utt Length (MLU)
 ```{r utt_length}
 
 d_flowers_utt_length_block <- d_flowers %>%
@@ -51,9 +48,7 @@ d_flowers_utt_length_block <- d_flowers %>%
   summarise(total_num_words = sum(utt_length_words),
             mlu = mean(utt_length_words))
 
-#, color=as.factor(gameId)
 
-#jpeg("~/Desktop/plots/nwords_block.jpg", width = 950, height = 950)
 ggplot(d_flowers_utt_length_block, aes(x=blockNum, y=total_num_words, color=condition))+
   #facet_grid(rows =vars(condition)) +
   geom_point()+
@@ -90,7 +85,6 @@ d_flowers_utt_length_trial <- d_flowers %>%
   summarise(total_num_words = sum(utt_length_words),
             mlu = mean(utt_length_words))
 
-#jpeg("~/Desktop/plots/nwords_trial.jpg", width = 950, height = 950)
 ggplot(d_flowers_utt_length_trial, aes(x=trialNum, y=total_num_words,  color=condition))+
 #  facet_grid(rows =vars(condition)) +
   geom_point()+
@@ -100,11 +94,8 @@ ggplot(d_flowers_utt_length_trial, aes(x=trialNum, y=total_num_words,  color=con
   labs(title="Number of words", y="Total number of words", x="Trial number")+
   theme(legend.position="bottom") + 
   theme_jmank() + scale_color_bay() +
-  ggtitle("Number of words per trial")#+
-#  theme(text = element_text(size = 30))
-#dev.off() 
+  ggtitle("Number of words per trial")
 
-#jpeg("~/Desktop/plots/mlu_trial.jpg", width = 950, height = 950)
 ggplot(d_flowers_utt_length_trial, aes(x=trialNum, y=mlu,  color=condition))+
 #  facet_grid( rows =vars(condition)) +
   geom_jitter(alpha=.05)+
@@ -114,7 +105,6 @@ ggplot(d_flowers_utt_length_trial, aes(x=trialNum, y=mlu,  color=condition))+
   labs(title="Mean Length of Utterance", y="MLU", x="Trial number")+
   theme_jmank() + scale_color_bay() + theme(legend.position="bottom") #+ 
   #theme(text = element_text(size = 30))
-#dev.off() 
 
 ggsave("../figs/mean_utt_length.png", height = 5, width = 4)
 
@@ -126,33 +116,6 @@ d_flowers_utt_length_rep <- d_flowers %>%
             mlu = mean(utt_length_words))
 
 #jpeg("~/Desktop/plots/nword_rep.jpg", width = 950, height = 950)
-ggplot(d_flowers_utt_length_rep, aes(x=repNum, y=total_num_words,  color=condition))+
-#  facet_grid(rows =vars(condition)) +
-  geom_point()+
-  geom_jitter(alpha=.05)+
-  geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
-  stat_summary(fun.data = "mean_cl_boot")+
-  labs(title="Number of words", y="Total number of words", x="Rep number")+
-  theme(legend.position="bottom") + 
-  theme_jmank() + scale_color_bay() +
-  ggtitle("Number of words per rep")#+
-#  theme(text = element_text(size = 30))
-#dev.off() 
-
-#jpeg("~/Desktop/plots/mlu_rep.jpg", width = 950, height = 950)
-ggplot(d_flowers_utt_length_rep, aes(x=repNum, y=mlu,  color=condition))+
-#  facet_grid( rows =vars(condition)) +
-  geom_jitter(alpha=.05)+
-  geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
-  stat_summary(fun.data = "mean_cl_boot")+
- # scale_y_continuous(limits = c(0,15))+
-  labs(title="MLU", y="MLU", x="Rep number")+
-  theme(legend.position="bottom") + 
-  theme_jmank() + scale_color_bay() +
-  ggtitle("MLU per rep")#+
- # theme(text = element_text(size = 30))
-#dev.off() 
-
 ggplot(d_flowers_utt_length_rep, aes(x=repNum, y=log(mlu+1),  color=condition))+
 #  facet_grid( rows =vars(condition)) +
   geom_jitter(alpha=.05)+
@@ -165,28 +128,14 @@ ggplot(d_flowers_utt_length_rep, aes(x=repNum, y=log(mlu+1),  color=condition))+
   ggtitle("MLU per rep")#+
  # theme(text = element_text(size = 30))
 #dev.off() 
+
+
+
+
 ```
 
-### 2. Number of turns
+### Number of turns
 ```{r number_of_turns}
-
-d_flowers_n_turns_rep <- d_flowers %>%
-  group_by(gameId, condition, repNum)  %>%
-  summarise(n=n())
-
-#jpeg("~/Desktop/plots/nturn_rep.jpg", width = 950, height = 950)
-ggplot(d_flowers_n_turns_rep, aes(x=repNum, y=n,  color=condition))+
- # facet_grid(rows =vars(condition)) +
-  geom_jitter(alpha=.05)+
-  geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
-  stat_summary(fun.data = "mean_cl_boot")+
-  labs(title="Number of turns", y="Number of turns", x="Rep number")+
-  theme(legend.position="bottom") + 
-  theme_bw() +
-  ggtitle("Number of turns per Rep")#+
-#  theme(text = element_text(size = 30))
-#dev.off() 
-
 
 d_flowers_n_turns_trial <- d_flowers %>%
   group_by(gameId, condition, trialNum)  %>%
@@ -223,12 +172,12 @@ ggplot(d_flowers_n_turns_block, aes(x=blockNum, y=n,  color=condition))+
  # theme(text = element_text(size = 30))
 #dev.off() 
 
-ggsave("../figs/num_turns_block.png", height = 3, width = 3)
+#ggsave("../figs/num_turns_block.png", height = 3, width = 3)
 ```
 
 
-#second plot
-### 2b. Number of turns
+
+
 
 ```{r number_of_turns2}
 
@@ -264,44 +213,83 @@ ggplot(d_flowers_n_utt_speaker,
 #  theme(text = element_text(size = 30))
 #dev.off() 
 
+```
+
+
+```{r number_of_turns3}
+
+
 d_flowers_n_utt_speaker <- d_flowers %>%
-  group_by( repNum, gameId, condition) %>%
+  group_by(trialNum, blockNum, gameId, condition) %>%
   summarise(n_utt_speaker=n())
 
-#jpeg("~/Desktop/plots/nutts_rep.jpg", width = 950, height = 950)
-ggplot(d_flowers_n_utt_speaker, 
-       aes(x=repNum, y=n_utt_speaker,  color=condition)) + 
-  geom_smooth(method = "lm", formula = y~x) + 
-  geom_point(alpha=.1) +
-#  facet_grid(~condition) +
-  xlab("Rep number") + 
-  ylab("Number of utterances") + 
-  theme_bw()#+
-#  theme(text = element_text(size = 30))
-#dev.off() 
+turnb_function <- function(d_flowers_n_utt_speaker, c, q) {
+  p<-ggplot2::ggplot(d_flowers_n_utt_speaker, aes(y=n_utt_speaker, x=trialNum, label=gameId, color=condition)) + xlim(c,q) +
+  geom_point(alpha = .5)+
+  geom_smooth(method = "lm", formula = y~x)+
+  xlab("Trial number") + 
+  theme_bw()+
+  theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+return(p)
+}
+
+#jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
+a<- turnb_function(d_flowers_n_utt_speaker %>% filter(blockNum==0), 0,5) + ylab("Number of utterances")+  theme(legend.position="none",axis.title.y = element_blank(),axis.title.x = element_blank())+ labs(subtitle = "Block1")
+
+#jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
+b<- turnb_function(d_flowers_n_utt_speaker %>% filter(blockNum==1), 6,11) +  theme(legend.position="none",axis.title.y = element_blank(),axis.title.x = element_blank(),axis.text.y = element_blank())+ labs(subtitle = "Block2")
+
+#jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
+c<- turnb_function(d_flowers_n_utt_speaker %>% filter(blockNum==2), 12,17) +  theme(legend.position="none",axis.title.y = element_blank(),axis.title.x = element_blank(),axis.text.y = element_blank())+ labs(subtitle = "Block3")
+
+#jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
+d<- turnb_function(d_flowers_n_utt_speaker %>% filter(blockNum==3), 18,23) +theme(legend.position="none",axis.title.y = element_blank(),axis.title.x = element_blank(),axis.text.y = element_blank())+ labs(subtitle = "Block4")
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  d +  theme(legend.position = "right")
+)
+
+p<- plot_grid(a,b,c,d, legend,  nrow = 1, ncol=5, align = "v")
+
+x.grob <- textGrob("Trial Number")
+y.grob <- textGrob("Number of utterances", rot=90)
+grid.arrange(arrangeGrob(p, left = y.grob, bottom = x.grob))
+
+
+
 
 ```
 
-### 3. Parts of speech
-```{r pos, eval=FALSE, include=FALSE}
 
-# text <- d_flowers$text
-# parsed <- spacy_parse(text,pos=TRUE) %>%
-#   select(doc_id, pos) %>%
-#   group_by(doc_id) %>%
-#   mutate(pos = paste(pos, collapse=",")) %>%
-#   distinct()
+### Parts of speech
+```{r pos, eval=TRUE, include=TRUE}
+
+d_flowers_uttlength_nwords <- d_flowers %>%
+  mutate(text = gsub('[[:punct:] ]+',' ',text)) %>%
+  mutate(utt_length_words = sapply(strsplit(text, " "), length)) %>% 
+  group_by(gameId, blockNum, trialNum, condition)  %>%
+  summarise(total_num_words = sum(utt_length_words),
+            mlu = mean(utt_length_words))
+
+
+ text <- d_flowers$text
+ parsed <- spacy_parse(text,pos=TRUE) %>%
+   select(doc_id, pos) %>%
+   group_by(doc_id) %>%
+   mutate(pos = paste(pos, collapse=",")) %>%
+   distinct()
 #   
 # d_flowers_pos  <- cbind(d_flowers, parsed) %>%
 #   separate_rows(pos, convert = TRUE) %>%
 #   group_by(condition, blockNum, gameId, pos) %>%
-#   filter(pos=="NOUN"| pos=="VERB" | pos=="ADJ"| pos=="ADP"| pos=="DET" | pos=="PRON") %>%
-#   summarise(pos_count=n()) %>%
-#   left_join(d_flowers_utt_length_block) %>%
-#   mutate(prop_pos=pos_count/total_num_words)
-#         
+ #  filter(pos=="NOUN"| pos=="VERB") %>% #| pos=="ADJ"| pos=="ADP"| pos=="DET" | pos=="PRON") %>%
+  # summarise(pos_count=n()) %>%
+  # left_join(d_flowers_uttlength_block) %>%
+  # mutate(prop_pos=pos_count/total_num_words)
+         
 # #jpeg("~/Desktop/plots/pos_block.jpg", width = 950, height = 950)
-# ggplot(d_flowers_pos, 
+ #ggplot(d_flowers_pos, 
 #        aes(x=blockNum, y=prop_pos, label=gameId,  color=condition)) + 
 #   geom_smooth(method = "lm", formula = y~x) + 
 #   geom_point(alpha=.1) +
@@ -311,11 +299,11 @@ ggplot(d_flowers_n_utt_speaker,
 #   theme_bw()#+
 #  # theme(text = element_text(size = 30))
 # #dev.off() 
-# 
+## 
 # d_flowers_pos  <- cbind(d_flowers, parsed) %>%
 #   separate_rows(pos, convert = TRUE) %>%
 #   group_by(condition, trialNum, gameId, pos) %>%
-#   filter(pos=="NOUN"| pos=="VERB" | pos=="ADJ"| pos=="ADP"| pos=="DET" | pos=="PRON") %>%
+#   filter(pos=="NOUN"| pos=="VERB" ) %>% #| pos=="ADJ"| pos=="ADP"| pos=="DET" | pos=="PRON") %>%
 #   summarise(pos_count=n()) %>%
 #   left_join(d_flowers_utt_length_trial) %>%
 #   mutate(prop_pos=pos_count/total_num_words)
@@ -327,35 +315,65 @@ ggplot(d_flowers_n_utt_speaker,
 #   geom_point(alpha=.1) +
 #   facet_grid( cols=vars(pos)) +
 #   xlab("Trial number") + 
-#   ylab("Proportion of pos") + 
+ #  ylab("Proportion of pos") + 
 #   ylim(0,5)+
 #   theme_bw()#+
-#   #theme(text = element_text(size = 30))
+   #theme(text = element_text(size = 30))
 # #dev.off() 
 # 
-# d_flowers_pos  <- cbind(d_flowers, parsed) %>%
-#   separate_rows(pos, convert = TRUE) %>%
-#   group_by(condition, repNum, gameId, pos) %>%
-#   filter(pos=="NOUN"| pos=="VERB" | pos=="ADJ"| pos=="ADP"| pos=="DET" | pos=="PRON") %>%
-#   summarise(pos_count=n()) %>%
-#   left_join(d_flowers_utt_length_rep) %>%
-#   mutate(prop_pos=pos_count/total_num_words)
-#         
-# #jpeg("~/Desktop/plots/pos_rep.jpg", width = 950, height = 950)
-# ggplot(d_flowers_pos, 
-#        aes(x=repNum, y=prop_pos, label=gameId, color=condition)) + 
-#   geom_smooth(method = "lm", formula = y~x) + 
-#   geom_point(alpha=.1) +
-#   facet_grid(cols=vars(pos)) +
-#   xlab("Rep number") + 
-#   ylab("Proportion of pos") +
-#   ylim(0,5)+
-#   theme_bw()#+
-#  # theme(text = element_text(size = 30))
-# #dev.off() 
+
+
+text <- d_flowers$text
+parsed <- spacy_parse(text,pos=TRUE) %>%
+  select(doc_id, pos) %>%
+  group_by(doc_id) %>%
+  mutate(pos = paste(pos, collapse=",")) %>%
+  distinct()
+  
+d_flowers_pos  <- cbind(d_flowers, parsed) %>%
+  separate_rows(pos, convert = TRUE) %>%
+  group_by(condition, blockNum, trialNum, gameId, pos) %>%
+  filter(pos=="NOUN"| pos=="VERB" ) %>% # pos=="ADJ"| pos=="DET" | pos=="PRON"
+  summarise(pos_count=n()) %>%
+  left_join(d_flowers_uttlength_nwords) %>%
+  mutate(prop_pos=pos_count/total_num_words)
+        
+#jpeg("~/Desktop/plots/pos_block.jpg", width = 950, height = 950)
+pos_function <-function(d_flowers_pos, c,q){
+
+ggplot(d_flowers_pos, 
+       aes(x=trialNum, y=prop_pos, label=gameId, color=condition, linetype=pos)) + 
+  geom_smooth(method = "lm", formula = y~x) + 
+ # geom_point(alpha=.5) +
+ # facet_grid(cols=vars(condition)) +
+ # ylim(0,1)+
+  xlim(c,q)+
+  theme_bw() 
+}
+
+a<- pos_function(d_flowers_pos %>% filter(blockNum==0), 0,5) +  theme(legend.position="none", axis.title.y = element_blank(),axis.title.x = element_blank())+
+   labs(subtitle = "Block1") + ylim(0.0, 0.4)
+b<- pos_function(d_flowers_pos %>% filter(blockNum==1), 6,11) +  theme(legend.position="none", axis.title.y = element_blank(),axis.text.y = element_blank(), axis.title.x = element_blank())+
+   labs(subtitle = "Block2")+ ylim(0.0, 0.4)
+c<- pos_function(d_flowers_pos %>% filter(blockNum==2), 12,17) +  theme(legend.position="none", axis.title.y = element_blank(), axis.title.x = element_blank(),axis.text.y = element_blank())+
+   labs(subtitle = "Block3")+ ylim(0.0, 0.4)
+d<- pos_function(d_flowers_pos %>% filter(blockNum==3), 18,23) +  theme(legend.position="none",axis.title.y = element_blank(),axis.title.x = element_blank(),axis.text.y = element_blank())+
+   labs(subtitle = "Block4")+ ylim(0.0, 0.4)
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  d +  theme(legend.position = "right")
+)
+
+p<-plot_grid(a,b,c,d, legend, nrow = 1, ncol=5,  align = "v")
+x.grob <- textGrob("Trial Number")
+y.grob <- textGrob("Proportion Verbs, Nouns", rot=90)
+grid.arrange(arrangeGrob(p, left = y.grob, bottom = x.grob))
+
+
 ```
 
-### 4. Lexical Diversity (TTR)
+### Lexical Diversity (TTR)
 
 ```{r ttr}
 
@@ -395,30 +413,6 @@ ggplot(d_flowers_ttr_trial,
 #dev.off() 
 
 
-d_flowers_text_rep <- d_flowers %>%
-    group_by(gameId, repNum, condition) %>%
-    mutate(text_block = paste0(text, collapse = " ")) %>%
-    select(-c(text)) %>%
-    distinct() 
-
-d_flowers_ttr_rep <- d_flowers_text_rep %>%
-  mutate(ttr_ = ttr(text_block))
-
-#jpeg("~/Desktop/plots/ttr_rep.jpg", width = 950, height = 950)
-ggplot(d_flowers_ttr_rep, 
-       aes(x=repNum, y=ttr_,  color=condition)) + 
-  geom_smooth(method = "lm", formula = y~x) + 
-  geom_point(alpha=.1) +
- # facet_grid(rows =vars(condition)) +
-  xlab("Rep number") + 
-  ylab("Type_token ratio") + 
-  ylim(0,1)+
-  theme_bw()+
-  ggtitle("TTR per rep")#+
- # theme(text = element_text(size = 30))
-#dev.off() 
-
-
 d_flowers_text_block <- d_flowers %>%
     group_by(gameId, blockNum, condition) %>%
     mutate(text_block = paste0(text, collapse = " ")) %>%
@@ -444,8 +438,53 @@ ggplot(d_flowers_ttr_block,
 
 ```
 
-## STEP FOUR - Feedback items and markers
-### 1. Distribution of speech across speakers
+```{r ttr2}
+d_flowers_text_trial <- d_flowers %>%
+    group_by(gameId, trialNum, blockNum, condition) %>%
+    mutate(text_block = paste0(text, collapse = " ")) %>%
+    select(-c(text)) %>%
+    distinct() 
+
+d_flowers_ttr_trial <- d_flowers_text_trial %>%
+  mutate(ttr_ = ttr(text_block))
+
+ttr_function <- function(d_flowers_ttr_trial, c, q) {
+  p<-ggplot2::ggplot(d_flowers_ttr_trial, aes(y=ttr_, x=trialNum, label=gameId, color=condition)) + xlim(c,q) + ylim(0.5, 1.0)+
+  geom_point(alpha = .5)+
+  geom_smooth(method = "lm", formula = y~x)+
+  theme_bw()+
+  theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+return(p)
+}
+
+#jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
+a<- ttr_function(d_flowers_ttr_trial %>% filter(blockNum==0), 0,5) + ylab("Type token ration")+  theme(legend.position="none",  axis.title.x = element_blank(), axis.title.y = element_blank())+ labs(subtitle = "Block1")
+
+b<- ttr_function(d_flowers_ttr_trial %>% filter(blockNum==1), 6,11) + theme(legend.position="none", axis.title.x = element_blank(), axis.title.y = element_blank(),axis.text.y = element_blank())+ labs(subtitle = "Block2")+ylim(0.5, 1.0)
+
+c<- ttr_function(d_flowers_ttr_trial %>% filter(blockNum==2), 12,17) + theme(legend.position="none", axis.title.x = element_blank(), axis.title.y = element_blank(),axis.text.y = element_blank())+ labs(subtitle = "Block3")+ylim(0.5, 1.0)
+
+d<- ttr_function(d_flowers_ttr_trial %>% filter(blockNum==3), 18,23) + labs(subtitle = "Block4")+ theme(legend.position="none", axis.title.x = element_blank(), axis.title.y = element_blank(),axis.text.y = element_blank())+ylim(0.5, 1.0)
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  d +  theme(legend.position = "right")
+)
+
+
+p<-plot_grid(a,b,c,d, legend, nrow = 1, ncol=5, align = "v")
+#dev.off() 
+x.grob <- textGrob("Trial Number")
+y.grob <- textGrob("Type token ratio", rot=90)
+p<- grid.arrange(arrangeGrob(p, left = y.grob, bottom = x.grob))
+
+#ggsave(file="../figs/ttr.png", p)
+
+
+```
+
+
+### Distribution of speech across speakers
 ```{r word_length}
 
 d_flowers_n_utt_speaker <- d_flowers %>%
@@ -499,35 +538,59 @@ ggplot(d_flowers_n_utt_dist,
 #dev.off() 
 
 
+```
+
+
+```{r word_length2}
 d_flowers_n_utt_speaker <- d_flowers %>%
-  group_by(playerId, repNum, gameId, condition) %>%
+  group_by(playerId, trialNum, blockNum, gameId, condition) %>%
   summarise(n_utt_speaker=n())
 
 d_flowers_n_utt_game <- d_flowers %>%
-  group_by(repNum, gameId, condition) %>%
+  group_by(trialNum, blockNum, gameId, condition) %>%
   summarise(n_utt_game=n())
 
 d_flowers_n_utt_dist <- d_flowers_n_utt_speaker %>%
   left_join(d_flowers_n_utt_game) %>%
   mutate(overall_turns=n_utt_speaker/n_utt_game)
 
-#jpeg("~/Desktop/plots/proputts_rep_speaker.jpg", width = 950, height = 950)
-ggplot(d_flowers_n_utt_dist, 
-       aes(x=repNum, y=overall_turns, label=playerId,  color=condition)) + 
-  geom_smooth(method = "lm", formula = y~x) + 
-  geom_point(alpha=.1) +
- # facet_wrap(~condition)+
-  xlab("Rep number") + 
-  ylab("Proportion of turns") + 
+turn_per_plot_function <- function(d_flowers_n_utt_dist, overall_turns, c,q) {
+  p<-ggplot2::ggplot(d_flowers_n_utt_dist, aes(y={{overall_turns}}, x=trialNum, label=playerId)) +
+  geom_point(alpha = .5)+
+  xlim(c,q) +
+  facet_wrap(~condition)+
+  geom_smooth(method = "lm", formula = y~x)+
   theme_bw()+
-  ggtitle("Proportion of turns per rep and speaker")#+
- # theme(text = element_text(size = 30))
-#dev.off() 
+  theme(plot.margin = unit(c(0, 0, 0, 0), "cm"),axis.title.y = element_blank(),axis.title.x = element_blank())
+return(p)
+}
+
+#jpeg("~/Desktop/plots/proputts_trial_speaker.jpg", width = 950, height = 950)
+a<-turn_per_plot_function(d_flowers_n_utt_dist %>% filter(blockNum==0), overall_turns, 0,5) + ylab("Proportion of turns")+ labs(subtitle = "Block1") + theme_bw() + theme(legend.position="none",axis.title.y = element_blank(),axis.title.x = element_blank())
+
+b<-turn_per_plot_function(d_flowers_n_utt_dist %>% filter(blockNum==1), overall_turns, 6,11) +  theme(legend.position="none", axis.text.y=element_blank(),axis.title.x = element_blank(),axis.title.y = element_blank())+ labs(subtitle = "Block2")+ theme_bw() 
+
+c<-turn_per_plot_function(d_flowers_n_utt_dist%>% filter(blockNum==2), overall_turns, 12,17) +  theme(legend.position="none", axis.title.y = element_blank(), axis.text.y=element_blank(), axis.title.x = element_blank())+ labs(subtitle = "Block3")+ theme_bw() 
+
+d<-turn_per_plot_function(d_flowers_n_utt_dist%>% filter(blockNum==3), overall_turns, 18,23) +  theme(legend.position="none",axis.title.y = element_blank(),axis.title.x = element_blank(), axis.text.y=element_blank(), plot.tag.position = "topright")+ labs(subtitle = "Block4")+ theme_bw() 
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  d +  theme(legend.position = "right")
+)
+
+p<-plot_grid(a,b,c,d,  nrow = 2, ncol=3,  legend, align = "v")
+
+x.grob <- textGrob("Trial Number")
+y.grob <- textGrob("Proportion of turns", rot=90)
+grid.arrange(arrangeGrob(p, left = y.grob, bottom = x.grob))
+
 
 ```
 
 
-### 2. Turn-eliciting questions
+
+### Questions
 
 ```{r questions}
 
@@ -558,35 +621,7 @@ ggplot(d_flowers_q,
  # theme(text = element_text(size = 30))
 #dev.off() 
   
-#####
-
-d_flowers_n_utt_speaker <- d_flowers %>%
-  group_by(repNum, gameId, condition) %>%
-  summarise(n_utt_speaker=n())
-
-d_flowers_q <- d_flowers %>% 
- mutate(sentence_type = ifelse(str_detect(text, "\\?"), 
-                             "question",
-                             "other")) %>%
- group_by(repNum, gameId, sentence_type) %>%
- summarise(n_sentence_Type=n()) %>%
- filter(sentence_type=="question") %>%
- left_join(d_flowers_n_utt_speaker) %>%
- mutate(prop_questions = n_sentence_Type/n_utt_speaker )  
-
-#jpeg("~/Desktop/plots/propquestions_rep.jpg", width = 950, height = 950)
-ggplot(d_flowers_q, 
-       aes(x=repNum, y=prop_questions, label=gameId,  color=condition)) + 
-  geom_smooth(method = "lm", formula = y~x) + 
-#  facet_wrap(~ condition) +
-  geom_point(alpha=.5) +
-  xlab("Rep number") + 
-  ylab("Proportion of questions") + 
-  theme_bw()+
-  ggtitle("Proportion of questions per rep")#+
-#theme(text = element_text(size = 30))
-#dev.off() 
-
+##
 
 d_flowers_n_utt_speaker <- d_flowers %>%
   group_by(blockNum, gameId, condition) %>%
@@ -617,18 +652,66 @@ ggplot(d_flowers_q,
 
 ```
 
-### 1. Distribution of speech across speakers
+
+
+```{r questions2}
+
+d_flowers_n_utt_speaker <- d_flowers %>%
+  group_by(trialNum, blockNum, gameId, condition) %>%
+  summarise(n_utt_speaker=n())
+
+d_flowers_q <- d_flowers %>% 
+ mutate(sentence_type = ifelse(str_detect(text, "\\?"), 
+                             "question",
+                             "other")) %>%
+ group_by(trialNum, blockNum, gameId, sentence_type) %>%
+ summarise(n_sentence_Type=n()) %>%
+ filter(sentence_type=="question") %>%
+ left_join(d_flowers_n_utt_speaker) %>%
+ mutate(prop_questions = n_sentence_Type/n_utt_speaker )  
+
+word_per_plot_function <- function(d_flowers, prop_words, c, q) {
+  p<-ggplot2::ggplot(d_flowers, aes(y={{prop_words}}, x=trialNum, label=gameId, color=condition)) + ylim(0.0,0.20)+ xlim(c,q) +
+  geom_point(alpha = .5)+
+  geom_smooth(method = "lm", formula = y~x)+
+  theme_bw()+
+  xlab("Trial number") + 
+  theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+return(p)
+}
+
+#jpeg("~/Desktop/plots/propquestions_trial.jpg", width = 950, height = 950)
+a<- word_per_plot_function(d_flowers_q %>% filter(blockNum==0), prop_questions, 0,5) + ylab("Proportion of questions")+  theme(legend.position="none", axis.title.x = element_blank(), axis.title.y = element_blank())+ labs(subtitle = "Block1")
+
+b<-word_per_plot_function(d_flowers_q %>% filter(blockNum==1), prop_questions, 6,11) +  theme(legend.position="none", axis.title.y = element_blank(), axis.text.y=element_blank(), axis.title.x = element_blank())+ labs(subtitle = "Block2")
+
+c<-word_per_plot_function(d_flowers_q%>% filter(blockNum==2), prop_questions, 12,17) +  theme(legend.position="none", axis.title.y = element_blank(), axis.text.y=element_blank(), axis.title.x = element_blank())+ labs(subtitle = "Block3")
+
+d<-word_per_plot_function(d_flowers_q%>% filter(blockNum==3), prop_questions, 18,23) +  theme(legend.position="none",axis.title.y = element_blank(), axis.text.y=element_blank(),axis.title.x = element_blank(), plot.tag.position = "topright")+ labs(subtitle = "Block4")
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  d +  theme(legend.position = "right")
+)
+
+p<-plot_grid(a,b,c,d,  nrow = 1, ncol=5, legend, align = "v")
+x.grob <- textGrob("Trial Number")
+y.grob <- textGrob("Proportion of questions", rot=90)
+grid.arrange(arrangeGrob(p, left = y.grob, bottom = x.grob))
+
+
+```
+
+
+
+
+### Feedback words (backchannel, hedge)
 ```{r feedback}
 
-###politeness markers
+backchanneling<- c("mm", "okay", "uh-huh", "ok", "mm-hm", "uh", "um", "agree", "uhuh", "mmm", "wow", "great", "mm", "hm",  "ummm", "hmmmm", "huh", "un", "um", "ohh", "ooo", "see", "oooo", "ununun", "oh", "ah", "true", "agree", "right", "yeah", "good", "really") #backchanneling: (https://www.reading.ac.uk/AcaDepts/ll/app_ling/internal/Cutrone_vol_2.pdf) 
 
-###backchanneling: (https://www.reading.ac.uk/AcaDepts/ll/app_ling/internal/Cutrone_vol_2.pdf) 
 
-backchanneling<- c("mm", "okay", "uh-huh", "ok", "mm-hm", "uh", "um", "agree", "uhuh", "mmm", "wow", "great", "mm", "hm",  "ummm", "hmmmm", "huh", "un", "um", "ohh", "ooo", "see", "oooo", "ununun", "oh", "ah", "true", "agree", "right", "yeah", "good", "really")
-
-###hedges: (https://www.researchgate.net/publication/280125979_Linguistic_Markers_and_Stylistic_Attributes_of_Hedging_in_English_Academic_Papers_Written_by_Native_and_Non-Native_Speakers_of_English/figures) 
-
-hedging <- c("may", "perhaps", "might", "possible", "likely", "possibly", "maybe", "probable", "appear", "seem", "suggest", "sometimes", "seemingly", "apparently", "often", "could", "usually", "likely", "tend", "sometimes", "probably", "primarily", "tendency", "largely")   
+hedging <- c("may", "perhaps", "might", "possible", "likely", "possibly", "maybe", "probable", "appear", "seem", "suggest", "sometimes", "seemingly", "apparently", "often", "could", "usually", "likely", "tend", "sometimes", "probably", "primarily", "tendency", "largely") #based on https://www.researchgate.net/publication/280125979_Linguistic_Markers_and_Stylistic_Attributes_of_Hedging_in_English_Academic_Papers_Written_by_Native_and_Non-Native_Speakers_of_English/figures
 
 d_flowers_nwords <- d_flowers %>%
   group_by(trialNum, gameId, condition) %>%
@@ -755,9 +838,17 @@ d_flowers_nwords <- d_flowers %>%
   group_by(gameId, repNum, condition)  %>%
   summarise(total_num_words = sum(utt_length_words))
             
-            
+
+```
+
+
+
+
+```{r feedback2}
+
+
 d_flowers_feedback<- d_flowers %>%
-  group_by(repNum, gameId, condition) %>%
+  group_by(trialNum, blockNum, gameId, condition) %>%
   mutate(text = gsub('[[:punct:] ]+',' ',text)) %>%          
   mutate(text = strsplit(text, " ")) %>%
   rowwise() %>%
@@ -765,40 +856,181 @@ d_flowers_feedback<- d_flowers %>%
   mutate(backchannel_length=length(backchannel))%>%
   mutate(hedge=list(intersect(hedging, text))) %>%
   mutate(hedge_length=length(hedge)) %>%
-  group_by(gameId, repNum, condition)  %>%
+  group_by(gameId, trialNum, blockNum, condition)  %>%
   summarise(total_num_backchannel = sum(backchannel_length),
             total_num_hedge = sum(hedge_length)) %>%
-  left_join(d_flowers_nwords) %>%
+  left_join(d_flowers_uttlength_nwords) %>%
   mutate(prop_backchannel_words= total_num_backchannel/total_num_words) %>%
   mutate(prop_hedge_words= total_num_hedge/total_num_words)  
- 
 
-#jpeg("~/Desktop/plots/propbackchannel_rep.jpg", width = 950, height = 950)
-ggplot(d_flowers_feedback, aes(y=prop_backchannel_words , x=repNum, label=gameId,  color=condition)) +
-  #facet_wrap(~ condition) +
-  geom_point(alpha = .5)+
-  geom_smooth()+
-  xlab("Rep number") + 
-  ylab("Proportion of backchannel words") + 
-  theme_bw()+
-  ggtitle("Proportion of backchannel words per rep")#+
- # theme(text = element_text(size = 30))
-#dev.off() 
 
-#jpeg("~/Desktop/plots/prophedge_rep.jpg", width = 950, height = 950)
-ggplot(d_flowers_feedback, aes(y=prop_hedge_words , x=repNum, label=gameId,  color=condition)) +
-#  facet_wrap(~ condition) +
-  geom_point(alpha = .5)+
-  geom_smooth()+
-  xlab("Rep number") + 
-  ylab("Proportion of hedge words") + 
-  theme_bw()+
-  ggtitle("Proportion of hedge words per rep")#+
-  #theme(text = element_text(size = 30))
-#dev.off() 
+a<- word_per_plot_function(d_flowers_feedback %>% filter(blockNum==0), prop_backchannel_words, 0,5) +  theme(legend.position="none",  axis.title.y = element_blank(), axis.title.x = element_blank())+
+   labs(subtitle = "Block1")
 
+b<-word_per_plot_function(d_flowers_feedback%>% filter(blockNum==1), prop_backchannel_words, 6,11) +  theme(legend.position="none", axis.title.y = element_blank(), axis.text.y=element_blank(), axis.title.x = element_blank())+ labs(subtitle = "Block2")
+
+c<-word_per_plot_function(d_flowers_feedback%>% filter(blockNum==2), prop_backchannel_words, 12,17) +  theme(legend.position="none", axis.title.y = element_blank(), axis.text.y=element_blank(), axis.title.x = element_blank())+ labs(subtitle = "Block3")
+
+d<-word_per_plot_function(d_flowers_feedback%>% filter(blockNum==3), prop_backchannel_words, 18,23) +  theme(legend.position="none", axis.title.y = element_blank(), axis.text.y=element_blank(), plot.tag.position = "topright", axis.title.x = element_blank())+ labs(subtitle = "Block4")
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  d +  theme(legend.position = "right")
+)
+
+p<-plot_grid(a,b,c,d,  nrow = 1, ncol=5, legend, align = "v")
+x.grob <- textGrob("Trial Number")
+y.grob <- textGrob("Backchannel words", rot=90)
+grid.arrange(arrangeGrob(p, left = y.grob, bottom = x.grob))
+
+
+
+a<- word_per_plot_function(d_flowers_feedback %>% filter(blockNum==0), prop_hedge_words, 0,5) +  theme(legend.position="none", axis.title.y = element_blank())+
+   labs(subtitle = "Block1")+ylim(0.0, 0.05)
+
+b<-word_per_plot_function(d_flowers_feedback%>% filter(blockNum==1), prop_hedge_words, 6,11) +  theme(legend.position="none", axis.title.y = element_blank(), axis.text.y=element_blank())+ labs(subtitle = "Block2")+ylim(0.0, 0.05)
+
+c<-word_per_plot_function(d_flowers_feedback%>% filter(blockNum==2), prop_hedge_words, 12,17) +  theme(legend.position="none", axis.title.y = element_blank(), axis.text.y=element_blank())+ labs(subtitle = "Block3")+ylim(0.0, 0.05)
+
+d<-word_per_plot_function(d_flowers_feedback%>% filter(blockNum==3), prop_hedge_words, 18,23) +  theme(legend.position="none", axis.title.y = element_blank(), axis.text.y=element_blank(), plot.tag.position = "topright")+ labs(subtitle = "Block4")+ylim(0.0, 0.05)
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  d +  theme(legend.position = "right")
+)
+
+p<-plot_grid(a,b,c,d, legend,  nrow = 1, ncol=5,align = "v")
+
+x.grob <- textGrob("Trial Number")
+y.grob <- textGrob("Hedge words", rot=90)
+grid.arrange(arrangeGrob(p, left = y.grob, bottom = x.grob))
 
 
 ```
 
+### LIWC (positive, negative) categories
+
+```{r LIWC categories, include=TRUE, warning=FALSE}
+
+liwc<- read_csv("/Users/lscpuser/Downloads/liwc1.csv")
+liwc <- liwc[!is.na(liwc$Negemo), ]
+liwc <- liwc[!is.na(liwc$Posemo), ]
+
+d_flowers_liwc<- d_flowers %>%
+  group_by(blockNum, trialNum, gameId, condition) %>%
+  mutate(text = gsub('[[:punct:] ]+',' ',text)) %>%          
+  mutate(text = strsplit(text, " ")) %>%
+  rowwise() %>%
+  mutate(positive=list(intersect(liwc$Posemo, text))) %>%
+  mutate(positive_length=length(positive))%>%
+  mutate(negative=list(intersect(liwc$Negemo, text))) %>%
+  mutate(negative_length=length(negative)) %>%
+  group_by(gameId, trialNum, blockNum, condition)  %>%
+  summarise(total_num_positive = sum(positive_length),
+            total_num_negative = sum(negative_length)) %>%
+  left_join(d_flowers_uttlength_nwords) %>%
+  mutate(prop_negative_words= total_num_negative/total_num_words) %>%
+  mutate(prop_positive_words= total_num_positive/total_num_words)  
+
+
+#######positive LIWC
+ggplot(d_flowers_liwc, aes(y=prop_positive_words , x=trialNum, label=gameId,  color=condition)) +
+ # facet_wrap(~ condition) +
+  geom_point(alpha = .5)+
+  geom_smooth()+
+  xlab("Trial number") + 
+  ylab("Proportion of positive words") + 
+  theme_bw()+
+  ggtitle("Proportion of positive words per trial")#+
+  #theme(text = element_text(size = 30))
+
+
+
+a<-word_per_plot_function(d_flowers_liwc%>% filter(blockNum==0), prop_positive_words, 0,5) +  theme(legend.position="none",  axis.title.y = element_blank(),axis.title.x = element_blank())+
+   labs(subtitle = "Block1") +  ylab("LIWC positive words")  
+
+b<-word_per_plot_function(d_flowers_liwc%>% filter(blockNum==1), prop_positive_words, 6,11) +  theme(legend.position="none", axis.title.y = element_blank(), axis.text.y=element_blank(),axis.title.x = element_blank())+ labs(subtitle = "Block2")
+
+c<-word_per_plot_function(d_flowers_liwc%>% filter(blockNum==2), prop_positive_words, 12,17) +  theme(legend.position="none", axis.title.y = element_blank(), axis.text.y=element_blank(),axis.title.x = element_blank())+ labs(subtitle = "Block3")
+
+d<-word_per_plot_function(d_flowers_liwc%>% filter(blockNum==3), prop_positive_words, 18,23) +  theme(legend.position="none", axis.title.y = element_blank(), axis.text.y=element_blank(),axis.title.x = element_blank(), plot.tag.position = "topright")+ labs(subtitle = "Block4")
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  d +  theme(legend.position = "right")
+)
+p<-plot_grid(a,b,c,d, nrow = 1, legend,  ncol=5, align = "v")
+
+x.grob <- textGrob("Trial Number")
+y.grob <- textGrob("LIWC positive words", rot=90)
+p<-grid.arrange(arrangeGrob(p, left = y.grob, bottom = x.grob))
+ggsave(file="../figs/liwc_pos.png", p)
+
+
+
+
+######### negative LIWC
+ggplot(d_flowers_liwc, aes(y=prop_negative_words , x=trialNum, label=gameId,  color=condition)) +
+ # facet_wrap(~ condition) +
+  geom_point(alpha = .5)+
+  geom_smooth()+
+  xlab("Trial number") + 
+  ylab("Proportion of negative words") + 
+  theme_bw()+
+  ggtitle("Proportion of negative words per trial")#+
+  #theme(text = element_text(size = 30))
+#dev.off() 
+
+e<-word_per_plot_function(d_flowers_liwc%>% filter(blockNum==0), prop_negative_words, 0,5) +  theme(legend.position="none", axis.title.x = element_blank(),  axis.title.y=element_blank()) +
+   labs(subtitle = "Block1")  +ylim(0.0, 0.05)
+
+f<-word_per_plot_function(d_flowers_liwc%>% filter(blockNum==1), prop_negative_words, 6,11) +  theme(legend.position="none", axis.title.y = element_blank(),axis.title.x = element_blank(), axis.text.y=element_blank())+ labs(subtitle = "Block2")+ylim(0.0, 0.05)
+
+g<-word_per_plot_function(d_flowers_liwc%>% filter(blockNum==2), prop_negative_words, 12,17) +  theme(legend.position="none", axis.title.y = element_blank(),axis.title.x = element_blank(), axis.text.y=element_blank())+ labs(subtitle = "Block3")+ylim(0.0, 0.05)
+
+h<-word_per_plot_function(d_flowers_liwc%>% filter(blockNum==3), prop_negative_words, 18,23) +  theme(legend.position="none", axis.title.y = element_blank(),axis.title.x = element_blank(), axis.text.y=element_blank(), plot.tag.position = "topright")+ labs(subtitle = "Block4")+ylim(0.0, 0.05)
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  h +  theme(legend.position = "right")
+)
+
+p<- plot_grid(e,f,g,h, legend, nrow = 1, ncol=5, align = "v")
+x.grob <- textGrob("Trial Number")
+y.grob <- textGrob("LIWC negative words", rot=90)
+
+#add to plot
+grid.arrange(arrangeGrob(p, left = y.grob, bottom = x.grob))
+
+```
+### Alignment
+
+```{r alignment, include=TRUE, warning=FALSE}
+library(langcog)
+library(ggpubr)
+d3<- read_csv("../data/processed_data/joined_data/output_stan_model.csv")
+
+d4 <- d3 %>%
+  group_by(subpop) %>%
+  multi_boot_standard("model_eta", na.rm = F)
+
+
+options(ggrepel.max.overlaps = 50)
+ggplot(aes(y = model_eta, x = subpop, colour = subpop,
+), data=d3) + 
+  #geom_line(aes(group=category))+
+  geom_point(data=d3)+
+  #geom_smooth(method = "loess") +
+  theme_bw(base_size = 14) +
+  geom_text_repel(aes(label=category))+
+  theme(panel.grid = element_blank()) +
+  labs(title='Model-estimated Alignment for speaker pairs, with mean and CI',
+       y='Alignment (delta log-odds)',
+       x='Conditions',
+       colour='Alignment')+
+  geom_pointrange(data=d4, mapping=aes(y = mean, x = subpop, ymax = ci_upper, ymin = ci_lower), col="black")+
+ylim(-0.5,0.5)+
+  grids(linetype = "dashed")
+  
+ggsave("../figs/alignment.png", height = 3, width = 10)
 
