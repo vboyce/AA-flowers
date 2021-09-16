@@ -232,14 +232,12 @@ theme_jmank() + scale_color_bay() +
 return(p)
 }
 
-#jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
 a<- turnb_function(d_flowers_n_utt_speaker %>% 
                      filter(blockNum==0), 0,5) + 
   ylab("Number of utterances")+  
   theme(legend.position="none",axis.title.y = element_blank(),
         axis.title.x = element_blank())+ labs(subtitle = "Block1")
 
-#jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
 b<- turnb_function(d_flowers_n_utt_speaker %>% 
                      filter(blockNum==1), 6,11) +  
   theme(legend.position="none",axis.title.y = element_blank(),
@@ -247,7 +245,6 @@ b<- turnb_function(d_flowers_n_utt_speaker %>%
         axis.text.y = element_blank())+ 
   labs(subtitle = "Block2")
 
-#jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
 c<- turnb_function(d_flowers_n_utt_speaker %>% 
                      filter(blockNum==2), 12,17) +  
   theme(legend.position="none",axis.title.y = element_blank(),
@@ -255,7 +252,6 @@ c<- turnb_function(d_flowers_n_utt_speaker %>%
         axis.text.y = element_blank())+ 
   labs(subtitle = "Block3")
 
-#jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
 d<- turnb_function(d_flowers_n_utt_speaker %>% 
                      filter(blockNum==3), 18,23) +
   theme(legend.position="none",axis.title.y = element_blank(),
@@ -393,6 +389,21 @@ grid.arrange(arrangeGrob(p, left = y.grob, bottom = x.grob))
 
 ```{r ttr}
 
+library(koRpus)
+install.koRpus.lang(lang=c("en"))
+library(koRpus.lang.en)
+
+
+MATTR <- function(txt, window=100, char=FALSE, ...){
+  if(isTRUE(char)){
+    char.value <- "MATTR"
+  } else {
+    char.value <- c()
+  }
+  results <- lex.div(txt=txt, window=window, measure="MATTR", char=char.value)
+  return(results)
+}
+
 ttr <- function(text_){
   text_ <- tolower(text_)
   total_words = sapply(strsplit(text_, " "), length)
@@ -402,17 +413,28 @@ ttr <- function(text_){
   return(ttr_)
 }    
 
+ttrMATTR <- function(text_){
+  text_ <- tolower(text_)
+  total_words = sapply(strsplit(text_, " "), length)
+  if (total_words >21){
+  text_obj <- tokenize(text_, format="obj", lang="en")
+  ttr_<- MATTR(text_obj, window=21)[1]
+  return(ttr_)
+  }
+  else {
+  ttr_<- 0
+  }
+}
+
 d_flowers_text_trial <- d_flowers %>%
     group_by(gameId, trialNum, condition) %>%
     mutate(text_block = paste0(text, collapse = " ")) %>%
-    select(-c(text)) %>%
+    #select(-c(text, time, playerId)) %>%
+    select(gameId, trialNum, condition, text_block) %>%
     distinct() 
 
 d_flowers_ttr_trial <- d_flowers_text_trial %>%
-  mutate(ttr_ = ttr(text_block))
-
-#t<-str_split(text_, " ", 1:6)
-#y<- paste(unlist(lapply(t,head,n=5)), collapse=" ")
+  mutate(ttr_ = ttrMATTR(text_block))
 
 #jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
 ggplot(d_flowers_ttr_trial, 
@@ -421,7 +443,7 @@ ggplot(d_flowers_ttr_trial,
   geom_point(alpha=.05) +
  # facet_grid(rows =vars(condition)) +
   xlab("Trial Number") + 
-  ylab("Type to Token Ratio (TTR)") + 
+  ylab("Moving Average Type to Token Ratio (MATTR)") + 
   ylim(0,1)+
   scale_color_bay() + theme_jmank() +
   theme(legend.position = "bottom")
