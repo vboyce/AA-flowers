@@ -134,7 +134,7 @@ nrow(d.demographics_clean)
 
 ```{r feedback}
 d.feedback
-d.feedback %>% ggplot(aes(x = human)) + geom_bar(stat = "count") + theme_jmank()
+d.feedback %>% ggplot(aes(x = human)) + geom_bar(stat = "count")
 ```
 
 # Basic Analyses
@@ -252,19 +252,15 @@ How often does a player select a "lower ranked" target?
 
 NB: What about cases where a participant selected a flower hidden from them? If we drop both the flowers that are hidden and the flowers that arent selected, we wont have a selection for that trial
 
-[] fix roundId
-
 ```{r deference}
 trial_deference <- d.by_player_metrics %>% 
-  rename(roundID = "_id") %>% 
   full_join(d.contexts %>% 
-              select(roundID, blinded, label, utility)) %>%
+              select(roundId, blinded, label, utility)) %>%
   filter(blinded != playerId) %>%
-  group_by(playerId, roundID) %>%
+  group_by(playerId, roundId) %>%
   summarize(deference = utility[label == playerResponse] != max(utility))
 
 d.deference <- d.by_player_metrics %>% 
-  rename(roundID = "_id") %>% 
   left_join(trial_deference)
 ```
 

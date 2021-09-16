@@ -1,4 +1,4 @@
-roundID,index,stageIds,gameId,createdAt,blinded,label,location,utility,utility_image,repNum,blockNum,trialNum,numPlayers
+roundId,index,stageIds,gameId,createdAt,blinded,label,location,utility,utility_image,repNum,blockNum,trialNum,numPlayers
 ipQdvfcJqHCtdwiZQ,0,"x3DZmRb5jRiNz2Ww5,yb82GQF82ZwnLcJof",TkAYES9iNiAnFtJFM,2021-08-20T19:01:56Z,GnFQtx3d8goxbppug,white_10,/experiment/white_similar/image_07057.jpg,4,/experiment/prop_bars/4.png,0,0,0,3
 ipQdvfcJqHCtdwiZQ,0,"x3DZmRb5jRiNz2Ww5,yb82GQF82ZwnLcJof",TkAYES9iNiAnFtJFM,2021-08-20T19:01:56Z,h3BnPjtKpH25c4rJJ,white_12,/experiment/white_similar/image_08131.jpg,11,/experiment/prop_bars/11.png,0,0,0,3
 ipQdvfcJqHCtdwiZQ,0,"x3DZmRb5jRiNz2Ww5,yb82GQF82ZwnLcJof",TkAYES9iNiAnFtJFM,2021-08-20T19:01:56Z,h3BnPjtKpH25c4rJJ,white_3,/experiment/white_similar/image_03139.jpg,9,/experiment/prop_bars/9.png,0,0,0,3

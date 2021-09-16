@@ -20,6 +20,7 @@ d.rl_data <- d.rl_data.raw %>%
   mutate(condition_raw = condition, 
          condition = ifelse(condition_raw == "joint", "Shared Utilities", "Individual Utilities"),
          languageConditionRaw = languageCondition,
-         languageCondition =ifelse(languageConditionRaw == "contcomm", "Lang", "Nonlang"))
+         languageCondition =ifelse(languageConditionRaw == "contcomm", "Lang", "Nonlang"),
+         rl_agent = TRUE) %>%
   write_csv(here("data/processed_data/RL_experiment_results.csv"))
 

@@ -5,7 +5,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
-library(tidyverse)
+
 library(here)
 library("stringr")
 library(Hmisc)
@@ -14,7 +14,7 @@ library(ggrepel)
 library(cowplot)
 library(grid)
 library(gridExtra)
-
+library(tidyverse)
 source("./theme_specs.R")
 ```
 
@@ -25,7 +25,6 @@ d<- read_csv("../data/processed_data/joined_data/filtered_raw_chat.csv")
 d_flowers <- d %>% 
   filter(type=="message") %>%
   filter(!is.na(text)) 
-
 ```
 
 
@@ -87,8 +86,7 @@ d_flowers_utt_length_trial <- d_flowers %>%
 
 ggplot(d_flowers_utt_length_trial, aes(x=trialNum, y=total_num_words,  color=condition))+
 #  facet_grid(rows =vars(condition)) +
-  geom_point()+
-  geom_jitter(alpha=.05)+
+  geom_point(alpha = .25)+
   geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
   stat_summary(fun.data = "mean_cl_boot")+
   labs(title="Number of words", y="Total number of words", x="Trial number")+
@@ -98,7 +96,7 @@ ggplot(d_flowers_utt_length_trial, aes(x=trialNum, y=total_num_words,  color=con
 
 ggplot(d_flowers_utt_length_trial, aes(x=trialNum, y=mlu,  color=condition))+
 #  facet_grid( rows =vars(condition)) +
-  geom_jitter(alpha=.05)+
+  geom_jitter(alpha=.25)+
   geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
   stat_summary(fun.data = "mean_cl_boot")+
  # scale_y_continuous(limits = c(0,15))+
@@ -115,6 +113,7 @@ d_flowers_utt_length_rep <- d_flowers %>%
   summarise(total_num_words = sum(utt_length_words),
             mlu = mean(utt_length_words))
 
+#rep num is irrelevant here?
 #jpeg("~/Desktop/plots/nword_rep.jpg", width = 950, height = 950)
 ggplot(d_flowers_utt_length_rep, aes(x=repNum, y=log(mlu+1),  color=condition))+
 #  facet_grid( rows =vars(condition)) +
@@ -144,12 +143,13 @@ d_flowers_n_turns_trial <- d_flowers %>%
 #jpeg("~/Desktop/plots/nturn_trial.jpg", width = 950, height = 950)
 ggplot(d_flowers_n_turns_trial, aes(x=trialNum, y=n,  color=condition))+
   #facet_grid(rows =vars(condition)) +
-  geom_jitter(alpha=.05)+
+  geom_jitter(alpha=.25)+
   geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
   stat_summary(fun.data = "mean_cl_boot")+
   labs(title="Number of turns", y="Number of turns", x="Trial number")+
   theme(legend.position="bottom") + 
-  theme_bw() +
+  scale_color_bay() +
+  theme_jmank() +
   ggtitle("Number of turns per trial")#+
   #theme(text = element_text(size = 30))
 #dev.off() 
@@ -166,8 +166,7 @@ ggplot(d_flowers_n_turns_block, aes(x=blockNum, y=n,  color=condition))+
   geom_smooth(method=glm, formula=y~poly(x,2), alpha=.3)+
   stat_summary(fun.data = "mean_cl_boot")+
   labs(title="Number of turns", y="Number of turns", x="Block number")+
-  theme(legend.position="bottom") + 
-  theme_jmank() + scale_color_bay() + theme(legend.position = "bottom")
+  theme_jmank() + scale_color_bay() + theme(legend.position = "bottom")+
   ggtitle("Number of turns per block")#+
  # theme(text = element_text(size = 30))
 #dev.off() 
@@ -189,11 +188,11 @@ d_flowers_n_utt_speaker <- d_flowers %>%
 ggplot(d_flowers_n_utt_speaker, 
        aes(x=trialNum, y=n_utt_speaker,  color=condition)) + 
   geom_smooth(method = "lm", formula = y~x) + 
-  geom_point(alpha=.1) +
+  geom_point(alpha=.25) +
  # facet_grid(~condition) +
   xlab("Trial number") + 
   ylab("Number of utterances") + 
-  theme_bw()#+
+  theme_jmank() + scale_color_bay() + theme(legend.position = "bottom")
  # theme(text = element_text(size = 30))
 #dev.off() 
 
@@ -209,7 +208,7 @@ ggplot(d_flowers_n_utt_speaker,
  # facet_grid(~condition) +
   xlab("Block number") + 
   ylab("Number of utterances") + 
-  theme_bw()#+
+  theme_jmank() + scale_color_bay() + theme(legend.position = "bottom")
 #  theme(text = element_text(size = 30))
 #dev.off() 
 
@@ -228,22 +227,40 @@ turnb_function <- function(d_flowers_n_utt_speaker, c, q) {
   geom_point(alpha = .5)+
   geom_smooth(method = "lm", formula = y~x)+
   xlab("Trial number") + 
-  theme_bw()+
-  theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+theme_jmank() + scale_color_bay() +  
+    theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
 return(p)
 }
 
 #jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
-a<- turnb_function(d_flowers_n_utt_speaker %>% filter(blockNum==0), 0,5) + ylab("Number of utterances")+  theme(legend.position="none",axis.title.y = element_blank(),axis.title.x = element_blank())+ labs(subtitle = "Block1")
+a<- turnb_function(d_flowers_n_utt_speaker %>% 
+                     filter(blockNum==0), 0,5) + 
+  ylab("Number of utterances")+  
+  theme(legend.position="none",axis.title.y = element_blank(),
+        axis.title.x = element_blank())+ labs(subtitle = "Block1")
 
 #jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
-b<- turnb_function(d_flowers_n_utt_speaker %>% filter(blockNum==1), 6,11) +  theme(legend.position="none",axis.title.y = element_blank(),axis.title.x = element_blank(),axis.text.y = element_blank())+ labs(subtitle = "Block2")
+b<- turnb_function(d_flowers_n_utt_speaker %>% 
+                     filter(blockNum==1), 6,11) +  
+  theme(legend.position="none",axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_blank())+ 
+  labs(subtitle = "Block2")
 
 #jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
-c<- turnb_function(d_flowers_n_utt_speaker %>% filter(blockNum==2), 12,17) +  theme(legend.position="none",axis.title.y = element_blank(),axis.title.x = element_blank(),axis.text.y = element_blank())+ labs(subtitle = "Block3")
+c<- turnb_function(d_flowers_n_utt_speaker %>% 
+                     filter(blockNum==2), 12,17) +  
+  theme(legend.position="none",axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_blank())+ 
+  labs(subtitle = "Block3")
 
 #jpeg("~/Desktop/plots/ttr_trial.jpg", width = 950, height = 950)
-d<- turnb_function(d_flowers_n_utt_speaker %>% filter(blockNum==3), 18,23) +theme(legend.position="none",axis.title.y = element_blank(),axis.title.x = element_blank(),axis.text.y = element_blank())+ labs(subtitle = "Block4")
+d<- turnb_function(d_flowers_n_utt_speaker %>% 
+                     filter(blockNum==3), 18,23) +
+  theme(legend.position="none",axis.title.y = element_blank(),
+        axis.title.x = element_blank(),axis.text.y = element_blank())+ 
+  labs(subtitle = "Block4")
 
 legend <- get_legend(
   # create some space to the left of the legend
@@ -256,14 +273,12 @@ x.grob <- textGrob("Trial Number")
 y.grob <- textGrob("Number of utterances", rot=90)
 grid.arrange(arrangeGrob(p, left = y.grob, bottom = x.grob))
 
-
-
-
+#TODO I dont really understand why this figure is done this way?
 ```
 
 
 ### Parts of speech
-```{r pos, eval=TRUE, include=TRUE}
+```{r pos, eval=FALSE, include=FALSE}
 
 d_flowers_uttlength_nwords <- d_flowers %>%
   mutate(text = gsub('[[:punct:] ]+',' ',text)) %>%
@@ -274,11 +289,12 @@ d_flowers_uttlength_nwords <- d_flowers %>%
 
 
  text <- d_flowers$text
- parsed <- spacy_parse(text,pos=TRUE) %>%
-   select(doc_id, pos) %>%
-   group_by(doc_id) %>%
-   mutate(pos = paste(pos, collapse=",")) %>%
-   distinct()
+ #I dont have spacy in an env for this project, cant reproduce will have to add later -jm TODO
+ # parsed <- spacy_parse(text,pos=TRUE) %>%
+ #   select(doc_id, pos) %>%
+ #   group_by(doc_id) %>%
+ #   mutate(pos = paste(pos, collapse=",")) %>%
+ #   distinct()
 #   
 # d_flowers_pos  <- cbind(d_flowers, parsed) %>%
 #   separate_rows(pos, convert = TRUE) %>%
@@ -402,16 +418,17 @@ d_flowers_ttr_trial <- d_flowers_text_trial %>%
 ggplot(d_flowers_ttr_trial, 
        aes(x=trialNum, y=ttr_,  color=condition)) + 
   geom_smooth(method = "lm", formula = y~x) + 
-  geom_point(alpha=.1) +
+  geom_point(alpha=.05) +
  # facet_grid(rows =vars(condition)) +
-  xlab("Trial number") + 
-  ylab("Type_token ratio") + 
+  xlab("Trial Number") + 
+  ylab("Type to Token Ratio (TTR)") + 
   ylim(0,1)+
-  theme_bw()+
-  ggtitle("TTR per trial")#+
+  scale_color_bay() + theme_jmank() +
+  theme(legend.position = "bottom")
  # theme(text = element_text(size = 30))
 #dev.off() 
 
+ggsave(here(fig_path, "ttr_trials.png"), height = 3, width = 3)
 
 d_flowers_text_block <- d_flowers %>%
     group_by(gameId, blockNum, condition) %>%

@@ -109,7 +109,7 @@ get_round_data <- function(data_read_location, date_start) {
     mutate(utility = ifelse(response == "false", 0, utility)) %>%
     #TODO: some times are negative?? interesting
     mutate(time = abs(as.numeric(time)/1000)) %>%
-    rename(time_sec = time, playerResponse = response, playerUtility = utility) %>%
+    rename(time_sec = time, playerResponse = response, playerUtility = utility, roundId = "_id") %>%
     arrange(createdAt, gameId, blockNum, repNum)
   return(d.round_results)
 }
@@ -136,8 +136,6 @@ get_raw_chat <- function(data_read_location, date_start) {
 }
 
 add_chat_info <- function(raw_chat_data, player_data, round_data, game_data) {
-  # reallign the message and selection timestamps
-  # get the chat timestamp first alert
   min_chat_alert <- raw_chat_data %>% group_by(gameId, trialNum) %>%
     filter(type == "selectionAlert") %>% 
     summarize(first_chat_time = min(time))
@@ -179,7 +177,7 @@ get_alternative_context <- function(data_read_location, date_start) {
                                 spread(key, value))) %>%
     unnest(data.context) %>%
     rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>%
-    rename(roundID = `_id`)
+    rename(roundId = `_id`)
   return(d.context)
 }
 
@@ -187,7 +185,7 @@ get_demographics <- function(data_read_location, date_start, games_data) {
   read_csv(here(data_read_location, 'player-inputs.csv'), 
            col_types = cols(data.age = col_number())) %>%
     filter(createdAt >= date_start) %>%
-  rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% select(gameId:education)
+  rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% select(playerId:education)
 }
 
 get_feedback <- function(data_read_location, date_start) {

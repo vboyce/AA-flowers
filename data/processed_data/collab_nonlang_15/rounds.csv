@@ -1,4 +1,4 @@
-_id,index,stageIds,gameId,createdAt,repNum,blockNum,trialNum,numPlayers,submitted,playerId,playerResponse,time_sec,playerUtility
+roundId,index,stageIds,gameId,createdAt,repNum,blockNum,trialNum,numPlayers,submitted,playerId,playerResponse,time_sec,playerUtility
 afF7WJ4eqdGzRo4ZY,0,"Xtj6xxqhHq6vmSvSA,uDDmaDLq72euiCBht",5XZ8cFNsh6dk6tw9s,2021-08-20T18:18:07Z,0,0,0,3,FALSE,2R66mXvMN2HTSXExx,yellow_2,8.152,8
 afF7WJ4eqdGzRo4ZY,0,"Xtj6xxqhHq6vmSvSA,uDDmaDLq72euiCBht",5XZ8cFNsh6dk6tw9s,2021-08-20T18:18:07Z,0,0,0,3,FALSE,aDWfnsnGtZFpMtR8P,yellow_4,4.922,8
 afF7WJ4eqdGzRo4ZY,0,"Xtj6xxqhHq6vmSvSA,uDDmaDLq72euiCBht",5XZ8cFNsh6dk6tw9s,2021-08-20T18:18:07Z,0,0,0,3,FALSE,wFt9Gem4ynZZvQzbH,yellow_6,11.073,8
