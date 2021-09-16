@@ -51,7 +51,6 @@ d.demographics <- read_csv(here("data/processed_data/joined_data/demographics.cs
                       col_types = cols()) %>% distinct()
 ```
 
-
 Rename conditions for readability
 ```{r}
 d.games <- d.games %>% mutate(conditionName = condition, 
@@ -61,7 +60,6 @@ d.games <- d.games %>% mutate(conditionName = condition,
                                          TRUE ~ condition))
 d.games
 ```
-
 
 ```{r}
 #exclude BLOCKS with <12 completed (all 3 participants responded) rounds

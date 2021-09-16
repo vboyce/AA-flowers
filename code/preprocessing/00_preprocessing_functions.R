@@ -194,6 +194,17 @@ get_feedback <- function(data_read_location, date_start) {
     rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>% select(c(playerId, correctness:time))
 }
 
+get_posttest <- function(data_read_location, date_start) {
+  d.players <- read_csv(here(data_read_location, 'players.csv'), 
+                        col_types = cols(data.timeClick = col_number(),
+                                         data.rawScore = col_number())) %>%
+    rename(playerId = `_id`) %>% 
+    filter(createdAt >= date_start) %>%
+    rename_with(~ gsub("data.", "", .x, fixed = TRUE)) %>%
+    select(-c(clicked:clickLength)) 
+  return(d.players)
+}
+
 preprocess_dataset <- function(data_name, date_start = lubridate::ymd('2021-01-01')) {
   data_read_location = here("data/raw_data", data_name)
   data_write_location = here("data/processed_data", data_name)
