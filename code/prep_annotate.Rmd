@@ -1,0 +1,130 @@
+---
+title: "prep_annotating"
+author: "vboyce"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+
+library(here)
+library(tidyverse)
+
+#for plotting
+
+#Data import constants
+date_start=lubridate::ymd('2021-07-19')
+fig_path=here("figs")
+read_data_path <- "data/processed_data/joined_data/"
+```
+# Summary Processing
+## Read data
+
+```{r read-data}
+d.players <- read_csv(here(paste(read_data_path, "players.csv", sep = "")),
+                      col_types = cols()) %>% distinct()
+d.games <- read_csv(here(paste(read_data_path, "games.csv", sep = "")),
+                      col_types = cols()) %>% distinct()
+d.rounds <- read_csv(here(paste(read_data_path, 
+                                "rounds.csv", 
+                                sep="")),
+                      col_types = cols()) %>% distinct() 
+d.raw_chat <- read_csv(here(paste(read_data_path, 
+                                  "raw_chat.csv", 
+                                  sep="")),
+                      col_types = cols()) %>% distinct()
+d.contexts <- read_csv(here(paste(read_data_path, 
+                                  "contexts.csv", 
+                                  sep="")),
+                      col_types = cols()) %>% distinct()
+d.feedback <- read_csv(here(paste(read_data_path, 
+                                  "feedback.csv", 
+                                  sep = "")),
+                      col_types = cols()) %>% distinct()
+d.demographics <- read_csv(here(paste(read_data_path,
+                                      "demographics.csv", 
+                                      sep="")),
+                      col_types = cols()) %>% distinct()
+```
+
+## Rename Conditions
+Rename conditions for readability/alignment with ms
+```{r}
+d.games <- d.games %>% 
+  mutate(conditionName = condition, 
+         condition = case_when(conditionName == "coopMulti" ~ "Shared Utilities",
+                               conditionName == "competCartel" ~ "Individual Utilities",
+                               conditionName == "coopCartel" ~ "Old Cooperative",
+                               TRUE ~ conditionName))
+```
+
+## Identify complete games
+
+For the purposes of this ms, we're removing all unfinished games from the analyses 
+```{r}
+n_players = 3
+n_rounds = 24
+
+game_completion <- d.rounds %>% 
+  group_by(gameId) %>% 
+  tally() %>% 
+  mutate(game_complete = n==n_players*n_rounds) %>%
+  rename(n_trials = n)
+
+d.games.final <- d.games %>% 
+  left_join(game_completion) %>% 
+  replace_na(list(game_complete = FALSE, n_trials = 0))
+
+d.games.conditions <- d.games.final %>% 
+  select(gameId, color, condition, chatEnabled, game_complete) %>% 
+  mutate(languageCondition = ifelse(chatEnabled, "Lang", "Nonlang"),
+         fullCondition = paste(condition, languageCondition, sep = "-"))
+
+d.rounds.final <-  d.rounds %>% 
+  left_join(d.games.final %>% 
+              select(gameId, conditionName, condition,color, chatEnabled, game_complete)) %>% 
+  filter(conditionName != "coopCartel",
+         game_complete)
+
+d.raw_chat.final <- d.raw_chat %>% 
+  left_join(d.games.final %>% 
+              select(gameId, conditionName, condition, game_complete)) %>%
+  filter(game_complete)
+
+```
+
+# Want to find a "best" game to start with
+
+```{r}
+d.rounds.final %>% filter(game_complete) %>% 
+  group_by(gameId) %>% summarise(utils=sum(playerUtility)) %>% arrange(desc(utils))
+
+# let's look at gameId == QHkfso2yMgbbziE7r first
+```
+
+```{r}
+
+
+good_rounds <- d.rounds.final %>% filter(gameId=="QHkfso2yMgbbziE7r") %>% 
+  select(playerId,playerResponse,roundId,gameId) %>% 
+  separate(playerResponse, into=c("color","pResp"))
+
+good_contexts <- d.contexts %>% filter(gameId=="QHkfso2yMgbbziE7r") %>% 
+  select(roundId, gameId, label, utility) %>% 
+  separate(label, into=c("color", "num")) %>% 
+  mutate(labelutil=str_c(num,":",utility)) %>% 
+  group_by(roundId, gameId, color) %>% 
+  arrange(desc(utility)) %>% 
+  summarize(flowers=str_c(labelutil,collapse=", "))
+
+good_chat <- d.raw_chat.final %>% filter(gameId=="QHkfso2yMgbbziE7r") %>% 
+  left_join(d.players %>% select(playerId, name)) %>% 
+  rename(roundId=roundID) %>% 
+  left_join(good_contexts) %>% 
+  left_join(good_rounds) %>% 
+  mutate(rowid=row_number()) %>% 
+  select(rowid,trialNum,name, pResp, text, flowers, color) %>% 
+  filter(!is.na(text)) %>% 
+  write_tsv("test.tsv")
+
+```
