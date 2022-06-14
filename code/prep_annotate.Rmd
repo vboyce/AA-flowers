@@ -6,12 +6,13 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = F)
+knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"))
 
 library(here)
 library(tidyverse)
 
 #for plotting
-
+theme_set(theme_bw())
 #Data import constants
 date_start=lubridate::ymd('2021-07-19')
 fig_path=here("figs")
@@ -127,4 +128,58 @@ good_chat <- d.raw_chat.final %>% filter(gameId=="QHkfso2yMgbbziE7r") %>%
   filter(!is.na(text)) %>% 
   write_tsv("test.tsv")
 
+```
+
+# Sample analysis
+
+To test that we're annotating usefully, try to do initial analysis on sample annotation.
+
+Next steps:
+- add in post-test reference expressions
+- sbert and look at convergence / divergence
+- inter-group differences/ correlations
+
+```{r}
+sample <- read_tsv("post_annotate_sample.tsv")
+
+words <- sample %>% filter(!is.na(span)) %>% 
+  mutate(numchar=str_length(span),
+         numword=str_count(span, "\\W+") + 1)
+```
+
+How many words of referring language are there per round?
+
+```{r}
+
+sum_words <- words %>% group_by(trialNum) %>% summarize(sum_char=sum(numchar),
+                                           sum_word=sum(numword)) 
+
+  ggplot(sum_words,aes(x=trialNum,y=sum_char))+geom_point()+geom_smooth()
+  ggplot(sum_words,aes(x=trialNum,y=sum_word))+geom_point()+geom_smooth()
+  
+```
+
+How long are individual referring expressions?
+
+```{r}
+
+
+  ggplot(words,aes(x=trialNum,y=numchar))+geom_point()+geom_smooth()
+  ggplot(words,aes(x=trialNum,y=numword))+geom_point()+geom_smooth()
+  
+```
+
+How many referring expressions are there?
+```{r}
+  ggplot(words,aes(x=trialNum))+geom_bar()
+
+ggplot(words,aes(x=as.factor(referent)))+geom_bar()
+```
+
+```{r}
+
+
+  ggplot(words,aes(x=trialNum,y=numchar, color=as.factor(referent)))+geom_point()+geom_smooth(method="lm",se=F)
+  ggplot(words,aes(x=trialNum,y=numword, color=as.factor(referent)))+geom_point()+geom_smooth(method="lm", se=F)
+  
 ```
