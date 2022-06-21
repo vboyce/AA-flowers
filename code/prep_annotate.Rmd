@@ -5,7 +5,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F)
+knitr::opts_chunk$set(echo = F, message=F, warning=F)
 knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"))
 
 library(here)
@@ -182,4 +182,10 @@ ggplot(words,aes(x=as.factor(referent)))+geom_bar()
   ggplot(words,aes(x=trialNum,y=numchar, color=as.factor(referent)))+geom_point()+geom_smooth(method="lm",se=F)
   ggplot(words,aes(x=trialNum,y=numword, color=as.factor(referent)))+geom_point()+geom_smooth(method="lm", se=F)
   
+```
+See https://docs.google.com/presentation/d/1qcDRZzHbLhE-fp6W9nKcbGouj4w01qCLCy-yt072iiY/edit?usp=sharing (purple flowers) for the flower number - image correspondence. 
+
+```{r}
+
+sample %>% filter(!is.na(span)) %>% select(trialNum, name, referent, span) %>% arrange(referent) %>% knitr::kable(align="l")
 ```
