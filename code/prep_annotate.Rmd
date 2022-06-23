@@ -98,8 +98,8 @@ d.raw_chat.final <- d.raw_chat %>%
 # Want to find a "best" game to start with
 
 ```{r}
-d.rounds.final %>% filter(game_complete) %>% 
-  group_by(gameId) %>% summarise(utils=sum(playerUtility)) %>% arrange(desc(utils))
+d.rounds.final %>% filter(game_complete) %>% filter(chatEnabled) %>% 
+  group_by(gameId, conditionName,condition, ) %>% summarise(utils=sum(playerUtility)) %>% arrange(desc(utils))
 
 # let's look at gameId == QHkfso2yMgbbziE7r first
 ```
@@ -153,10 +153,15 @@ good_chat <- d.raw_chat.final %>%
   mutate(rowid=row_number(),
          span="",
          referent="",) %>% 
-  select(rowid,trialNum,name, pResp, text,span, referent, flowers, color) %>% 
+  select(gameId,rowid,trialNum,name, pResp, text,span, referent, flowers, color) %>% 
   filter(!is.na(text)) %>% 
   write_tsv(here(annotation_path, "pre_annotation.tsv"))
 
+```
+# Choose games for agreement coding
+
+```{r}
+agreement_sample <- good_chat %>% filter(gameId %in% c("Rq47E8uzWFKm4CBPJ","Etbyk29DvPTqmSJM7")) %>% write_tsv(here(annotation_path, "pre_agreement.tsv"))
 ```
 
 # Sample analysis
