@@ -17,6 +17,7 @@ theme_set(theme_bw())
 date_start=lubridate::ymd('2021-07-19')
 fig_path=here("figs")
 read_data_path <- "data/processed_data/joined_data/"
+annotation_path <- "data/annotations"
 ```
 # Summary Processing
 ## Read data
@@ -125,8 +126,36 @@ good_chat <- d.raw_chat.final %>% filter(gameId=="QHkfso2yMgbbziE7r") %>%
   left_join(good_rounds) %>% 
   mutate(rowid=row_number()) %>% 
   select(rowid,trialNum,name, pResp, text, flowers, color) %>% 
+  filter(!is.na(text)) 
+
+```
+# Write all games to tsv for coding
+```{r}
+
+
+good_rounds <- d.rounds.final %>% 
+  select(playerId,playerResponse,roundId,gameId) %>% 
+  separate(playerResponse, into=c("color","pResp"))
+
+good_contexts <- d.contexts %>% 
+  select(roundId, gameId, label, utility) %>% 
+  separate(label, into=c("color", "num")) %>% 
+  mutate(labelutil=str_c(num,":",utility)) %>% 
+  group_by(roundId, gameId, color) %>% 
+  arrange(desc(utility)) %>% 
+  summarize(flowers=str_c(labelutil,collapse=", "))
+
+good_chat <- d.raw_chat.final %>% 
+  left_join(d.players %>% select(playerId, name)) %>% 
+  rename(roundId=roundID) %>% 
+  left_join(good_contexts) %>% 
+  left_join(good_rounds) %>% 
+  mutate(rowid=row_number(),
+         span="",
+         referent="",) %>% 
+  select(rowid,trialNum,name, pResp, text,span, referent, flowers, color) %>% 
   filter(!is.na(text)) %>% 
-  write_tsv("test.tsv")
+  write_tsv(here(annotation_path, "pre_annotation.tsv"))
 
 ```
 
