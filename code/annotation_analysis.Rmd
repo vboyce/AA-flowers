@@ -1,0 +1,177 @@
+---
+title: "Flowers text analysis"
+author: "vboyce"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, message=F, warning=F)
+knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"))
+
+library(here)
+library(tidyverse)
+
+#for plotting
+theme_set(theme_bw())
+#Data import constants
+date_start=lubridate::ymd('2021-07-19')
+fig_path=here("figs")
+read_data_path <- "data/processed_data/joined_data/"
+annotation_path <- "data/annotations"
+```
+
+# VB to do notes
+- Sbert
+- compare with post-games stuff (and sbert that as well)
+- consider being more consistent about what "the same one" or "that one" or etc got annotated
+- inter-group differences/ correlations
+- correlates of success
+
+# Intro 
+
+I have annotated the transcripts of the full games marking what parts are referential (descriptive of a flower) and which flower (as best I can tell) it refers to. 
+
+See https://docs.google.com/presentation/d/1qcDRZzHbLhE-fp6W9nKcbGouj4w01qCLCy-yt072iiY/edit?usp=sharing for the flower number - image correspondences. 
+
+
+
+
+
+# Analysis
+
+```{r}
+d.games <- read_csv(here(paste(read_data_path, "games.csv", sep = "")),
+                      col_types = cols()) %>% distinct() |> 
+    mutate(conditionName = condition, 
+         condition = case_when(conditionName == "coopMulti" ~ "Shared Utilities",
+                               conditionName == "competCartel" ~ "Individual Utilities",
+                               conditionName == "coopCartel" ~ "Old Cooperative",
+                               TRUE ~ conditionName)) |> 
+  select(gameId,conditionName)
+
+annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |> 
+  filter(!is.na(span)) |> 
+  mutate(numchar=str_length(span),
+         numword=str_count(span, "\\W+") + 1) |> 
+  left_join(d.games)
+```
+
+## How many words of referring language are there per round?
+
+```{r}
+
+sum_words <- annotated %>% group_by(trialNum, gameId,conditionName) %>% summarize(sum_char=sum(numchar),
+                                           sum_word=sum(numword)) 
+
+  ggplot(sum_words,aes(x=trialNum,y=sum_char, color=conditionName))+
+    #geom_line(aes(group=gameId))+
+    facet_grid(.~conditionName)+
+    geom_smooth(aes(group=gameId), method="lm", se=F)+
+    geom_jitter(alpha=.5)
+  
+    ggplot(sum_words,aes(x=trialNum,y=sum_char, color=conditionName))+
+    geom_line(aes(group=gameId))+
+    facet_grid(.~conditionName)
+    
+    
+      ggplot(sum_words,aes(x=trialNum,y=sum_word, color=conditionName))+
+    #geom_line(aes(group=gameId))+
+    facet_grid(.~conditionName)+
+    geom_smooth(aes(group=gameId), method="lm", se=F)+
+    geom_jitter(alpha=.5)
+  
+    ggplot(sum_words,aes(x=trialNum,y=sum_word, color=conditionName))+
+    geom_line(aes(group=gameId))+
+    facet_grid(.~conditionName)
+    
+
+```
+There are reduction trends (not sure if linear fit is correct or not) for most groups, some serious group differences, also noise. 
+
+
+## How long are individual referring expressions?
+
+```{r}
+
+
+  ggplot(annotated,aes(x=trialNum,y=numchar))+ geom_jitter(alpha=.1)+ geom_smooth()+ facet_grid(.~conditionName)
+  ggplot(annotated,aes(x=trialNum,y=numword))+geom_jitter(alpha=.1)+ geom_smooth()+ facet_grid(.~conditionName)
+  
+```
+Individual referring expressions tend to get shorter.
+
+## How many referring expressions are there?
+```{r}
+
+annotated |> group_by(gameId, trialNum, conditionName) |> tally() |> 
+  ggplot(aes(x=trialNum, y=n))+geom_jitter()+geom_smooth()+facet_grid(.~conditionName)
+
+annotated |> group_by(gameId, referent, conditionName) |> tally() |> 
+  group_by(conditionName) |> summarize(avg=mean(n), median=median(n))
+```
+Mostly the number of referring expressions is relatively constant, but the expressions themselves shorten. 
+
+# Sbert stuff
+(currently copied from tangrams stuff)
+```{r, include=F,}
+sbert_concat <- read_csv(here(annotation_path,"pre_sbert_concat.csv")) %>% bind_cols(readRDS(here(annotation_path,'post_sbert_concat.RData')))  %>% as_tibble()
+
+
+
+```
+
+```{r, include=F,}
+sbert_single <- read_csv(here(annotation_path,"pre_sbert.csv")) %>% bind_cols(readRDS(here(annotation_path,'post_sbert.RData')))  %>% as_tibble()
+
+
+
+```
+
+```{r, include=F}
+
+F_mat <- sbert_concat %>% select(starts_with("V")) %>% as.matrix() #Features
+M_mat <- sbert_concat %>% select(-starts_with("V")) %>% mutate(feature_ind=row_number())
+```
+
+```{r helpers}
+# note: cor expects features to be in columns so we transpose
+get_sim_matrix = function(df, F_mat, method = 'cosine') {
+  feats = F_mat[df$feature_ind,]
+  if(method == 'cor') {
+    return(cor(t(feats), method = 'pearson'))
+  } else if (method == 'euclidean') {
+    return(as.matrix(dist(feats, method = 'euclidean')))
+  } else if (method == 'cosine') {
+    return(as.matrix(lsa::cosine(t(feats))))
+  } else {
+    stop(paste0('unknown method', method))
+  }
+}
+
+# note this does de-duplicated version
+flatten_sim_matrix <- function(cormat, ids) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    dim1 = ids[row(cormat)[ut]],
+    dim2 = ids[col(cormat)[ut]],
+    sim  = as.numeric(cormat[ut])
+  ) %>%
+    mutate(dim1 = as.character(dim1),
+           dim2 = as.character(dim2))
+}
+
+make_within_df <- function(M_mat, F_mat, method) {
+  M_mat %>%
+    do(flatten_sim_matrix(get_sim_matrix(., F_mat, method = method),
+                          .$repNum)) %>%
+    mutate(rep1 = as.numeric(dim1), 
+           rep2 = as.numeric(dim2)) 
+}
+
+make_across_df <- function(M_mat, F_mat, method) {
+  M_mat %>%
+    do(flatten_sim_matrix(get_sim_matrix(., F_mat, method = method),
+                          as.character(.$combinedId)))
+}
+```
+
