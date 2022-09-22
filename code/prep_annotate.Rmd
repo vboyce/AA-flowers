@@ -160,12 +160,12 @@ good_chat <- d.raw_chat.final %>%
 ```
 # Choose games for agreement coding
 
-```{r}
+```{r, include=F}
 agreement_sample <- good_chat %>% filter(gameId %in% c("Rq47E8uzWFKm4CBPJ","Etbyk29DvPTqmSJM7")) %>% write_tsv(here(annotation_path, "pre_agreement.tsv"))
 ```
 # Interannotator agreement
 
-```{r}
+```{r, include=F}
 vb <- read_csv(here(annotation_path, "vb_agreement.csv")) %>% rename(vb_span=span,vb_referent=referent) %>% 
   mutate(vb_span=ifelse(str_starts(vb_span, "the "), str_sub(vb_span, 5, -1), vb_span)) %>% 
   mutate(row=row_number())
@@ -201,70 +201,42 @@ annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |>
          referent_good=map2(referent_char,flower_list, ~.x %in% .y),
          span_good=map2(text,span, ~str_detect(.x,coll(.y))))
 
-filter(annotated,referent_good==F) |> View() # Note: originally 35, caught some errors, one that remains I believe is actually talking about an image from prior round!
+#filter(annotated,referent_good==F)  |> View() # Note: originally 35, caught some errors, one that remains I believe is actually talking about an image from prior round!
 
-filter(annotated,span_good==F) |> View() #Note: dowm from more that were incorrectly copied. The ones left are either as a result of duplicate spacing not copying
+#filter(annotated,span_good==F)  |> View() #Note: dowm from more that were incorrectly copied. The ones left are either as a result of duplicate spacing not copying
 # or intentional when someone wrote description "is my best" continued description
 
 ```
 
+** Note ** : there is probably inconsistency in how dubiously referential things like "same as last time" or "that one" are coded. Actually descriptions are probably well coded.
+All flowers were identified, some with lower justification/certainty than others. 
 
-# Sample analysis
+# Sbert prep
 
-To test that we're annotating usefully, try to do initial analysis on sample annotation.
-
-Next steps:
-- add in post-test reference expressions
-- sbert and look at convergence / divergence
-- inter-group differences/ correlations
+It's unclear how we want to do sbert -- one way would be to group by speaker+target and concatenate, the other would be to respect newlines. 
 
 ```{r}
-sample <- read_tsv("post_annotate_sample.tsv")
+pre_sbert <- annotated |> filter(!is.na(normalized_span)) |> 
+  select(gameId, trialNum,name,normalized_span, referent,color) |> 
+  write_csv(here(annotation_path, "pre_sbert.csv"))
 
-words <- sample %>% filter(!is.na(span)) %>% 
-  mutate(numchar=str_length(span),
-         numword=str_count(span, "\\W+") + 1)
+pre_sbert_concat <- pre_sbert |> group_by(gameId, trialNum, name, referent, color) |> 
+    summarize(normalized_span=str_c(normalized_span, collapse=" ")) |> 
+  write_csv(here(annotation_path, "pre_sbert_concat.csv"))
+
+
 ```
 
-How many words of referring language are there per round?
-
-```{r}
-
-sum_words <- words %>% group_by(trialNum) %>% summarize(sum_char=sum(numchar),
-                                           sum_word=sum(numword)) 
-
-  ggplot(sum_words,aes(x=trialNum,y=sum_char))+geom_point()+geom_smooth()
-  ggplot(sum_words,aes(x=trialNum,y=sum_word))+geom_point()+geom_smooth()
-  
+```{r, include=F, eval=F}
+library(reticulate)
+np <- import("numpy")
+mat = np$load(here(annotation_path,'post_sbert.npy'))
+saveRDS(mat,here(annotation_path,'post_sbert.RData'))
 ```
 
-How long are individual referring expressions?
-
-```{r}
-
-
-  ggplot(words,aes(x=trialNum,y=numchar))+geom_point()+geom_smooth()
-  ggplot(words,aes(x=trialNum,y=numword))+geom_point()+geom_smooth()
-  
-```
-
-How many referring expressions are there?
-```{r}
-  ggplot(words,aes(x=trialNum))+geom_bar()
-
-ggplot(words,aes(x=as.factor(referent)))+geom_bar()
-```
-
-```{r}
-
-
-  ggplot(words,aes(x=trialNum,y=numchar, color=as.factor(referent)))+geom_point()+geom_smooth(method="lm",se=F)
-  ggplot(words,aes(x=trialNum,y=numword, color=as.factor(referent)))+geom_point()+geom_smooth(method="lm", se=F)
-  
-```
-See https://docs.google.com/presentation/d/1qcDRZzHbLhE-fp6W9nKcbGouj4w01qCLCy-yt072iiY/edit?usp=sharing (purple flowers) for the flower number - image correspondence. 
-
-```{r}
-
-sample %>% filter(!is.na(span)) %>% select(trialNum, name, referent, span) %>% arrange(referent) %>% knitr::kable(align="l")
+```{r, include=F, eval=F}
+library(reticulate)
+np <- import("numpy")
+mat = np$load(here(annotation_path,'post_sbert_concat.npy'))
+saveRDS(mat,here(annotation_path,'post_sbert_concat.RData'))
 ```
