@@ -163,6 +163,51 @@ good_chat <- d.raw_chat.final %>%
 ```{r}
 agreement_sample <- good_chat %>% filter(gameId %in% c("Rq47E8uzWFKm4CBPJ","Etbyk29DvPTqmSJM7")) %>% write_tsv(here(annotation_path, "pre_agreement.tsv"))
 ```
+# Interannotator agreement
+
+```{r}
+vb <- read_csv(here(annotation_path, "vb_agreement.csv")) %>% rename(vb_span=span,vb_referent=referent) %>% 
+  mutate(vb_span=ifelse(str_starts(vb_span, "the "), str_sub(vb_span, 5, -1), vb_span)) %>% 
+  mutate(row=row_number())
+bl <- read_csv(here(annotation_path, "bl_agreement.csv")) %>% rename(bl_span=span,bl_referent=referent) %>% 
+  mutate(bl_span=str_sub(bl_span, 2,-2)) %>% #remove quote marks
+  mutate(row=row_number())
+
+both <- vb %>% full_join(bl) %>% 
+  mutate(same_span=ifelse(vb_span==bl_span, 1,0),
+         same_ref=ifelse(vb_referent==bl_referent, 1,0)) %>% 
+  select(text,vb_span, bl_span, vb_referent,bl_referent, same_span, same_ref) 
+
+differ <- both %>% 
+  filter(same_span==0)
+
+
+count <- both %>% group_by(same_ref) %>% tally()
+
+```
+
+# Quality control
+We can run some sanity checks on annotations -- 
+
+First - the identified flower should be one of the available options.
+Second - the span should (usually) be a substring of the text 
+
+```{r}
+annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |> 
+  filter(!is.na(span)) |> 
+  mutate(flower_list=str_split(flowers,", "),
+         flower_list=map(flower_list,~str_replace(.,":.+","")),
+         referent_char=as.character(referent),
+         referent_good=map2(referent_char,flower_list, ~.x %in% .y),
+         span_good=map2(text,span, ~str_detect(.x,coll(.y))))
+
+filter(annotated,referent_good==F) |> View() # Note: originally 35, caught some errors, one that remains I believe is actually talking about an image from prior round!
+
+filter(annotated,span_good==F) |> View() #Note: dowm from more that were incorrectly copied. The ones left are either as a result of duplicate spacing not copying
+# or intentional when someone wrote description "is my best" continued description
+
+```
+
 
 # Sample analysis
 
