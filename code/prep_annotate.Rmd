@@ -240,3 +240,41 @@ np <- import("numpy")
 mat = np$load(here(annotation_path,'post_sbert_concat.npy'))
 saveRDS(mat,here(annotation_path,'post_sbert_concat.RData'))
 ```
+
+# Sbert prep on end stuff
+
+```{r}
+library(jsonlite)
+
+ParseJSONColumn <- function(x) {
+  str_c("[ ", str_c(x, collapse = ",", sep=" "), " ]")  %>% 
+    fromJSON(flatten = T)
+}
+d.players <- read_csv(here(paste(read_data_path, "players.csv", sep = "")),
+                      col_types = cols()) %>% distinct() |> 
+  select(playerId,own=flower_labels,other=otherflower_labels) |> 
+  inner_join(d.rounds.final |> select(gameId, playerId, conditionName, color) |> unique()) |> 
+  mutate(own= ifelse(is.na(own), '{}', own)) %>%
+  mutate(other = ifelse(is.na(other), '{}', other)) %>%
+  mutate(own = map(own, .f = ParseJSONColumn)) %>% 
+  mutate(other =  map(other, .f = ParseJSONColumn)) %>% 
+  unnest(cols=c(own,other), names_sep=":") %>% 
+  pivot_longer(cols=starts_with("own")|starts_with("other")) %>% 
+  filter(!is.na(value)) %>% 
+  filter(value!="") %>% 
+  separate(name, into=c("seen","color","num")) %>% 
+  rename(text=value) %>% 
+  mutate(text = gsub("[/?/.]", ' ', text),
+         text = str_squish(text),
+         utt_length_chars = str_length(text), 
+         utt_length_words = str_count(text, "\\W+") + 1) |> write_csv(here(annotation_path,"post_test.csv"))
+
+
+```
+
+```{r, include=F, eval=F}
+library(reticulate)
+np <- import("numpy")
+mat = np$load(here(annotation_path,'post_sbert_post_test.npy'))
+saveRDS(mat,here(annotation_path,'post_sbert_post_test.RData'))
+```
