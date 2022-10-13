@@ -325,3 +325,73 @@ player_similar <- M_mat %>%
 ggplot(player_similar, aes(x=quarter,y=sim,color=color))+
       stat_summary(aes(group=str_c(color,referent), color=color),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.5, geom="point")+geom_smooth(formula=y~poly(x,2))
 ```
+
+# Within end-stuff
+
+```{r}
+sbert_post_test <- read_csv(here(annotation_path,"post_test.csv")) %>% bind_cols(readRDS(here(annotation_path,'post_sbert_post_test.RData')))  %>% as_tibble()
+
+F_mat <- sbert_post_test %>% select(starts_with("...")) %>% as.matrix() #Features
+M_mat <- sbert_post_test %>% select(-starts_with("...")) %>% mutate(feature_ind=row_number(), flower=str_c(color,num))
+```
+
+## Within flower
+```{r}
+
+end_distinctive <- M_mat %>% 
+  group_by(flower, color) %>% 
+  mutate(combinedId=str_c(gameId,"_",seen)) %>% 
+  make_across_df(F_mat, 'cosine') %>% 
+  separate(dim1, c("gameId1", "seen1")) |> 
+  separate(dim2, c("gameId2", "seen2")) |> 
+  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
+  ungroup()
+```
+
+```{r}
+
+end_distinctive |> mutate(same_group=ifelse(gameId1==gameId2, 
+                                            "same_group","different_group"),
+                          same_color=case_when(
+  seen1=="own" & seen2=="own" ~ "own",
+  seen2=="other" & seen1=="other" ~ "other",
+  T ~"mixed"
+))|> ggplot(aes(group=flower, x=color, y=sim, color=str_c(same_group,same_color)))+     
+  stat_summary(aes(group=str_c(same_group, same_color)),fun.data = "mean_cl_boot", position = position_dodge(width=.3), geom="pointrange")
+
+            
+```
+This is really poorly labelled. Needs stats. 
+
+## Between flowers
+```{r}
+
+end_between <- M_mat %>% 
+  group_by(color) %>% 
+  mutate(combinedId=str_c(playerId, "_",gameId,"_",seen, "_", flower)) %>% 
+  make_across_df(F_mat, 'cosine') %>% 
+  separate(dim1, c("player1","gameId1", "seen1" ,"flower1")) |> 
+  separate(dim2, c("player2", "gameId2", "seen2", "flower2")) |> 
+  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
+  filter(flower1!=flower2) |> 
+  ungroup()
+```
+
+```{r}
+
+end_between |> mutate(same_group=case_when(
+  player1==player2 ~ "same_person",
+  gameId1==gameId2 ~ "same_group",
+  T ~ "diferent_group"
+), same_color=case_when(
+  seen1=="own" & seen2=="own" ~ "own",
+  seen2=="other" & seen1=="other" ~ "other",
+  T ~"mixed"
+))|> ggplot(aes(x=color, y=sim, color=str_c(same_group,same_color)))+     
+  stat_summary(aes(group=str_c(same_group, same_color)),fun.data = "mean_cl_boot", position = position_dodge(width=.3), geom="pointrange")+facet_grid(.~same_group)
+
+            
+```
+
+
+# TODO: between game & end-game
