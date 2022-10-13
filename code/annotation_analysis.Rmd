@@ -1,7 +1,8 @@
 ---
 title: "Flowers text analysis"
 author: "vboyce"
-output: html_document
+output: html_document:
+    toc: true
 ---
 
 ```{r setup, include=FALSE}
@@ -10,7 +11,11 @@ knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"))
 
 library(here)
 library(tidyverse)
-
+library(rstanarm)
+library(rstan)
+library(tidybayes)
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
 #for plotting
 theme_set(theme_bw())
 #Data import constants
@@ -18,24 +23,64 @@ date_start=lubridate::ymd('2021-07-19')
 fig_path=here("figs")
 read_data_path <- "data/processed_data/joined_data/"
 annotation_path <- "data/annotations"
+model_path <- "code/models"
+
+show_summary_rstan <- function(model){
+  badlist <- c("accept_stat__","divergent__","energy__","n_leapfrog__","sigma", "stepsize__","treedepth__")
+  intervals <- gather_draws(model, `[a-zA-z_()]+`, regex=TRUE) |> mean_qi() |> filter(!.variable %in% badlist) |> 
+    mutate(lower=round(.lower, digits=2),
+           upper=round(.upper, digits=2),
+           `Credible Interval`=str_c("[",lower,", ", upper,"]"),
+           Term=.variable,
+           Estimate=round(.value, digits=2)) %>% 
+    select(Term, Estimate, `Credible Interval`)
+  
+  intervals
+}
+
+show_summary <- function(model){
+  intervals <- gather_draws(model, `b_.*`, regex=T) %>% mean_qi()
+  
+  stats <- gather_draws(model, `b_.*`, regex=T) %>% 
+    mutate(above_0=ifelse(.value>0, 1,0)) %>% 
+    group_by(.variable) %>% 
+    summarize(pct_above_0=mean(above_0)) %>% 
+   mutate(`P-value equivalent` = signif(2*pmin(pct_above_0,1-pct_above_0), digits=2)) %>% 
+    left_join(intervals, by=".variable") %>% 
+    mutate(lower=round(.lower, digits=2),
+           upper=round(.upper, digits=2),
+           `Credible Interval`=str_c("[",lower,", ", upper,"]"),
+           Term=str_sub(.variable, 3, -1),
+           Estimate=round(.value, digits=2)) %>% 
+    select(Term, Estimate, `Credible Interval`, `P-value equivalent`)
+  
+  stats
+}
+
+stats <- function(model, row){
+  str_c(model[row,1],": Est=", model[row,2], ", CrI=", model[row,3])
+}
+
+stats_text  <- function(model, row){
+  str_c( model[row,2], " (CrI=", model[row,3],")")
+}
 ```
 
-# VB to do notes
-- Sbert
-- compare with post-games stuff (and sbert that as well)
-- consider being more consistent about what "the same one" or "that one" or etc got annotated
-- inter-group differences/ correlations
-- correlates of success
-
-# Intro 
+# Note 
 
 I have annotated the transcripts of the full games marking what parts are referential (descriptive of a flower) and which flower (as best I can tell) it refers to. 
 
 See https://docs.google.com/presentation/d/1qcDRZzHbLhE-fp6W9nKcbGouj4w01qCLCy-yt072iiY/edit?usp=sharing for the flower number - image correspondences. 
 
+# Cogsci notes
 
+Key points:
 
+- Many of the key reduction findings from tangrams generalize to this situation. Specifically, we see utterance reduction over time and w/i group convergence for each image and divergence between images. This situation is different in that we have different stimuli (more natural) and the set up is collaborative and more free-form in what is talked about. These patterns hold for both the individual and group payoff structures. 
 
+- One difference we see is that groups don't diverge (from each other). This may be dependent on stimulus properities (are there universal features of some of the images?) and group dynamics
+
+- Conclusion: The key reference game findings have some generalizability. Settings like this one may be useful for encouraging discussion of a set of images and setting up partial knowledge situations. 
 
 # Analysis
 
@@ -53,7 +98,10 @@ annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |>
   filter(!is.na(span)) |> 
   mutate(numchar=str_length(span),
          numword=str_count(span, "\\W+") + 1) |> 
-  left_join(d.games)
+  left_join(d.games) |> 
+  mutate(flower=str_c(referent,color),
+         player=str_c(gameId, name)) |> 
+  select(gameId, player, flower, trialNum, pResp, normalized_span,color,numchar, numword, conditionName)
 ```
 
 ## How many words of referring language are there per round?
@@ -63,27 +111,27 @@ annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |>
 sum_words <- annotated %>% group_by(trialNum, gameId,conditionName) %>% summarize(sum_char=sum(numchar),
                                            sum_word=sum(numword)) 
 
-  ggplot(sum_words,aes(x=trialNum,y=sum_char, color=conditionName))+
-    #geom_line(aes(group=gameId))+
-    facet_grid(.~conditionName)+
-    geom_smooth(aes(group=gameId), method="lm", se=F)+
-    geom_jitter(alpha=.5)
+  # ggplot(sum_words,aes(x=trialNum,y=sum_char, color=conditionName))+
+  #   #geom_line(aes(group=gameId))+
+  #   facet_grid(.~conditionName)+
+  #   geom_smooth(aes(group=gameId), method="lm", se=F)+
+  #   geom_jitter(alpha=.5)
   
-    ggplot(sum_words,aes(x=trialNum,y=sum_char, color=conditionName))+
-    geom_line(aes(group=gameId))+
-    facet_grid(.~conditionName)
-    
-    
+    # ggplot(sum_words,aes(x=trialNum,y=sum_char, color=conditionName))+
+    # geom_line(aes(group=gameId))+
+    # facet_grid(.~conditionName)
+    # 
+    # 
       ggplot(sum_words,aes(x=trialNum,y=sum_word, color=conditionName))+
     #geom_line(aes(group=gameId))+
     facet_grid(.~conditionName)+
     geom_smooth(aes(group=gameId), method="lm", se=F)+
     geom_jitter(alpha=.5)
-  
-    ggplot(sum_words,aes(x=trialNum,y=sum_word, color=conditionName))+
-    geom_line(aes(group=gameId))+
-    facet_grid(.~conditionName)
-    
+
+    # ggplot(sum_words,aes(x=trialNum,y=sum_word, color=conditionName))+
+    # geom_line(aes(group=gameId))+
+    # facet_grid(.~conditionName)
+    # 
 
 ```
 There are reduction trends (not sure if linear fit is correct or not) for most groups, some serious group differences, also noise. 
@@ -94,7 +142,7 @@ There are reduction trends (not sure if linear fit is correct or not) for most g
 ```{r}
 
 
-  ggplot(annotated,aes(x=trialNum,y=numchar))+ geom_jitter(alpha=.1)+ geom_smooth()+ facet_grid(.~conditionName)
+ # ggplot(annotated,aes(x=trialNum,y=numchar))+ geom_jitter(alpha=.1)+ geom_smooth()+ facet_grid(.~conditionName)
   ggplot(annotated,aes(x=trialNum,y=numword))+geom_jitter(alpha=.1)+ geom_smooth()+ facet_grid(.~conditionName)
   
 ```
@@ -105,14 +153,35 @@ Individual referring expressions tend to get shorter.
 
 annotated |> group_by(gameId, trialNum, conditionName) |> tally() |> 
   ggplot(aes(x=trialNum, y=n))+geom_jitter()+geom_smooth()+facet_grid(.~conditionName)
-
-annotated |> group_by(gameId, referent, conditionName) |> tally() |> 
-  group_by(conditionName) |> summarize(avg=mean(n), median=median(n))
+# 
+# annotated |> group_by(gameId, referent, conditionName) |> tally() |> 
+#   group_by(conditionName) |> summarize(avg=mean(n), median=median(n))
 ```
 Mostly the number of referring expressions is relatively constant, but the expressions themselves shorten. 
 
+## Model
+
+```{r,eval=F, include=F}
+
+m1 <- stan_lmer(numword ~ trialNum + (1|gameId)+ (1|player)+(1|flower), data=annotated) |> write_rds(here(model_path,"m1.rds"))
+
+```
+
+```{r}
+m1 <- read_rds(here(model_path,"m1.rds"))
+m1
+#prior_summary(m1)
+show_summary_rstan(m1)
+```
+
 # Sbert stuff
-(currently copied from tangrams stuff)
+
+Some pre-commentary on analytic choices:
+- it's unclear whether we should be looking at referential statements individually (i.e. treating anything that occured as a separate utterance, after a line break, as separate) or concatenating everything Laju said about flower yellow3 into one statement. I think the first is generally better since sometimes a flower is described twice (perhaps in the same way), as in "the best values are 3 in a row and big fluffy" ... "okay, I'll take big fluffy". But there are also times when someone has a line break before continuing/clarifying a description. For now we go with single utterances.
+
+- Unlike tangrams where there was a very clear cut every item gets described once every round by every group, here we have no such guarantees! So there's a big question of what scale to use for "time block". In some within game cases it might make sense to compare utterances within a single round (for distinctiveness of different descriptions or if multiple describe the same flower differently). It also might make sense to treat round as the semi-continuous variable that it is for some modelling where we can eventually see that farther away pairs do something. But for now, I'm going to divide the game into quarters (sets of 6 rounds) and pretend that we have 4 time points. This is arbitrary and preliminary but it's easy to do viz with.
+
+
 ```{r, include=F,}
 sbert_concat <- read_csv(here(annotation_path,"pre_sbert_concat.csv")) %>% bind_cols(readRDS(here(annotation_path,'post_sbert_concat.RData')))  %>% as_tibble()
 
@@ -121,7 +190,18 @@ sbert_concat <- read_csv(here(annotation_path,"pre_sbert_concat.csv")) %>% bind_
 ```
 
 ```{r, include=F,}
-sbert_single <- read_csv(here(annotation_path,"pre_sbert.csv")) %>% bind_cols(readRDS(here(annotation_path,'post_sbert.RData')))  %>% as_tibble()
+d.games <- read_csv(here(paste(read_data_path, "games.csv", sep = "")),
+                      col_types = cols()) %>% distinct() |> 
+    mutate(conditionName = condition, 
+         condition = case_when(conditionName == "coopMulti" ~ "Shared Utilities",
+                               conditionName == "competCartel" ~ "Individual Utilities",
+                               conditionName == "coopCartel" ~ "Old Cooperative",
+                               TRUE ~ conditionName)) |> 
+  select(gameId,conditionName)
+
+sbert_single <- read_csv(here(annotation_path,"pre_sbert.csv")) %>% bind_cols(readRDS(here(annotation_path,'post_sbert.RData')))  %>% as_tibble() |> 
+  left_join(d.games)
+
 
 
 
@@ -129,8 +209,14 @@ sbert_single <- read_csv(here(annotation_path,"pre_sbert.csv")) %>% bind_cols(re
 
 ```{r, include=F}
 
-F_mat <- sbert_concat %>% select(starts_with("V")) %>% as.matrix() #Features
-M_mat <- sbert_concat %>% select(-starts_with("V")) %>% mutate(feature_ind=row_number())
+F_mat <- sbert_single %>% select(starts_with("...")) %>% as.matrix() #Features
+M_mat <- sbert_single %>% select(-starts_with("...")) %>% mutate(feature_ind=row_number()) |> 
+  mutate(quarter=case_when(
+    trialNum < 6 ~ 1,
+    trialNum < 12 ~ 2,
+    trialNum < 18 ~ 3,
+    trialNum < 24 ~ 4
+  ))
 ```
 
 ```{r helpers}
@@ -175,3 +261,67 @@ make_across_df <- function(M_mat, F_mat, method) {
 }
 ```
 
+## Do flower labels diversify within games?
+
+Hypothesis: descriptions for different flowers get more different over time (within game)
+
+```{r }
+
+flower_distinctive <- M_mat %>% 
+  group_by(gameId,quarter, conditionName) %>% 
+  mutate(combinedId=referent) %>% 
+  make_across_df(F_mat, 'cosine') %>% 
+  rename(referent1=dim1,referent2=dim2) %>% 
+  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
+  filter(referent1!=referent2) %>% 
+  ungroup()
+```
+
+```{r}
+ggplot(flower_distinctive, aes(x=quarter,y=sim,color=conditionName))+
+      stat_summary(aes(group=str_c(gameId), color=conditionName),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.5, geom="point")+geom_smooth(formula=y~poly(x,2))
+```
+
+## Do groups diverge on labels?
+
+Hypothesis: descriptions for the same flower between games get more different over time (maybe, for some flowers)
+
+```{r }
+
+game_distinctive <- M_mat %>% 
+  group_by(quarter, color, referent) %>% 
+  mutate(combinedId=gameId) %>% 
+  make_across_df(F_mat, 'cosine') %>% 
+  rename(gameId1=dim1,gameId2=dim2) %>% 
+  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
+  filter(gameId1!=gameId2) %>% 
+  ungroup()
+```
+
+```{r}
+ggplot(game_distinctive, aes(x=quarter,y=sim,color=color))+
+      stat_summary(aes(group=str_c(color,referent), color=color),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.5, geom="point")+geom_smooth(formula=y~poly(x,2))
+```
+
+Wide variability -- some flowers might get more consistent names than others?
+
+## Do group members converge with each other?
+
+Hypothesis: players within the same game will label the same flower more similarly later in the game than earlier.
+
+```{r }
+
+player_similar <- M_mat %>% 
+  group_by(quarter, color, referent, gameId) %>% 
+  mutate(combinedId=name) %>% 
+  make_across_df(F_mat, 'cosine') %>% 
+  rename(name1=dim1,name2=dim2) %>% 
+  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
+  filter(name1!=name2) %>% 
+  ungroup()
+```
+
+```{r}
+ggplot(player_similar, aes(x=quarter,y=sim,color=color))+
+      stat_summary(aes(group=str_c(color,referent), color=color),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.5, geom="point")+geom_smooth(formula=y~poly(x,2))
+```
