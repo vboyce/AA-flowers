@@ -1,8 +1,10 @@
 ---
 title: "Flowers text analysis"
 author: "vboyce"
-output: html_document:
+output:
+  html_document:
     toc: true
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
@@ -246,14 +248,6 @@ flatten_sim_matrix <- function(cormat, ids) {
            dim2 = as.character(dim2))
 }
 
-make_within_df <- function(M_mat, F_mat, method) {
-  M_mat %>%
-    do(flatten_sim_matrix(get_sim_matrix(., F_mat, method = method),
-                          .$repNum)) %>%
-    mutate(rep1 = as.numeric(dim1), 
-           rep2 = as.numeric(dim2)) 
-}
-
 make_across_df <- function(M_mat, F_mat, method) {
   M_mat %>%
     do(flatten_sim_matrix(get_sim_matrix(., F_mat, method = method),
@@ -282,6 +276,7 @@ ggplot(flower_distinctive, aes(x=quarter,y=sim,color=conditionName))+
       stat_summary(aes(group=str_c(gameId), color=conditionName),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.5, geom="point")+geom_smooth(formula=y~poly(x,2))
 ```
 
+### TODO model
 ## Do groups diverge on labels?
 
 Hypothesis: descriptions for the same flower between games get more different over time (maybe, for some flowers)
@@ -304,6 +299,7 @@ ggplot(game_distinctive, aes(x=quarter,y=sim,color=color))+
 ```
 
 Wide variability -- some flowers might get more consistent names than others?
+### TODO model
 
 ## Do group members converge with each other?
 
@@ -325,6 +321,7 @@ player_similar <- M_mat %>%
 ggplot(player_similar, aes(x=quarter,y=sim,color=color))+
       stat_summary(aes(group=str_c(color,referent), color=color),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.5, geom="point")+geom_smooth(formula=y~poly(x,2))
 ```
+### TODO model
 
 # Within end-stuff
 
@@ -362,6 +359,7 @@ end_distinctive |> mutate(same_group=ifelse(gameId1==gameId2,
             
 ```
 This is really poorly labelled. Needs stats. 
+### TODO models
 
 ## Between flowers
 ```{r}
@@ -392,6 +390,95 @@ end_between |> mutate(same_group=case_when(
 
             
 ```
+### TODO models
 
 
 # TODO: between game & end-game
+
+```{r}
+
+
+d.raw_chat <- read_csv(here(paste(read_data_path, 
+                                  "raw_chat.csv", 
+                                  sep="")),
+                      col_types = cols()) %>% distinct() |> 
+  select(gameId, playerId) |> unique()
+
+d.players <- read_csv(here(paste(read_data_path, "players.csv", sep = "")),
+                      col_types = cols()) %>% distinct() |> select(playerId,name) |> inner_join(d.raw_chat)
+
+sbert_single <- read_csv(here(annotation_path,"pre_sbert.csv")) %>% bind_cols(readRDS(here(annotation_path,'post_sbert.RData')))  %>% as_tibble() |> 
+   left_join(d.players)
+```
+
+```{r to-end-helpers}
+
+#here we only want sims between an in-game utt and an end description
+# note: cor expects features to be in columns so we transpose
+
+pairwiseCosine <- function(matrix1,matrix2) {
+    apply(matrix1,2,function(x){
+        apply(matrix2,2,lsa::cosine,x)
+    })
+}
+get_sim_matrix = function(df, F_mat, method = 'cosine') {
+  df_game <- df |> filter(type=="game")
+  df_end <- df |> filter(type=="end")
+  feats_game = F_mat[df_game$feature_ind,]
+  print(t(feats_game))
+  feats_end = F_mat[df_end$feature_ind,]
+  print(t(feats_end))
+  if(method == 'cor') {
+    return(cor(t(feats_game), t(feats_end), method = 'pearson'))
+  }  else if (method == 'cosine') {
+    return(as.matrix(pairwiseCosine(t(feats_game), t(feats_end))))
+  } else {
+    stop(paste0('unknown method', method))
+  }
+}
+
+# note this does de-duplicated version
+flatten_sim_matrix <- function(cormat, ids_game, ids_end) {
+  data.frame(
+    dim1 = ids_end[row(cormat)],
+    dim2 = ids_game[col(cormat)],
+    sim  = as.numeric(cormat)
+  ) %>%
+    mutate(dim1 = as.character(dim1),
+           dim2 = as.character(dim2))
+}
+
+make_across_df <- function(M_mat, F_mat, method) {
+  M_mat %>%
+    do(flatten_sim_matrix(get_sim_matrix(., F_mat, method = method),
+                          as.character(filter(., type=="game")$combinedId), as.character(filter(., type=="end")$combinedId)))
+}
+
+```
+
+
+** Does not work with grouped data frames, works with non-grouped dfs ** 
+```{r}
+#test
+test_df1 <- tibble(color=c("blue","green"),id=c("game1","game2"), val1=c(.5,.7), val2=c(.9,.4)) |> mutate(type="game")
+test_df2 <- tibble(color=c("blue", "green"),id=c("end1", "end2"), val1=c(1,-1), val2=c(-1,-1)) |> mutate(type="end")
+test <- test_df1 |> union(test_df2) 
+F_mat <- test %>% select(starts_with("val")) %>% as.matrix() #Features
+M_mat <- test%>% select(-starts_with("val")) %>% mutate(feature_ind=row_number(), combinedId=id) |> group_by(color)
+
+
+a <- make_across_df(M_mat, F_mat, method="cosine")
+
+# want there to be one thing that gets grouped (M_mat) and then we separate it by type
+
+sol <- tibble(dim1=c("end1","end2","end1","end2"), 
+              dim2=c("game1", "game1", "game2","game2"),
+              sim=c(lsa::cosine(c(.5,.9),c(1,-1)),
+                    lsa::cosine(c(.5, .9), c(-1,-1)),
+                    lsa::cosine(c(.7,.4),c(1,-1)),
+                    lsa::cosine(c(.7,.4),c(-1,-1))))
+```
+
+# TODO: Correlates of success
+
+# TODO: scale of variation between groups
