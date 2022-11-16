@@ -16,6 +16,8 @@ library(tidyverse)
 library(rstanarm)
 library(rstan)
 library(tidybayes)
+library(viridis)
+library(cowplot)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 #for plotting
@@ -84,7 +86,7 @@ Key points:
 
 - Conclusion: The key reference game findings have some generalizability. Settings like this one may be useful for encouraging discussion of a set of images and setting up partial knowledge situations. 
 
-# Analysis
+# Prep 
 
 ```{r}
 d.games <- read_csv(here(paste(read_data_path, "games.csv", sep = "")),
@@ -94,7 +96,7 @@ d.games <- read_csv(here(paste(read_data_path, "games.csv", sep = "")),
                                conditionName == "competCartel" ~ "Individual Utilities",
                                conditionName == "coopCartel" ~ "Old Cooperative",
                                TRUE ~ conditionName)) |> 
-  select(gameId,conditionName)
+  select(gameId,conditionName, condition)
 
 annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |> 
   filter(!is.na(span)) |> 
@@ -103,69 +105,104 @@ annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |>
   left_join(d.games) |> 
   mutate(flower=str_c(referent,color),
          player=str_c(gameId, name)) |> 
-  select(gameId, player, flower, trialNum, pResp, normalized_span,color,numchar, numword, conditionName)
+  select(gameId, player, flower, trialNum, pResp, normalized_span,color,numchar, numword, condition)
 ```
 
-## How many words of referring language are there per round?
+# How much data
 
-```{r}
+```{r, message=T}
 
-sum_words <- annotated %>% group_by(trialNum, gameId,conditionName) %>% summarize(sum_char=sum(numchar),
-                                           sum_word=sum(numword)) 
+message("total utterances")
+annotated |> tally()
 
-  # ggplot(sum_words,aes(x=trialNum,y=sum_char, color=conditionName))+
-  #   #geom_line(aes(group=gameId))+
-  #   facet_grid(.~conditionName)+
-  #   geom_smooth(aes(group=gameId), method="lm", se=F)+
-  #   geom_jitter(alpha=.5)
+message("Utterances / game")
+
+annotated |> group_by(gameId,condition) |> tally() |> pull(n) |> summary()
+
+message("Utterances / flower")
+annotated |> group_by(flower) |> tally() |> pull(n) |> summary()
+
+```
+
+
+# Word count basics
+
+Take away -- across the condition manipulation, the number of utterances doesn't decrease, but the length of each one does. 
+
+Graph could use finessing if going in paper. 
+
+```{r, fig.height=4, fig.width=8}
+
+sum_words <- annotated %>% group_by(trialNum, gameId,condition) %>% summarize(sum_char=sum(numchar),
+                                           sum_word=sum(numword))
   
-    # ggplot(sum_words,aes(x=trialNum,y=sum_char, color=conditionName))+
-    # geom_line(aes(group=gameId))+
-    # facet_grid(.~conditionName)
-    # 
-    # 
-      ggplot(sum_words,aes(x=trialNum,y=sum_word, color=conditionName))+
-    #geom_line(aes(group=gameId))+
-    facet_grid(.~conditionName)+
-    geom_smooth(aes(group=gameId), method="lm", se=F)+
-    geom_jitter(alpha=.5)
+     total <-  ggplot(sum_words,aes(x=trialNum+1,y=sum_word, color=condition))+
+   # geom_smooth(method="lm", se=T)+
+            geom_smooth(method="lm", formula=y~poly(x,2), se=T)+
 
-    # ggplot(sum_words,aes(x=trialNum,y=sum_word, color=conditionName))+
-    # geom_line(aes(group=gameId))+
-    # facet_grid(.~conditionName)
-    # 
+        geom_jitter(alpha=.1, width=.2, height=.5)+
+        labs(y="Referential Words per trial per game", x="Trial Number", color="")+
+        theme(legend.position="bottom", legend.title=element_blank())+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        scale_color_brewer(palette="Dark2")
+
+    legend <- get_legend(total)
+    
+    all_words <- total+theme(legend.position = "none") 
+      
+        words <- ggplot(annotated,aes(x=trialNum,y=numword, color=condition))+geom_jitter(alpha=.1)+ geom_smooth()+
+          labs(y="Words per reference expression", x="Trial Number")+
+        theme(legend.position="none", legend.title=element_blank())+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        scale_color_brewer(palette="Dark2")
+        
+        utts <- annotated |> group_by(gameId, trialNum, condition) |> tally() |> 
+  ggplot(aes(x=trialNum, y=n, color=condition))+geom_jitter(alpha=.02)+geom_smooth()+
+          labs(y="Reference expressions  per trial per game", x="Trial Number")+
+        theme(legend.position="none", legend.title=element_blank())+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        scale_color_brewer(palette="Dark2")
+        
+        top <- plot_grid(all_words, words, utts,nrow=1)
+        plot_grid(top, legend, nrow=2, rel_heights=c(1,.1))
 
 ```
-There are reduction trends (not sure if linear fit is correct or not) for most groups, some serious group differences, also noise. 
 
+# How many different flowers described / trial?
 
-## How long are individual referring expressions?
+We can probably give this as summary stats and not as graph
+
+Per game
 
 ```{r}
 
-
- # ggplot(annotated,aes(x=trialNum,y=numchar))+ geom_jitter(alpha=.1)+ geom_smooth()+ facet_grid(.~conditionName)
-  ggplot(annotated,aes(x=trialNum,y=numword))+geom_jitter(alpha=.1)+ geom_smooth()+ facet_grid(.~conditionName)
-  
+annotated |> group_by(gameId, trialNum, condition) |> select(flower) |> unique() |> tally() |> 
+  ggplot(aes(x=trialNum, y=n, color=condition))+geom_jitter(height=.25, alpha=.2)+geom_smooth()+
+          labs(y="Distinct flowers referenced per trial", x="Trial Number")+
+        theme(legend.position="none", legend.title=element_blank())+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        scale_color_brewer(palette="Dark2")
 ```
-Individual referring expressions tend to get shorter.
 
-## How many referring expressions are there?
+Per person
+
 ```{r}
-
-annotated |> group_by(gameId, trialNum, conditionName) |> tally() |> 
-  ggplot(aes(x=trialNum, y=n))+geom_jitter()+geom_smooth()+facet_grid(.~conditionName)
-# 
-# annotated |> group_by(gameId, referent, conditionName) |> tally() |> 
-#   group_by(conditionName) |> summarize(avg=mean(n), median=median(n))
+annotated |> group_by(gameId, trialNum, condition, player) |> select(flower) |> unique() |> tally() |> 
+  ggplot(aes(x=trialNum, y=n, color=condition))+geom_jitter(height=.25, alpha=.1)+geom_smooth()+
+          labs(y="Distinct flowers referenced per player per trial", x="Trial Number")+
+        theme(legend.position="none", legend.title=element_blank())+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        scale_color_brewer(palette="Dark2")
 ```
-Mostly the number of referring expressions is relatively constant, but the expressions themselves shorten. 
+
+
+
 
 ## Model
 
 ```{r,eval=F, include=F}
 
-m1 <- stan_lmer(numword ~ trialNum + (1|gameId)+ (1|player)+(1|flower), data=annotated) |> write_rds(here(model_path,"m1.rds"))
+m1 <- stan_lmer(numword ~ trialNum + condition + (1|gameId)+ (1|player)+(1|flower), data=annotated) |> write_rds(here(model_path,"m1.rds"))
 
 ```
 
@@ -176,20 +213,13 @@ m1
 show_summary_rstan(m1)
 ```
 
-# Sbert stuff
+# Sbert notes
 
 Some pre-commentary on analytic choices:
 - it's unclear whether we should be looking at referential statements individually (i.e. treating anything that occured as a separate utterance, after a line break, as separate) or concatenating everything Laju said about flower yellow3 into one statement. I think the first is generally better since sometimes a flower is described twice (perhaps in the same way), as in "the best values are 3 in a row and big fluffy" ... "okay, I'll take big fluffy". But there are also times when someone has a line break before continuing/clarifying a description. For now we go with single utterances.
 
 - Unlike tangrams where there was a very clear cut every item gets described once every round by every group, here we have no such guarantees! So there's a big question of what scale to use for "time block". In some within game cases it might make sense to compare utterances within a single round (for distinctiveness of different descriptions or if multiple describe the same flower differently). It also might make sense to treat round as the semi-continuous variable that it is for some modelling where we can eventually see that farther away pairs do something. But for now, I'm going to divide the game into quarters (sets of 6 rounds) and pretend that we have 4 time points. This is arbitrary and preliminary but it's easy to do viz with.
 
-
-```{r, include=F,}
-sbert_concat <- read_csv(here(annotation_path,"pre_sbert_concat.csv")) %>% bind_cols(readRDS(here(annotation_path,'post_sbert_concat.RData')))  %>% as_tibble()
-
-
-
-```
 
 ```{r, include=F,}
 d.games <- read_csv(here(paste(read_data_path, "games.csv", sep = "")),
@@ -199,27 +229,41 @@ d.games <- read_csv(here(paste(read_data_path, "games.csv", sep = "")),
                                conditionName == "competCartel" ~ "Individual Utilities",
                                conditionName == "coopCartel" ~ "Old Cooperative",
                                TRUE ~ conditionName)) |> 
-  select(gameId,conditionName)
+  select(gameId,conditionName, condition)
 
-sbert_single <- read_csv(here(annotation_path,"pre_sbert.csv")) %>% bind_cols(readRDS(here(annotation_path,'post_sbert.RData')))  %>% as_tibble() |> 
-  left_join(d.games)
+ d.raw_chat <- read_csv(here(paste(read_data_path, 
+                                   "raw_chat.csv", 
+                                   sep="")),
+                       col_types = cols()) %>% distinct() |> 
+   select(gameId, playerId) |> unique()
+ 
+ d.players <- read_csv(here(paste(read_data_path, "players.csv", sep = "")),
+                       col_types = cols()) %>% distinct() |> select(playerId,name) |> inner_join(d.raw_chat)
 
+ sbert_single <- read_csv(here(annotation_path,"pre_sbert.csv"))|> 
+    left_join(d.players) |> left_join(d.games) |> mutate(seen="game") |> 
+   select(playerId, gameId, condition, text=normalized_span,referent, color, trialNum, seen) %>% bind_cols(readRDS(here(annotation_path,'post_sbert.RData')))  %>% as_tibble() 
 
+sbert_post_test <- read_csv(here(annotation_path,"post_test.csv")) |> left_join(d.games) |> 
+  mutate(trialNum=25) |> 
+  select(playerId, gameId, condition, text,referent=num, color, trialNum, seen)%>% bind_cols(readRDS(here(annotation_path,'post_sbert_post_test.RData')))  %>% as_tibble()
 
-
-```
-
-```{r, include=F}
-
-F_mat <- sbert_single %>% select(starts_with("...")) %>% as.matrix() #Features
-M_mat <- sbert_single %>% select(-starts_with("...")) %>% mutate(feature_ind=row_number()) |> 
-  mutate(quarter=case_when(
-    trialNum < 6 ~ 1,
-    trialNum < 12 ~ 2,
-    trialNum < 18 ~ 3,
-    trialNum < 24 ~ 4
+sbert_all <- sbert_single |> union(sbert_post_test)
+F_mat <- sbert_all %>% select(starts_with("...")) %>% as.matrix() #Features
+M_mat <- sbert_all %>% 
+  select(-starts_with("...")) %>% 
+  mutate(feature_ind=row_number(),
+         sixth=case_when(
+           trialNum < 4 ~ 1,
+          trialNum < 8 ~ 2,
+          trialNum < 12 ~ 3,
+          trialNum < 16 ~ 4,
+          trialNum < 20 ~ 5,
+          trialNum < 24 ~ 6,
+          trialNum > 24 ~ 7
   ))
 ```
+
 
 ```{r helpers}
 # note: cor expects features to be in columns so we transpose
@@ -255,230 +299,167 @@ make_across_df <- function(M_mat, F_mat, method) {
 }
 ```
 
-## Do flower labels diversify within games?
+# Sbert pictures 
 
-Hypothesis: descriptions for different flowers get more different over time (within game)
+These have quadratic smooths fit onto them, to allow for curvature, but no reason to choose this curve and not another. 
 
-```{r }
-
-flower_distinctive <- M_mat %>% 
-  group_by(gameId,quarter, conditionName) %>% 
-  mutate(combinedId=referent) %>% 
-  make_across_df(F_mat, 'cosine') %>% 
-  rename(referent1=dim1,referent2=dim2) %>% 
-  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
-  filter(referent1!=referent2) %>% 
-  ungroup()
-```
-
-```{r}
-ggplot(flower_distinctive, aes(x=quarter,y=sim,color=conditionName))+
-      stat_summary(aes(group=str_c(gameId), color=conditionName),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.5, geom="point")+geom_smooth(formula=y~poly(x,2))
-```
-
-### TODO model
-## Do groups diverge on labels?
-
-Hypothesis: descriptions for the same flower between games get more different over time (maybe, for some flowers)
+## During game
 
 ```{r }
 
-game_distinctive <- M_mat %>% 
-  group_by(quarter, color, referent) %>% 
-  mutate(combinedId=gameId) %>% 
+# by trial
+flower_all <- M_mat %>% 
+  filter(seen %in% c("game")) |> 
+  group_by(color,condition) %>% 
+  mutate(combinedId=str_c(referent,"_", trialNum, "_",gameId,"_",playerId)) %>% 
   make_across_df(F_mat, 'cosine') %>% 
-  rename(gameId1=dim1,gameId2=dim2) %>% 
+  separate(dim1, c("ref1", "trialNum1","game1","player1"), convert=T) |> 
+  separate(dim2, c("ref2", "trialNum2", "game2", "player2"), convert=T) |> 
+ # rename(referent1=dim1,referent2=dim2) %>% 
   mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
-  filter(gameId1!=gameId2) %>% 
+  #filter(ref1!=ref2) %>% 
+  mutate(earlier=ifelse(trialNum1>trialNum2,trialNum2, trialNum1) |> as.numeric(),
+         later=ifelse(trialNum1>trialNum2, trialNum1,trialNum2) |> as.numeric()) |> 
   ungroup()
 ```
 
 ```{r}
-ggplot(game_distinctive, aes(x=quarter,y=sim,color=color))+
-      stat_summary(aes(group=str_c(color,referent), color=color),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.5, geom="point")+geom_smooth(formula=y~poly(x,2))
+flower_all|> 
+  filter(later-earlier<3) |> 
+  mutate(distance=case_when(
+    player1==player2 ~ "Same person",
+    game1==game2 ~ "same game",
+    T ~ "different game"),
+    same_flower=ifelse(ref1==ref2, "Same flower", "diff flower")
+  ) |> 
+ggplot( aes(x=later,y=sim,color=condition))+     
+  stat_summary(aes(group=str_c(color,condition), color=condition),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.3, geom="point")+
+  geom_smooth(formula=y~poly(x,2))+facet_grid(same_flower~distance)+theme(legend.position="bottom", legend.title=element_blank())+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        scale_color_brewer(palette="Dark2")
+
 ```
 
-Wide variability -- some flowers might get more consistent names than others?
-### TODO model
 
-## Do group members converge with each other?
+Comparing utterances within rounds that were up to 2 apart, round coded as the later (so 10-12,11-12 and 12-12 will all contribute to "12"). Up to 2 apart is somewhat arbitrary, not sure what the right rolling window to do is. 
 
-Hypothesis: players within the same game will label the same flower more similarly later in the game than earlier.
+Take aways:
+ - descriptions to the same flower within game (either same person or not) become more similar
+ - descriptions to the same flower across games become (slightly) less similar
+ - descriptions to different flowers become less similar (regardless of between/within game)
+ 
+
+
+## Between game and end
+
+We can treat what someone wrote at the end as the convention and then compare how similar this is to earlier utterances by them and their group mates.
+
+Big question is whether the end utts need cleaning (which probably yes?)
+
+We see that for the same flower, similarity to the end utt increases over blocks both within individual and indiv - other group mate (this is all within a game)
 
 ```{r }
 
-player_similar <- M_mat %>% 
-  group_by(quarter, color, referent, gameId) %>% 
-  mutate(combinedId=name) %>% 
+# by trial
+to_end <- M_mat %>% 
+  filter(seen %in% c("game", "own")) |> 
+  group_by(gameId,color,condition) %>% 
+  mutate(combinedId=str_c(referent,"_", trialNum, "_",seen,"_",playerId)) %>% 
   make_across_df(F_mat, 'cosine') %>% 
-  rename(name1=dim1,name2=dim2) %>% 
+  separate(dim1, c("ref1", "trialNum1","seen1","player1"), convert=T) |> 
+  separate(dim2, c("ref2", "trialNum2", "seen2", "player2"), convert=T) |> 
+ # rename(referent1=dim1,referent2=dim2) %>% 
   mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
-  filter(name1!=name2) %>% 
+  filter(seen1!=seen2) %>% 
+  mutate(earlier=ifelse(trialNum1>trialNum2,trialNum2, trialNum1) |> as.numeric(),
+         later=ifelse(trialNum1>trialNum2, trialNum1,trialNum2) |> as.numeric()) |> 
+  ungroup()
+```
+
+Comparing utterances earlier to post-game descriptions. 
+
+General question of how to display these things -- what should be color v faceting and what to do for the dots. 
+
+```{r}
+to_end|> 
+  mutate(distance=case_when(
+    player1==player2 ~ "Same person",
+    T ~ "same game"),
+        same_flower=ifelse(ref1==ref2, "Same flower", "diff flower")
+) |> 
+ggplot( aes(x=earlier,y=sim,color=condition))+     
+  stat_summary(aes(group=str_c(color,condition), color=condition),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.3, geom="point")+
+  geom_smooth(formula=y~poly(x,2))+facet_grid(same_flower~distance)+theme(legend.position="bottom", legend.title=element_blank())+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        scale_color_brewer(palette="Dark2")
+
+```
+
+##  Within end-stuff
+
+We can look at how converged people are (or are not) by comparing what they say at the end.
+
+Each person was asked for names ( ~ "how would you label this to your group") for the 12 images they were seeing and then for 4 from a different color palette. 
+
+Own = color you saw all game
+
+Other = the color you didn't see
+
+Mixed = own for one person, other for other person
+
+```{r }
+
+# by trial
+in_end <- M_mat %>% 
+  filter(seen %in% c("other", "own")) |> 
+  group_by(color,condition) %>% 
+  mutate(combinedId=str_c(referent, "_",seen,"_", gameId, "_",playerId)) %>% 
+  make_across_df(F_mat, 'cosine') %>% 
+  separate(dim1, c("ref1", "seen1","game1","player1"), convert=T) |> 
+  separate(dim2, c("ref2",  "seen2","game2", "player2"), convert=T) |> 
+ # rename(referent1=dim1,referent2=dim2) %>% 
+  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
   ungroup()
 ```
 
 ```{r}
-ggplot(player_similar, aes(x=quarter,y=sim,color=color))+
-      stat_summary(aes(group=str_c(color,referent), color=color),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.5, geom="point")+geom_smooth(formula=y~poly(x,2))
-```
-### TODO model
-
-# Within end-stuff
-
-```{r}
-sbert_post_test <- read_csv(here(annotation_path,"post_test.csv")) %>% bind_cols(readRDS(here(annotation_path,'post_sbert_post_test.RData')))  %>% as_tibble()
-
-F_mat <- sbert_post_test %>% select(starts_with("...")) %>% as.matrix() #Features
-M_mat <- sbert_post_test %>% select(-starts_with("...")) %>% mutate(feature_ind=row_number(), flower=str_c(color,num))
-```
-
-## Within flower
-```{r}
-
-end_distinctive <- M_mat %>% 
-  group_by(flower, color) %>% 
-  mutate(combinedId=str_c(gameId,"_",seen)) %>% 
-  make_across_df(F_mat, 'cosine') %>% 
-  separate(dim1, c("gameId1", "seen1")) |> 
-  separate(dim2, c("gameId2", "seen2")) |> 
-  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
-  ungroup()
-```
-
-```{r}
-
-end_distinctive |> mutate(same_group=ifelse(gameId1==gameId2, 
-                                            "same_group","different_group"),
-                          same_color=case_when(
+in_end|> 
+  mutate(distance=case_when(
+    player1==player2 ~ "Same person",
+    game1==game2 ~ "same game",
+    T ~ "different game"),
+    same_flower=ifelse(ref1==ref2, "Same flower", "diff flower"),
+    same_color=case_when(
   seen1=="own" & seen2=="own" ~ "own",
   seen2=="other" & seen1=="other" ~ "other",
   T ~"mixed"
-))|> ggplot(aes(group=flower, x=color, y=sim, color=str_c(same_group,same_color)))+     
-  stat_summary(aes(group=str_c(same_group, same_color)),fun.data = "mean_cl_boot", position = position_dodge(width=.3), geom="pointrange")
-
-            
-```
-This is really poorly labelled. Needs stats. 
-### TODO models
-
-## Between flowers
-```{r}
-
-end_between <- M_mat %>% 
-  group_by(color) %>% 
-  mutate(combinedId=str_c(playerId, "_",gameId,"_",seen, "_", flower)) %>% 
-  make_across_df(F_mat, 'cosine') %>% 
-  separate(dim1, c("player1","gameId1", "seen1" ,"flower1")) |> 
-  separate(dim2, c("player2", "gameId2", "seen2", "flower2")) |> 
-  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
-  filter(flower1!=flower2) |> 
-  ungroup()
+  ))|> 
+ggplot( aes(x=same_color,y=sim,color=condition))+     
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width=.3))+
+facet_grid(same_flower~distance)+theme(legend.position="bottom", legend.title=element_blank())+
+        scale_color_brewer(palette="Dark2")
 ```
 
-```{r}
+Not sure how to show spread here. Or how to do a viz that allows for comparisons. 
 
-end_between |> mutate(same_group=case_when(
-  player1==player2 ~ "same_person",
-  gameId1==gameId2 ~ "same_group",
-  T ~ "diferent_group"
-), same_color=case_when(
-  seen1=="own" & seen2=="own" ~ "own",
-  seen2=="other" & seen1=="other" ~ "other",
-  T ~"mixed"
-))|> ggplot(aes(x=color, y=sim, color=str_c(same_group,same_color)))+     
-  stat_summary(aes(group=str_c(same_group, same_color)),fun.data = "mean_cl_boot", position = position_dodge(width=.3), geom="pointrange")+facet_grid(.~same_group)
+Take aways:
 
-            
-```
-### TODO models
+- People use more similar descriptions for two flowers that weren't in their set than those that were (checks out -- in set ones have been described and diverged)
+- This same thing holds (with overall lower sims) for group-mates
+- Group mates are more similar in how they describe flowers they've seen (v not) (at least in shared utils)
+- not sure how to interpret the diff game -- this is the baseline? Maybe it's just that you're more similar for the same flower versus different regardless? (also this is baseline for other panels)
 
+# Future things
 
-# TODO: between game & end-game
+- have we tried log space? 
+- Could do more end game -- earlier comparisons
+- tSNE??
+- Models of (some of ?) what's shown in forgoing graphs
+- CLIP ????
+- clean up end utts? 
+- are there interesting lang -- performance connections ? 
 
-```{r}
+## Boring diligence
+- Double check that non-talkers aren't in this data at all (end game joins). Consider coding and grouping end stuff by what color they usually saw during the game
+- do sbert a different way and confirm (split v aggregate?)
 
-
-d.raw_chat <- read_csv(here(paste(read_data_path, 
-                                  "raw_chat.csv", 
-                                  sep="")),
-                      col_types = cols()) %>% distinct() |> 
-  select(gameId, playerId) |> unique()
-
-d.players <- read_csv(here(paste(read_data_path, "players.csv", sep = "")),
-                      col_types = cols()) %>% distinct() |> select(playerId,name) |> inner_join(d.raw_chat)
-
-sbert_single <- read_csv(here(annotation_path,"pre_sbert.csv")) %>% bind_cols(readRDS(here(annotation_path,'post_sbert.RData')))  %>% as_tibble() |> 
-   left_join(d.players)
-```
-
-```{r to-end-helpers}
-
-#here we only want sims between an in-game utt and an end description
-# note: cor expects features to be in columns so we transpose
-
-pairwiseCosine <- function(matrix1,matrix2) {
-    apply(matrix1,2,function(x){
-        apply(matrix2,2,lsa::cosine,x)
-    })
-}
-get_sim_matrix = function(df, F_mat, method = 'cosine') {
-  df_game <- df |> filter(type=="game")
-  df_end <- df |> filter(type=="end")
-  feats_game = F_mat[df_game$feature_ind,]
-  print(t(feats_game))
-  feats_end = F_mat[df_end$feature_ind,]
-  print(t(feats_end))
-  if(method == 'cor') {
-    return(cor(t(feats_game), t(feats_end), method = 'pearson'))
-  }  else if (method == 'cosine') {
-    return(as.matrix(pairwiseCosine(t(feats_game), t(feats_end))))
-  } else {
-    stop(paste0('unknown method', method))
-  }
-}
-
-# note this does de-duplicated version
-flatten_sim_matrix <- function(cormat, ids_game, ids_end) {
-  data.frame(
-    dim1 = ids_end[row(cormat)],
-    dim2 = ids_game[col(cormat)],
-    sim  = as.numeric(cormat)
-  ) %>%
-    mutate(dim1 = as.character(dim1),
-           dim2 = as.character(dim2))
-}
-
-make_across_df <- function(M_mat, F_mat, method) {
-  M_mat %>%
-    do(flatten_sim_matrix(get_sim_matrix(., F_mat, method = method),
-                          as.character(filter(., type=="game")$combinedId), as.character(filter(., type=="end")$combinedId)))
-}
-
-```
-
-
-** Does not work with grouped data frames, works with non-grouped dfs ** 
-```{r}
-#test
-test_df1 <- tibble(color=c("blue","green"),id=c("game1","game2"), val1=c(.5,.7), val2=c(.9,.4)) |> mutate(type="game")
-test_df2 <- tibble(color=c("blue", "green"),id=c("end1", "end2"), val1=c(1,-1), val2=c(-1,-1)) |> mutate(type="end")
-test <- test_df1 |> union(test_df2) 
-F_mat <- test %>% select(starts_with("val")) %>% as.matrix() #Features
-M_mat <- test%>% select(-starts_with("val")) %>% mutate(feature_ind=row_number(), combinedId=id) |> group_by(color)
-
-
-a <- make_across_df(M_mat, F_mat, method="cosine")
-
-# want there to be one thing that gets grouped (M_mat) and then we separate it by type
-
-sol <- tibble(dim1=c("end1","end2","end1","end2"), 
-              dim2=c("game1", "game1", "game2","game2"),
-              sim=c(lsa::cosine(c(.5,.9),c(1,-1)),
-                    lsa::cosine(c(.5, .9), c(-1,-1)),
-                    lsa::cosine(c(.7,.4),c(1,-1)),
-                    lsa::cosine(c(.7,.4),c(-1,-1))))
-```
-
-# TODO: Correlates of success
-
-# TODO: scale of variation between groups

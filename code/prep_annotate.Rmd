@@ -203,7 +203,7 @@ annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |>
 
 #filter(annotated,referent_good==F)  |> View() # Note: originally 35, caught some errors, one that remains I believe is actually talking about an image from prior round!
 
-#filter(annotated,span_good==F)  |> View() #Note: dowm from more that were incorrectly copied. The ones left are either as a result of duplicate spacing not copying
+#filter(annotated,span_good==F) #Note: dowm from more that were incorrectly copied. The ones left are either as a result of duplicate spacing not copying
 # or intentional when someone wrote description "is my best" continued description
 
 ```
