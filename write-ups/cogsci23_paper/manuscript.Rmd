@@ -1,0 +1,130 @@
+---
+title: "TODO"
+bibliography: [library.bib, aaflowers.bib]
+csl: apa6.csl
+document-params: "10pt, letterpaper"
+
+author-information: > 
+    \author{{\large \bf Morton Ann Gernsbacher (MAG@Macc.Wisc.Edu)} \\ Department of Psychology, 1202 W. Johnson Street \\ Madison, WI 53706 USA
+    \AND {\large \bf Sharon J.~Derry (SDJ@Macc.Wisc.Edu)} \\ Department of Educational Psychology, 1025 W. Johnson Street \\ Madison, WI 53706 USA}
+
+abstract: >
+    TODO
+    
+keywords: >
+    Add your choice of indexing terms or keywords; kindly use a semi-colon; between each term.
+    
+output: cogsci2016::cogsci_paper
+#final-submission: \cogscifinalcopy
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=3, fig.height=3, fig.crop = F, 
+                      fig.pos = "tb", fig.path='figs/',
+                      echo=F, warning=F, cache=F, 
+                      message=F, sanitize = T)
+library(here)
+library(tidyverse)
+library(rstanarm)
+library(rstan)
+library(tidybayes)
+library(viridis)
+library(cowplot)
+#rstan_options(auto_write = TRUE)
+#options(mc.cores = parallel::detectCores())
+#for plotting
+theme_set(theme_bw())
+
+#Data import constants
+date_start=lubridate::ymd('2021-07-19')
+fig_path=here("figs")
+read_data_path <- "data/processed_data/joined_data/"
+annotation_path <- "data/annotations"
+model_path <- "code/models"
+```
+
+TODO introduction
+
+# Methods
+This paper presents a reanalysis of data from @mankewitz2021. We describe both the original data collection and the additional data processing done for reanalysis. 
+
+## Data Acquisition
+@mankewitz2021 had participants play a real-time coordination game in groups of three, implemented using Empirica [@almaatouqEmpiricaVirtualLab2020]. On each trial, each group saw a set of 6 flower images. Each participant could see the values for four of the flowers (represented as a colored bar), such that each flower's value was hidden from one participant. Players could coordinate and discuss using a chat box, and each selected a flower. If one player selected a flower, it was worth the shown reward; if multiple players collided and selected the same flower, they got a low reward instead. Thus, participants were incentivized to coordinate on selecting different flowers. The rewards earned over the course of game translated in a monetary bonus for the participants at the end of the game. 
+
+In *individual utility* games, each player earned points for the flowers they selected; in the *shared utility* games, the points earned were averaged together, and all players in a game got the same reward. This made for slightly different incentives; in an individual game, players want to maximize the rewards of flowers they select, and only care about avoiding collisions with other players' selections; in a shared game, players want their teammates to select different high reward flowers, and are indifferent on who selects the highest one. 
+
+Each game was assigned a color of flower (white, red, yellow, purple) and the flower images were drawn from a set of 12 for that color, so players saw the same flowers repeatedly across the game, in different combinations. Each game consisted of 24 trials. The use of different flowers of the same color was to create a situation where players needed to refer to the images but didn't have preset names for them in the context, and thus would need to collaboratively develop shared referring expressions. 
+
+After the game, players were asked how they would describe each of the images they had played with to their teammates. They were also asked how they would describe each of 4 images from a different color set than the one they had used. 
+
+TODO number of games going into this data -- Mankewitz says 18 indiv and 21 shared 
+
+## Textual annotations
+
+We annotated the chat transcripts to extract all referring expressions and identify which flower image each expression referred to. TODO interannotator agreements. 
+
+We then embedded each of these referring expressions using SBERT cite! in order to compare between referring expressions in semantic space. We use cosine distance between embedding pairs as a measure of similarity between the corresponding referring expressions. 
+
+# Results
+
+## Reduction of referring expressions
+
+## Convergence of referring expressions
+
+## End expressions
+
+# Discussion
+
+
+
+```{r 2-col-image, fig.env = "figure*", fig.pos = "h", fig.width=4, fig.height=2, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "This image spans both columns. And the caption text is limited to 0.8 of the width of the document."}
+#img <- png::readPNG("figs/walrus.png")
+#grid::grid.raster(img)
+```
+
+
+```{r image, fig.env = "figure", fig.pos = "H", fig.align='center', fig.width=2, fig.height=2, set.cap.width=T, num.cols.cap=1, fig.cap = "One column image."}
+#img <- png::readPNG("figs/lab_logo_stanford.png")
+#grid::grid.raster(img)
+```
+
+
+
+```{r plot, fig.env="figure", fig.pos = "H", fig.align = "center", fig.width=2, fig.height=2, fig.cap = "R plot" }
+x <- 0:100
+y <- 2 * (x + rnorm(length(x), sd = 3) + 3)
+
+ggplot2::ggplot(data = data.frame(x, y), 
+                aes(x = x, y = y)) + 
+  geom_point() + 
+  geom_smooth(method = "lm")
+```
+
+
+```{r xtable, results="asis"}
+n <- 100
+x <- rnorm(n)
+y <- 2*x + rnorm(n)
+out <- lm(y ~ x)
+
+tab1 <- xtable::xtable(summary(out)$coef, digits=c(0, 2, 2, 1, 2), 
+                       caption = "This table prints across one column.")
+
+print(tab1, type="latex", comment = F, table.placement = "H")
+```
+
+# Acknowledgements
+
+Place acknowledgments (including funding information) in a section at
+the end of the paper.
+
+# References 
+
+```{r}
+# References will be generated automatically by Pandoc and included here.
+# The following code is some latex to format the bibliography. Do not remove it.
+```
+
+\setlength{\parindent}{-0.1in} 
+\setlength{\leftskip}{0.125in}
+\noindent
