@@ -272,6 +272,12 @@ d.players <- read_csv(here(paste(read_data_path, "players.csv", sep = "")),
 
 ```
 
+```{r}
+end <- read_csv(here(annotation_path,"post_test_annotated.csv")) |> 
+  filter(!is.na(spellchecked)) |> write_csv(here(annotation_path,"post_test_pre_sbert.csv"))
+
+```
+
 ```{r, include=F, eval=F}
 library(reticulate)
 np <- import("numpy")
