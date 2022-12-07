@@ -43,7 +43,7 @@ annotation_path <- "data/annotations"
 model_path <- "code/models"
 ```
 
-TODO introduction
+# introduction
 
 So people often care about reference or whatever. Referring expressions are crucial to interactive use of language so we can know what the interlocuter is talking about. Many goals of conversation rely on joint reference as a part of them -- for instance in order to negotiate, even from an adversarial perspective, you still need to have terms that refer to the same things in order to do the negotiation. Joint reference is a cooperative act, needed for both cooperative and non-cooperative acts. 
 
@@ -83,17 +83,35 @@ TODO number of games going into this data -- Mankewitz says 18 indiv and 21 shar
 
 We annotated the chat transcripts to extract all referring expressions and identify which flower image each expression referred to. We also spellchecked and corrected the referring expressions. Annotations were done primarily by the first author, with some done by a research assistant. A fraction of the games were coded by both to assess interannotator agreement -- on ZZ expressions, there was agreement on YY on what the referring expression was, and on XX out of QQ on which flower was being described.  TODO interannotator agreements. 
 
+We extracted a total of ZZ referring expressions, 
+
 We then embedded each of these referring expressions using SBERT cite! in order to compare between referring expressions in semantic space. We use cosine distance between embedding pairs as a measure of similarity between the corresponding referring expressions. 
 
 # Results
 
+We assess the list of key points given at the beginning. 
+
 ## Reduction of referring expressions
+First thing to check is the key phenomena that over the course of iterated references, the referring expressions get shorter. We see that in Fig ??. Across both conditions, the number of referring words per trial/game decreases, which is driven by a decrease in the length of each referring expression. The number of referring expressions remains constant (although shows a group difference). 
+
+On average, in each trial, ZZ distinct flowers were referred to (this stayed relatively constant) with most trials having 2 or 3 referred to ()
+TODO! double check that this is handling 0s appropriately!!
+Each player usualy referred to one, with a minority referring to 2 or 3. This is consistent with a strategy where players say which flower they are selecting; higher numbers probably involve more coordination and info sharing. 
+
+TODO include model!
 
 ## Convergence of referring expressions
+
 
 ## End expressions
 
 # Discussion
+
+Many of the key reduction findings from tangrams generalize to this situation. Specifically, we see utterance reduction over time and w/i group convergence for each image and divergence between images. This situation is different in that we have different stimuli (more natural) and the set up is collaborative and more free-form in what is talked about. These patterns hold for both the individual and group payoff structures.
+
+One difference we see is that groups don’t diverge (from each other). This may be dependent on stimulus properities (are there universal features of some of the images?) and group dynamics
+
+Conclusion: The key reference game findings have some generalizability. Settings like this one may be useful for encouraging discussion of a set of images and setting up partial knowledge situations.
 
 
 
