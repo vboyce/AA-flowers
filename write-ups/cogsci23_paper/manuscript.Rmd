@@ -1,6 +1,6 @@
 ---
 title: "TODO"
-bibliography: [library.bib, aaflowers.bib]
+bibliography: [ aaflowers.bib]
 csl: apa6.csl
 document-params: "10pt, letterpaper"
 
@@ -25,8 +25,8 @@ knitr::opts_chunk$set(fig.width=3, fig.height=3, fig.crop = F,
                       message=F, sanitize = T)
 library(here)
 library(tidyverse)
-library(rstanarm)
-library(rstan)
+#library(rstanarm)
+#library(rstan)
 library(tidybayes)
 library(viridis)
 library(cowplot)
@@ -45,6 +45,26 @@ model_path <- "code/models"
 
 TODO introduction
 
+So people often care about reference or whatever. Referring expressions are crucial to interactive use of language so we can know what the interlocuter is talking about. Many goals of conversation rely on joint reference as a part of them -- for instance in order to negotiate, even from an adversarial perspective, you still need to have terms that refer to the same things in order to do the negotiation. Joint reference is a cooperative act, needed for both cooperative and non-cooperative acts. 
+
+In some cases joint reference is easy b/c there are conventional meanings of words that refer to the objects. However, this isn't always the case, either because objects are novel and don't have names or because objects are similar to one another and so while they might be nameable out of context, in context there are not conventional names. 
+
+How people develop ad-hoc shared conventional referring expressions for objects without conventional names has primarily been studied in the realm of dyadic reference games. Two participants see a set of images, and the speaker sees a particular one highlighted as the one to pick out next (or they have them in the correct order and the listener needs to reorder theirs to match). This is a task explicitly about referring to the objects that is highly structured. There are assigned roles (one person has all the knowledge) and a clear indication of which one to talk about. Selecting or ordering objects is pretty simple. 
+
+This has been a very useful microcosm for studying referring expressions, expectations about conventions, and what happens with new listeners or speakers. The key phenomena observed across these experiments are that pairs develop partner specific referring expressions -- the utterances produced by the speaker to refer to objects get shorter over repetition, the accuracy-speed trade off improves (? maybe don't mention this b/c it's not what we look at), and the terms that develop are partner specific -- people converge on terms within partnerships, but differ between partnerships on the terms used. 
+
+Implicitly, these features are thought to be about how referring expressions develop across some wider range of situations where people interact repeatedly in ways that need reference to some objects that do not already have conventional names that are sufficient for reference. Basically it needs to be a situation where people don't at the outset have a high degree of agreement on how to refer to the thing. 
+
+Needs more transition here. 
+
+@mankewitz2021 tried to bridge the gap between datasets of negotiation (like let's make a deal?) where there is negotiation over easily nameable objects, and the reference game literature where there is reference (but no negotiation) to hard to name objects. They created a 3 person game where players had to select what flowers to grow from a set of 6 shown on the screen. The values of the flowers were partially hidden, and flowers were all the same color (but different shapes/species). Each player could select a flower, but it was only worth the shown value if one player selected it; if multiple did, they got a much lower reward. Flower images repeated across the game. @mankewitz intended this set-up so that players would need to refer the flowers in order to negotiate who would take what, but in a context where there wasn't a flower to talk about and there wasn't a designated speaker. They also had two conditions, one where players within a group won points together (and thus had fully aligned incentives) and another where they won points as individuals (and didn't). The paper found .... a slight decrease in language over the course of hte game, possibly consistent with reduced referring expressions, but also consistent with developing a negotiation pattern. 
+
+This builds on the ref game literature in a few dimensions. The key difference is the more free-form format where reference is implicitly motivated by the task, rather than being an explicit part of the task, and the equal positions of the players (each has the same amount of knowledge) rather than an asymmetric teacher/student. Other differences include that the images are natural photos, which has been used in ref games (CITE that management paper), but is not the typical and the presence of more than two participants (which is done, but not modal, citations!). 
+
+Here we extract the referring expressions from the chat logs of @mankewitz in order to look at reduction as well as semantic trends. We see whether the phenomena found in classic dyadic iterated reference games extend to this more naturalistic domain, and whether they differ across the individual and shared incentive conditions. 
+
+TODO list of key points. 
+
 # Methods
 This paper presents a reanalysis of data from @mankewitz2021. We describe both the original data collection and the additional data processing done for reanalysis. 
 
@@ -61,7 +81,7 @@ TODO number of games going into this data -- Mankewitz says 18 indiv and 21 shar
 
 ## Textual annotations
 
-We annotated the chat transcripts to extract all referring expressions and identify which flower image each expression referred to. TODO interannotator agreements. 
+We annotated the chat transcripts to extract all referring expressions and identify which flower image each expression referred to. We also spellchecked and corrected the referring expressions. Annotations were done primarily by the first author, with some done by a research assistant. A fraction of the games were coded by both to assess interannotator agreement -- on ZZ expressions, there was agreement on YY on what the referring expression was, and on XX out of QQ on which flower was being described.  TODO interannotator agreements. 
 
 We then embedded each of these referring expressions using SBERT cite! in order to compare between referring expressions in semantic space. We use cosine distance between embedding pairs as a measure of similarity between the corresponding referring expressions. 
 
