@@ -89,23 +89,50 @@ Key points:
 # Prep 
 
 ```{r}
-d.games <- read_csv(here(paste(read_data_path, "games.csv", sep = "")),
-                      col_types = cols()) %>% distinct() |> 
-    mutate(conditionName = condition, 
+d.games <- read_csv(here(read_data_path, "games.csv")) |> 
+                        mutate(conditionName = condition, 
          condition = case_when(conditionName == "coopMulti" ~ "Shared Utilities",
                                conditionName == "competCartel" ~ "Individual Utilities",
                                conditionName == "coopCartel" ~ "Old Cooperative",
                                TRUE ~ conditionName)) |> 
+  filter(chatEnabled) |> 
   select(gameId,conditionName, condition)
 
+n_players = 3
+n_rounds = 24
+
+d.rounds <- read_csv(here(read_data_path,"rounds.csv"))
+d.players <- read_csv(here(read_data_path, "players.csv")) |> select(playerId,name)
+game_completion <- d.rounds %>% 
+  group_by(gameId) %>% 
+  tally() %>% 
+  mutate(game_complete = n==n_players*n_rounds) %>%
+  select(gameId, game_complete)
+
+d.games.final <- d.games %>% 
+  left_join(game_completion) %>% 
+  replace_na(list(game_complete = FALSE, n_trials = 0)) |> 
+  filter(game_complete)
+
+d.rounds.final <-  d.rounds %>% 
+  inner_join(d.games.final) %>% 
+  filter(conditionName != "coopCartel",
+         game_complete) |> 
+  left_join(d.players) |> 
+  #left_join(d.games) |> 
+  select(gameId,trialNum, name, condition)
+
+
 annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |> 
-  filter(!is.na(span)) |> 
+  filter(!is.na(normalized_span)) |> 
+  inner_join(d.games.final) |> 
   mutate(numchar=str_length(span),
-         numword=str_count(span, "\\W+") + 1) |> 
-  left_join(d.games) |> 
+         numword=ifelse(numchar==0,0,str_count(span, "\\W+") + 1)) |> 
   mutate(flower=str_c(referent,color),
          player=str_c(gameId, name)) |> 
-  select(gameId, player, flower, trialNum, pResp, normalized_span,color,numchar, numword, condition)
+  select(gameId, player,name, flower, trialNum, pResp, normalized_span,color,numchar, numword, condition)
+
+
 ```
 
 # How much data
@@ -113,14 +140,14 @@ annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |>
 ```{r, message=T}
 
 message("total utterances")
-annotated |> tally()
+annotated |> filter(numword>0) |>  tally()
 
 message("Utterances / game")
 
-annotated |> group_by(gameId,condition) |> tally() |> pull(n) |> summary()
+annotated |> filter(numword>0) |> group_by(gameId,condition) |> tally() |> pull(n) |> summary()
 
 message("Utterances / flower")
-annotated |> group_by(flower) |> tally() |> pull(n) |> summary()
+annotated |> filter(numword>0) |> group_by(flower) |> tally() |> pull(n) |> summary()
 
 ```
 
@@ -133,7 +160,7 @@ Graph could use finessing if going in paper.
 
 ```{r, fig.height=4, fig.width=8}
 
-sum_words <- annotated %>% group_by(trialNum, gameId,condition) %>% summarize(sum_char=sum(numchar),
+sum_words <- annotated %>% filter(numword>0) |>  group_by(trialNum, gameId,condition) %>% summarize(sum_char=sum(numchar),
                                            sum_word=sum(numword))
   
      total <-  ggplot(sum_words,aes(x=trialNum+1,y=sum_word, color=condition))+
@@ -150,13 +177,13 @@ sum_words <- annotated %>% group_by(trialNum, gameId,condition) %>% summarize(su
     
     all_words <- total+theme(legend.position = "none") 
       
-        words <- ggplot(annotated,aes(x=trialNum,y=numword, color=condition))+geom_jitter(alpha=.1)+ geom_smooth()+
+        words <- ggplot(annotated |> filter(numword>0),aes(x=trialNum,y=numword, color=condition))+geom_jitter(alpha=.1)+ geom_smooth()+
           labs(y="Words per reference expression", x="Trial Number")+
         theme(legend.position="none", legend.title=element_blank())+
         scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
         scale_color_brewer(palette="Dark2")
         
-        utts <- annotated |> group_by(gameId, trialNum, condition) |> tally() |> 
+        utts <- annotated |> filter(numword>0) |> group_by(gameId, trialNum, condition) |> tally() |> 
   ggplot(aes(x=trialNum, y=n, color=condition))+geom_jitter(alpha=.02)+geom_smooth()+
           labs(y="Reference expressions  per trial per game", x="Trial Number")+
         theme(legend.position="none", legend.title=element_blank())+
@@ -175,8 +202,10 @@ We can probably give this as summary stats and not as graph
 Per game
 
 ```{r}
+possible <- d.rounds.final |> select(-name) |> unique()
 
-annotated |> group_by(gameId, trialNum, condition) |> select(flower) |> unique() |> tally() |> 
+annotated |> group_by(gameId, trialNum, condition) |> select(flower) |> unique() |> tally() |> full_join(possible) |> 
+  mutate(n=ifelse(is.na(n),0,n)) |> 
   ggplot(aes(x=trialNum, y=n, color=condition))+geom_jitter(height=.25, alpha=.2)+geom_smooth()+
           labs(y="Distinct flowers referenced per trial", x="Trial Number")+
         theme(legend.position="none", legend.title=element_blank())+
@@ -187,7 +216,10 @@ annotated |> group_by(gameId, trialNum, condition) |> select(flower) |> unique()
 Per person
 
 ```{r}
-annotated |> group_by(gameId, trialNum, condition, player) |> select(flower) |> unique() |> tally() |> 
+
+annotated |> group_by(gameId, trialNum, condition, player, name) |> select(flower) |> unique() |> tally() |> full_join(d.rounds.final) |> 
+  mutate(n=ifelse(is.na(n),0,n)) |> 
+
   ggplot(aes(x=trialNum, y=n, color=condition))+geom_jitter(height=.25, alpha=.1)+geom_smooth()+
           labs(y="Distinct flowers referenced per player per trial", x="Trial Number")+
         theme(legend.position="none", legend.title=element_blank())+
@@ -222,14 +254,6 @@ Some pre-commentary on analytic choices:
 
 
 ```{r, include=F,}
-d.games <- read_csv(here(paste(read_data_path, "games.csv", sep = "")),
-                      col_types = cols()) %>% distinct() |> 
-    mutate(conditionName = condition, 
-         condition = case_when(conditionName == "coopMulti" ~ "Shared Utilities",
-                               conditionName == "competCartel" ~ "Individual Utilities",
-                               conditionName == "coopCartel" ~ "Old Cooperative",
-                               TRUE ~ conditionName)) |> 
-  select(gameId,conditionName, condition)
 
  d.raw_chat <- read_csv(here(paste(read_data_path, 
                                    "raw_chat.csv", 
@@ -241,17 +265,18 @@ d.games <- read_csv(here(paste(read_data_path, "games.csv", sep = "")),
                        col_types = cols()) %>% distinct() |> select(playerId,name) |> inner_join(d.raw_chat)
 
  sbert_single <- read_csv(here(annotation_path,"pre_sbert.csv"))|> 
-    left_join(d.players) |> left_join(d.games) |> mutate(seen="game") |> 
-   select(playerId, gameId, condition, text=normalized_span,referent, color, trialNum, seen) %>% bind_cols(readRDS(here(annotation_path,'post_sbert.RData')))  %>% as_tibble() 
+    left_join(d.players) |> left_join(d.games.final) |> mutate(seen="game") |> 
+   select(playerId, gameId, condition, text=normalized_span,referent, color, trialNum, seen) |> bind_cols(readRDS(here(annotation_path,'post_sbert.RData'))  %>% as_tibble())
 
-sbert_post_test <- read_csv(here(annotation_path,"post_test.csv")) |> left_join(d.games) |> 
+sbert_post_test <- read_csv(here(annotation_path,"post_test_pre_sbert.csv")) |> 
   mutate(trialNum=25) |> 
-  select(playerId, gameId, condition, text,referent=num, color, trialNum, seen)%>% bind_cols(readRDS(here(annotation_path,'post_sbert_post_test.RData')))  %>% as_tibble()
+ bind_cols(readRDS(here(annotation_path,'post_sbert_post_test.RData'))  %>% as_tibble()) |> inner_join(d.games) |> 
+   select(playerId, gameId, condition, text,referent=num, color, trialNum, seen, starts_with("V"))
 
 sbert_all <- sbert_single |> union(sbert_post_test)
 F_mat <- sbert_all %>% select(starts_with("...")) %>% as.matrix() #Features
 M_mat <- sbert_all %>% 
-  select(-starts_with("...")) %>% 
+  select(-starts_with("V")) %>% 
   mutate(feature_ind=row_number(),
          sixth=case_when(
            trialNum < 4 ~ 1,
