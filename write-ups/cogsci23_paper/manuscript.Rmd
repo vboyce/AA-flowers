@@ -30,6 +30,7 @@ library(tidyverse)
 library(tidybayes)
 library(viridis)
 library(cowplot)
+library(lsa)
 #rstan_options(auto_write = TRUE)
 #options(mc.cores = parallel::detectCores())
 #for plotting
@@ -41,6 +42,61 @@ fig_path=here("figs")
 read_data_path <- "data/processed_data/joined_data/"
 annotation_path <- "data/annotations"
 model_path <- "code/models"
+
+stats <- function(model, row){
+  str_c(model[row,1],": Est=", model[row,2], ", CrI=", model[row,3])
+}
+
+stats_text  <- function(model, row){
+  str_c( model[row,2], " (CrI=", model[row,3],")")
+}
+```
+
+```{r}
+d.games <- read_csv(here(read_data_path, "games.csv")) |> 
+                        mutate(conditionName = condition, 
+         condition = case_when(conditionName == "coopMulti" ~ "Shared Utilities",
+                               conditionName == "competCartel" ~ "Individual Utilities",
+                               conditionName == "coopCartel" ~ "Old Cooperative",
+                               TRUE ~ conditionName)) |> 
+  filter(chatEnabled) |> 
+  select(gameId,conditionName, condition)
+
+n_players = 3
+n_rounds = 24
+
+d.rounds <- read_csv(here(read_data_path,"rounds.csv"))
+d.players <- read_csv(here(read_data_path, "players.csv")) |> select(playerId,name)
+game_completion <- d.rounds %>% 
+  group_by(gameId) %>% 
+  tally() %>% 
+  mutate(game_complete = n==n_players*n_rounds) %>%
+  select(gameId, game_complete)
+
+d.games.final <- d.games %>% 
+  left_join(game_completion) %>% 
+  replace_na(list(game_complete = FALSE, n_trials = 0)) |> 
+  filter(game_complete)
+
+d.rounds.final <-  d.rounds %>% 
+  inner_join(d.games.final) %>% 
+  filter(conditionName != "coopCartel",
+         game_complete) |> 
+  left_join(d.players) |> 
+  #left_join(d.games) |> 
+  select(gameId,trialNum, name, condition)
+
+
+annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |> 
+  filter(!is.na(normalized_span)) |> 
+  inner_join(d.games.final) |> 
+  mutate(numchar=str_length(span),
+         numword=ifelse(numchar==0,0,str_count(span, "\\W+") + 1)) |> 
+  mutate(flower=str_c(referent,color),
+         player=str_c(gameId, name)) |> 
+  select(gameId, player,name, flower, trialNum, pResp, normalized_span,color,numchar, numword, condition)
+
+
 ```
 
 # introduction
@@ -66,6 +122,9 @@ Here we extract the referring expressions from the chat logs of @mankewitz in or
 TODO list of key points. 
 
 # Methods
+
+TODO do methods get pictures? 
+
 This paper presents a reanalysis of data from @mankewitz2021. We describe both the original data collection and the additional data processing done for reanalysis. 
 
 ## Data Acquisition
@@ -77,13 +136,42 @@ Each game was assigned a color of flower (white, red, yellow, purple) and the fl
 
 After the game, players were asked how they would describe each of the images they had played with to their teammates. They were also asked how they would describe each of 4 images from a different color set than the one they had used. 
 
-TODO number of games going into this data -- Mankewitz says 18 indiv and 21 shared 
+Following @Mankewitz2021 we only included games where players finished all 24 trials in the game. We only included games where participants had access ot the chat box (@Mankewitz2021 also had a no-chat baseline condition). This left us with `r d.games.final |> filter(condition=="Individual Utilities") |> nrow()` games in the Individual Utilities condition and `r d.games.final |> filter(condition=="Shared Utilities") |> nrow()` in the Shared Utilities Condition. 
 
 ## Textual annotations
 
-We annotated the chat transcripts to extract all referring expressions and identify which flower image each expression referred to. We also spellchecked and corrected the referring expressions. Annotations were done primarily by the first author, with some done by a research assistant. A fraction of the games were coded by both to assess interannotator agreement -- on ZZ expressions, there was agreement on YY on what the referring expression was, and on XX out of QQ on which flower was being described.  TODO interannotator agreements. 
+```{r, include=F}
+vb <- read_csv(here(annotation_path, "vb_agreement.csv")) %>% rename(vb_span=span,vb_referent=referent) %>% 
+  mutate(vb_span=ifelse(str_starts(vb_span, "the "), str_sub(vb_span, 5, -1), vb_span)) %>% 
+  mutate(row=row_number())
+bl <- read_csv(here(annotation_path, "bl_agreement.csv")) %>% rename(bl_span=span,bl_referent=referent) %>% 
+  mutate(bl_span=str_sub(bl_span, 2,-2)) %>% #remove quote marks
+  mutate(row=row_number())
 
-We extracted a total of ZZ referring expressions, 
+both <- vb %>% full_join(bl) %>% 
+  mutate(same_span=ifelse(vb_span==bl_span, 1,0),
+         same_ref=ifelse(vb_referent==bl_referent, 1,0)) %>% 
+  select(text,vb_span, bl_span, vb_referent,bl_referent, same_span, same_ref) |> 
+  filter(!(is.na(vb_span)&is.na(bl_span)))
+
+raw_rows <- vb |> select(text) |> nrow()
+vb |> select(gameId) |> unique() |> nrow()
+
+
+agree_span <- both %>% group_by(same_span) |> tally() |> filter(same_span==1) |> pluck(2)
+
+
+count <- both %>% filter(!is.na(bl_referent))
+
+agree_target <- count |> group_by(same_ref) %>% tally() |> filter(same_ref==1) |> pluck(2)
+
+```
+
+We annotated the chat transcripts to extract all referring expressions and identify which flower image each expression referred to. We also spellchecked and corrected the referring expressions. Annotations were done primarily by the first author, with some done by a research assistant. 
+
+Two games consisting of `r raw_rows` utterances were annotated by both annotators.  `r nrow(both)` utterances were identified as containing reference expressions by at least one annotator; of these annotators agreed on the exact reference expression for `r agree_span` (`r round(agree_span/nrow(both)*100)`%) of the cases. The second annotator coded the target of the referring expression for `r nrow(count)` of the utterances. Of these, the two annotators agreed on the target in `r agree_target` (`r round(agree_target/nrow(count)*100)`%) of cases. We take this high level of interannotator agreement as an indication that the reference spans and targets were identified in a reliable way. 
+
+We extracted a total of `r annotated |> filter(numword>0) |>  tally()` referring expressions. 
 
 We then embedded each of these referring expressions using SBERT cite! in order to compare between referring expressions in semantic space. We use cosine distance between embedding pairs as a measure of similarity between the corresponding referring expressions. 
 
@@ -92,15 +180,171 @@ We then embedded each of these referring expressions using SBERT cite! in order 
 We assess the list of key points given at the beginning. 
 
 ## Reduction of referring expressions
-First thing to check is the key phenomena that over the course of iterated references, the referring expressions get shorter. We see that in Fig ??. Across both conditions, the number of referring words per trial/game decreases, which is driven by a decrease in the length of each referring expression. The number of referring expressions remains constant (although shows a group difference). 
+```{r wordcount, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Amount of words produced in referring expressions across trial in games in both conditions. A: Total words of referring language per game per trial. B: Words in each reference expression by trial. C: Total number of reference expressions per game per trial.", fig.height=2, fig.width=7}
 
-On average, in each trial, ZZ distinct flowers were referred to (this stayed relatively constant) with most trials having 2 or 3 referred to ()
-TODO! double check that this is handling 0s appropriately!!
-Each player usualy referred to one, with a minority referring to 2 or 3. This is consistent with a strategy where players say which flower they are selecting; higher numbers probably involve more coordination and info sharing. 
+possible <- d.rounds.final |> select(-name) |> unique()
+
+sum_words <- annotated %>% filter(numword>0) |>  group_by(trialNum, gameId,condition) %>% summarize(sum_char=sum(numchar),
+                                           sum_word=sum(numword)) |> full_join(possible) |> 
+  mutate(sum_char=ifelse(is.na(sum_char),0,sum_char),
+         sum_word=ifelse(is.na(sum_word),0,sum_word))
+  
+     total <-  ggplot(sum_words,aes(x=trialNum+1,y=sum_word, color=condition))+
+   # geom_smooth(method="lm", se=T)+
+            geom_smooth(method="lm", formula=y~poly(x,2), se=T)+
+
+        geom_jitter(alpha=.05, width=.2, height=.5)+
+        labs(y="Words in reference \n expressions per trial", x="Trial Number", color="")+
+        theme(legend.position="bottom", legend.title=element_blank(), axis.title = element_text(size=8))+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        scale_color_brewer(palette="Dark2")+
+        guides(color = guide_legend(override.aes = list(linetype = NA, alpha=1, fill=NA, size=5) ) )
+
+
+    legend <- get_legend(total)
+    
+    all_words <- total+theme(legend.position = "none") 
+      
+        words <- ggplot(annotated |> filter(numword>0),aes(x=trialNum,y=numword, color=condition))+geom_jitter(alpha=.01)+ geom_smooth()+
+          labs(y="Words per reference", x="Trial Number")+
+        theme(legend.position="none", legend.title=element_blank(), axis.title = element_text(size=8))+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        scale_color_brewer(palette="Dark2")
+        
+        utts <- annotated |> filter(numword>0) |>
+          group_by(gameId, trialNum, condition) |> tally() |> full_join(possible) |> 
+          mutate(n=ifelse(is.na(n),0,n)) |> 
+  ggplot(aes(x=trialNum, y=n, color=condition))+geom_jitter(alpha=.05)+geom_smooth()+
+          labs(y="References per trial", x="Trial Number")+
+        theme(legend.position="none", legend.title=element_blank(), axis.title = element_text(size=8))+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        scale_color_brewer(palette="Dark2")
+        
+        top <- plot_grid(all_words, words, utts,nrow=1, labels="AUTO")
+        plot_grid(top, legend, nrow=2, rel_heights=c(1,.15))
+
+```
+
+```{r}
+possible <- d.rounds.final |> select(-name) |> unique()
+
+per_game <-  annotated |> group_by(gameId, trialNum, condition) |> select(flower) |> unique() |> tally() |> full_join(possible) |> 
+  mutate(n=ifelse(is.na(n),0,n)) 
+
+mean_flowers <- per_game |> group_by(condition) |> summarize(mean=mean(n) |> round(2), sd=sd(n) |> round(2), summ=str_c(mean," (sd: ",sd,")")) |> 
+  select(condition, summ)
+
+per_person <- annotated |> group_by(gameId, trialNum, condition, player, name) |> select(flower) |> unique() |> tally() |> full_join(d.rounds.final) |> 
+  mutate(n=ifelse(is.na(n),0,n))
+mean_person <- per_person |> group_by(condition) |> summarize(mean=mean(n) |> round(2), sd=sd(n) |> round(2), summ=str_c(mean," (sd: ",sd,")")) |> 
+  select(condition, summ)
+```
+Consistent with the results from dyadic iterated reference games, the amount of referring language decreases over the course of the game. As shown in Fig @ref(fig:wordcount)A, the number of words of referring language decreases across the game in both conditions. This is due to the individual referring expressions getting shorter (@ref(fig:wordcount)B), while the total number of referring epxressions remains that same (@ref(fig:wordcount)C). 
 
 TODO include model!
 
+Another coarse metric for how referring expressions are being produced is to look at how many different flowers are talked about each round. There are 6 visible on the screen, and participants are incentivized to each pick a different one. In general, each trial contained references to 2 or 3 distinct flowers (Individual Utilities: mean of `r  mean_flowers |> pluck(2,1)`, Shared Utilities: `r mean_flowers |> pluck(2,2)`). Most players referred to one flower each round (Individual Utilities: `r  mean_person |> pluck(2,1)`, Shared Utilities: `r mean_person |> pluck(2,2)`). 
+
+This pattern is consistent with each person saying what flower they plan on choosing; some games talked less than this, and others talked more as players queried the worths of various flowers or confirmed the plan of who would pick what. 
+
+
 ## Convergence of referring expressions
+```{r, include=F,}
+
+ d.raw_chat <- read_csv(here(paste(read_data_path, 
+                                   "raw_chat.csv", 
+                                   sep="")),
+                       col_types = cols()) %>% distinct() |> 
+   select(gameId, playerId) |> unique()
+ 
+ d.players <- read_csv(here(paste(read_data_path, "players.csv", sep = "")),
+                       col_types = cols()) %>% distinct() |> select(playerId,name) |> inner_join(d.raw_chat)
+
+ sbert_single <- read_csv(here(annotation_path,"pre_sbert.csv"))|> 
+    left_join(d.players) |> left_join(d.games.final) |> mutate(seen="game") |> 
+   select(playerId, gameId, condition, text=normalized_span,referent, color, trialNum, seen) |> bind_cols(readRDS(here(annotation_path,'post_sbert.RData'))  %>% as_tibble())
+
+sbert_post_test <- read_csv(here(annotation_path,"post_test_pre_sbert.csv")) |> 
+  mutate(trialNum=25) |> 
+ bind_cols(readRDS(here(annotation_path,'post_sbert_post_test.RData'))  %>% as_tibble()) |> inner_join(d.games) |> 
+   select(playerId, gameId, condition, text,referent=num, color, trialNum, seen, starts_with("V"))
+
+sbert_all <- sbert_single |> union(sbert_post_test)
+F_mat <- sbert_all %>% select(starts_with("V")) %>% as.matrix() #Features
+M_mat <- sbert_all %>% 
+  select(-starts_with("V")) %>% 
+  mutate(feature_ind=row_number())
+```
+
+```{r helpers}
+# note: cor expects features to be in columns so we transpose
+get_sim_matrix = function(df, F_mat, method = 'cosine') {
+  feats = F_mat[df$feature_ind,]
+  if(method == 'cor') {
+    return(cor(t(feats), method = 'pearson'))
+  } else if (method == 'euclidean') {
+    return(as.matrix(dist(feats, method = 'euclidean')))
+  } else if (method == 'cosine') {
+    return(as.matrix(lsa::cosine(t(feats))))
+  } else {
+    stop(paste0('unknown method', method))
+  }
+}
+
+# note this does de-duplicated version
+flatten_sim_matrix <- function(cormat, ids) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    dim1 = ids[row(cormat)[ut]],
+    dim2 = ids[col(cormat)[ut]],
+    sim  = as.numeric(cormat[ut])
+  ) %>%
+    mutate(dim1 = as.character(dim1),
+           dim2 = as.character(dim2))
+}
+
+make_across_df <- function(M_mat, F_mat, method) {
+  M_mat %>%
+    do(flatten_sim_matrix(get_sim_matrix(., F_mat, method = method),
+                          as.character(.$combinedId)))
+}
+```
+
+
+```{r, cache=T}
+
+# by trial
+flower_all <- M_mat %>% 
+  filter(seen %in% c("game")) |> 
+  group_by(color,condition) %>% 
+  mutate(combinedId=str_c(referent,"_", trialNum, "_",gameId,"_",playerId)) %>% 
+  make_across_df(F_mat, 'cosine') %>% 
+  separate(dim1, c("ref1", "trialNum1","game1","player1"), convert=T) |> 
+  separate(dim2, c("ref2", "trialNum2", "game2", "player2"), convert=T) |> 
+ # rename(referent1=dim1,referent2=dim2) %>% 
+  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
+  #filter(ref1!=ref2) %>% 
+  mutate(earlier=ifelse(trialNum1>trialNum2,trialNum2, trialNum1) |> as.numeric(),
+         later=ifelse(trialNum1>trialNum2, trialNum1,trialNum2) |> as.numeric()) |> 
+  ungroup()
+```
+
+```{r during, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Amount of words produced in referring expressions across trial in games in both conditions. A: Total words of referring language per game per trial. B: Words in each reference expression by trial. C: Total number of reference expressions per game per trial.", fig.height=6, fig.width=7}
+flower_all|> 
+  filter(later-earlier<3) |> 
+  mutate(distance=case_when(
+    player1==player2 ~ "Same person",
+    game1==game2 ~ "same game",
+    T ~ "different game"),
+    same_flower=ifelse(ref1==ref2, "Same flower", "diff flower")
+  ) |> 
+ggplot( aes(x=later,y=sim,color=condition))+     
+  stat_summary(aes(group=str_c(color,condition), color=condition),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.3, geom="point")+
+  geom_smooth(formula=y~poly(x,2))+facet_grid(same_flower~distance)+theme(legend.position="bottom", legend.title=element_blank())+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        scale_color_brewer(palette="Dark2")
+
+```
 
 
 ## End expressions

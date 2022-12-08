@@ -13,7 +13,7 @@ knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"))
 
 library(here)
 library(tidyverse)
-library(rstanarm)
+#library(rstanarm)
 library(rstan)
 library(tidybayes)
 library(viridis)
@@ -158,10 +158,16 @@ Take away -- across the condition manipulation, the number of utterances doesn't
 
 Graph could use finessing if going in paper. 
 
+
+
 ```{r, fig.height=4, fig.width=8}
 
+possible <- d.rounds.final |> select(-name) |> unique()
+
 sum_words <- annotated %>% filter(numword>0) |>  group_by(trialNum, gameId,condition) %>% summarize(sum_char=sum(numchar),
-                                           sum_word=sum(numword))
+                                           sum_word=sum(numword)) |> full_join(possible) |> 
+  mutate(sum_char=ifelse(is.na(sum_char),0,sum_char),
+         sum_word=ifelse(is.na(sum_word),0,sum_word))
   
      total <-  ggplot(sum_words,aes(x=trialNum+1,y=sum_word, color=condition))+
    # geom_smooth(method="lm", se=T)+
@@ -183,8 +189,10 @@ sum_words <- annotated %>% filter(numword>0) |>  group_by(trialNum, gameId,condi
         scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
         scale_color_brewer(palette="Dark2")
         
-        utts <- annotated |> filter(numword>0) |> group_by(gameId, trialNum, condition) |> tally() |> 
-  ggplot(aes(x=trialNum, y=n, color=condition))+geom_jitter(alpha=.02)+geom_smooth()+
+        utts <- annotated |> filter(numword>0) |>
+          group_by(gameId, trialNum, condition) |> tally() |> full_join(possible) |> 
+          mutate(n=ifelse(is.na(n),0,n)) |> 
+  ggplot(aes(x=trialNum, y=n, color=condition))+geom_jitter(alpha=.05)+geom_smooth()+
           labs(y="Reference expressions  per trial per game", x="Trial Number")+
         theme(legend.position="none", legend.title=element_blank())+
         scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
@@ -213,6 +221,25 @@ annotated |> group_by(gameId, trialNum, condition) |> select(flower) |> unique()
         scale_color_brewer(palette="Dark2")
 ```
 
+```{r}
+possible <- d.rounds.final |> select(-name) |> unique()
+
+per_game <-  annotated |> group_by(gameId, trialNum, condition) |> select(flower) |> unique() |> tally() |> full_join(possible) |> 
+  mutate(n=ifelse(is.na(n),0,n)) 
+
+mean_flowers <- per_game |> group_by(condition) |> summarize(mean=mean(n))
+
+per_game |> group_by(condition, n) |> tally() |> rename("Distinct flowers"=n, Trials=nn) |> 
+  pivot_wider(names_from=condition, values_from=Trials)
+
+per_person <- annotated |> group_by(gameId, trialNum, condition, player, name) |> select(flower) |> unique() |> tally() |> full_join(d.rounds.final) |> 
+  mutate(n=ifelse(is.na(n),0,n))
+
+mean_person <- per_person |> group_by(condition) |> summarize(mean=mean(n))
+
+per_person |> group_by(condition, n) |> tally() |> rename("Distinct flowers"=n, Trials=nn) |> 
+  pivot_wider(names_from=condition, values_from=Trials)
+```
 Per person
 
 ```{r}
@@ -238,7 +265,7 @@ m1 <- stan_lmer(numword ~ trialNum + condition + (1|gameId)+ (1|player)+(1|flowe
 
 ```
 
-```{r}
+```{r, eval=F, include=F}
 m1 <- read_rds(here(model_path,"m1.rds"))
 m1
 #prior_summary(m1)
@@ -274,19 +301,10 @@ sbert_post_test <- read_csv(here(annotation_path,"post_test_pre_sbert.csv")) |>
    select(playerId, gameId, condition, text,referent=num, color, trialNum, seen, starts_with("V"))
 
 sbert_all <- sbert_single |> union(sbert_post_test)
-F_mat <- sbert_all %>% select(starts_with("...")) %>% as.matrix() #Features
+F_mat <- sbert_all %>% select(starts_with("V")) %>% as.matrix() #Features
 M_mat <- sbert_all %>% 
   select(-starts_with("V")) %>% 
-  mutate(feature_ind=row_number(),
-         sixth=case_when(
-           trialNum < 4 ~ 1,
-          trialNum < 8 ~ 2,
-          trialNum < 12 ~ 3,
-          trialNum < 16 ~ 4,
-          trialNum < 20 ~ 5,
-          trialNum < 24 ~ 6,
-          trialNum > 24 ~ 7
-  ))
+  mutate(feature_ind=row_number())
 ```
 
 
@@ -330,14 +348,14 @@ These have quadratic smooths fit onto them, to allow for curvature, but no reaso
 
 ## During game
 
-```{r }
+```{r}
 
 # by trial
 flower_all <- M_mat %>% 
   filter(seen %in% c("game")) |> 
   group_by(color,condition) %>% 
-  mutate(combinedId=str_c(referent,"_", trialNum, "_",gameId,"_",playerId)) %>% 
-  make_across_df(F_mat, 'cosine') %>% 
+  mutate(combinedId=str_c(referent,"_", trialNum, "_",gameId,"_",playerId))
+  make_across_df(F_mat, 'cosine') 
   separate(dim1, c("ref1", "trialNum1","game1","player1"), convert=T) |> 
   separate(dim2, c("ref2", "trialNum2", "game2", "player2"), convert=T) |> 
  # rename(referent1=dim1,referent2=dim2) %>% 
