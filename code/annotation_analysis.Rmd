@@ -13,7 +13,7 @@ knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"))
 
 library(here)
 library(tidyverse)
-#library(rstanarm)
+library(rstanarm)
 library(rstan)
 library(tidybayes)
 library(viridis)
@@ -31,7 +31,7 @@ model_path <- "code/models"
 
 show_summary_rstan <- function(model){
   badlist <- c("accept_stat__","divergent__","energy__","n_leapfrog__","sigma", "stepsize__","treedepth__")
-  intervals <- gather_draws(model, `[a-zA-z_()]+`, regex=TRUE) |> mean_qi() |> filter(!.variable %in% badlist) |> 
+  intervals <- gather_draws(model, `[a-zA-z_(): ]+`, regex=TRUE) |> mean_qi() |> filter(!.variable %in% badlist) |> 
     mutate(lower=round(.lower, digits=2),
            upper=round(.upper, digits=2),
            `Credible Interval`=str_c("[",lower,", ", upper,"]"),
@@ -262,15 +262,16 @@ annotated |> group_by(gameId, trialNum, condition, player, name) |> select(flowe
 ```{r,eval=F, include=F}
 
 m1 <- stan_lmer(numword ~ trialNum + condition + (1|gameId)+ (1|player)+(1|flower), data=annotated) |> write_rds(here(model_path,"m1.rds"))
-
+show_summary_rstan(m1) |> write_rds(here(model_path,"word_model.rds"))
 ```
 
 ```{r, eval=F, include=F}
 m1 <- read_rds(here(model_path,"m1.rds"))
 m1
-#prior_summary(m1)
-show_summary_rstan(m1)
+
 ```
+
+
 
 # Sbert notes
 
@@ -354,8 +355,8 @@ These have quadratic smooths fit onto them, to allow for curvature, but no reaso
 flower_all <- M_mat %>% 
   filter(seen %in% c("game")) |> 
   group_by(color,condition) %>% 
-  mutate(combinedId=str_c(referent,"_", trialNum, "_",gameId,"_",playerId))
-  make_across_df(F_mat, 'cosine') 
+  mutate(combinedId=str_c(referent,"_", trialNum, "_",gameId,"_",playerId)) |> 
+  make_across_df(F_mat, 'cosine') |> 
   separate(dim1, c("ref1", "trialNum1","game1","player1"), convert=T) |> 
   separate(dim2, c("ref2", "trialNum2", "game2", "player2"), convert=T) |> 
  # rename(referent1=dim1,referent2=dim2) %>% 
@@ -365,6 +366,7 @@ flower_all <- M_mat %>%
          later=ifelse(trialNum1>trialNum2, trialNum1,trialNum2) |> as.numeric()) |> 
   ungroup()
 ```
+
 
 ```{r}
 flower_all|> 
@@ -382,6 +384,52 @@ ggplot( aes(x=later,y=sim,color=condition))+
         scale_color_brewer(palette="Dark2")
 
 ```
+### Model 
+
+```{r, eval=F}
+within_game_flower <- flower_all |> 
+  filter(game1==game2) |> 
+  filter(ref1==ref2) |> 
+  filter(later-earlier<3) |> 
+  mutate(same_player=ifelse(player1==player2,1,0),
+         flower=str_c(color,ref1)) |> 
+  select(sim, condition, earlier, same_player, game1, flower )
+
+m_samegame_sameflower <-  stan_lmer(sim ~ condition*earlier*same_player + 
+                                      (1|game1)+(1|flower), data=within_game_flower) |> write_rds(here(model_path,"m2.rds"))
+
+show_summary_rstan(m_samegame_sameflower) |> write_rds(here(model_path,"samegame_sameflower_model.rds"))
+
+```
+
+```{r, eval=F}
+within_game_between_flower <- flower_all |> 
+  filter(game1==game2) |> 
+  filter(ref1!=ref2) |> 
+  filter(later-earlier<3) |> 
+  mutate(same_player=ifelse(player1==player2,1,0)) |> 
+  select(sim, condition, earlier, same_player, game1)
+
+m_samegame_diffflower <-  stan_glm(sim ~ condition*earlier*same_player, data=within_game_between_flower) |> write_rds(here(model_path,"m3.rds"))
+
+show_summary_rstan(m_samegame_diffflower) |> write_rds(here(model_path,"samegame_diffflower_model.rds"))
+
+```
+
+```{r}
+between_game_within_flower <- flower_all |> 
+  filter(game1!=game2) |> 
+  filter(ref1==ref2) |> 
+  filter(later-earlier<3) |> 
+  mutate(flower=str_c(color,ref1)) |> 
+  select(sim, condition, earlier, flower)
+
+m_diffgame_sameflower <-  stan_glm(sim ~ condition*earlier, data=between_game_within_flower) |> write_rds(here(model_path,"m4.rds"))
+
+show_summary_rstan(m_diffgame_sameflower) |> write_rds(here(model_path,"diffgame_sameflower_model.rds"))
+
+```
+
 
 
 Comparing utterances within rounds that were up to 2 apart, round coded as the later (so 10-12,11-12 and 12-12 will all contribute to "12"). Up to 2 apart is somewhat arbitrary, not sure what the right rolling window to do is. 

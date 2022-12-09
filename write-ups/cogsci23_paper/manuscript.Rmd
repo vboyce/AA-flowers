@@ -99,6 +99,15 @@ annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |>
 
 ```
 
+# TODOs
+redraft intro & add citations
+add figs
+learn stan and run models
+redraft methods
+write analysis
+write discussion
+abstract & front matter
+
 # introduction
 
 So people often care about reference or whatever. Referring expressions are crucial to interactive use of language so we can know what the interlocuter is talking about. Many goals of conversation rely on joint reference as a part of them -- for instance in order to negotiate, even from an adversarial perspective, you still need to have terms that refer to the same things in order to do the negotiation. Joint reference is a cooperative act, needed for both cooperative and non-cooperative acts. 
@@ -173,7 +182,11 @@ Two games consisting of `r raw_rows` utterances were annotated by both annotator
 
 We extracted a total of `r annotated |> filter(numword>0) |>  tally()` referring expressions. 
 
+## SBERT embeddings
+
 We then embedded each of these referring expressions using SBERT cite! in order to compare between referring expressions in semantic space. We use cosine distance between embedding pairs as a measure of similarity between the corresponding referring expressions. 
+
+For the pairwise comparisons of utterances during the game, we take the similarities for utterances that are within 2 trials of each other (ex. an utterance from trial 10 is compared with utterances from trials 8,9,10,11,12). We do this because different flowers were shown to different groups on different trials. This width is a compromise between having enough pairs of utterances and still being able to treat them as coming from one time point in the game. 
 
 # Results
 
@@ -239,6 +252,18 @@ per_person <- annotated |> group_by(gameId, trialNum, condition, player, name) |
 mean_person <- per_person |> group_by(condition) |> summarize(mean=mean(n) |> round(2), sd=sd(n) |> round(2), summ=str_c(mean," (sd: ",sd,")")) |> 
   select(condition, summ)
 ```
+
+```{r,eval=F, include=F}
+
+m1 <- stan_lmer(numword ~ trialNum + condition + (1|gameId)+ (1|player)+(1|flower), data=annotated) |> write_rds(here(model_path,"m1.rds"))
+show_summary_rstan(m1) |> write_rds(here(model_path,"word_model.rds"))
+```
+
+```{r}
+
+word_count <- read_rds(here(model_path,"word_model.rds"))
+```
+
 Consistent with the results from dyadic iterated reference games, the amount of referring language decreases over the course of the game. As shown in Fig @ref(fig:wordcount)A, the number of words of referring language decreases across the game in both conditions. This is due to the individual referring expressions getting shorter (@ref(fig:wordcount)B), while the total number of referring epxressions remains that same (@ref(fig:wordcount)C). 
 
 TODO include model!
@@ -346,6 +371,27 @@ ggplot( aes(x=later,y=sim,color=condition))+
 
 ```
 
+```{r}
+wi_g_wi_f <- read_rds(here(model_path,"samegame_sameflower_model.rds"))
+
+#wi_g_bet_f <- read_rds(here(model_path,"samegame_diffflower_model.rds"))
+
+#bet_g_wi_f <- read_rds(here(model_path,"diffgame_sameflower_model.rds"))
+```
+
+### Within games
+TODO we compare games within 2 rounds of each other (ex. trial 10 compared to 8, 9, 10, 11, 12)
+
+One of the key claims is that within a partnership, the referring expressions should converge for the same image, but get more different for different images. Convergence would be increasing similiarity (higher cosine similarity in later rounds), divergence would be decreasing similarity in later rounds). 
+
+For the same flower within the same game, similarity increased over rounds (trial: `r stats_text(wi_g_wi_f,6)`). Utterances were more similar if they were produced by the same participant (`r stats_text(wi_g_wi_f,8)`), although this did not interact with trial number (`r stats_text(wi_g_wi_f,7)`). Games in the shared utilities condition may have had higher similarities overall (`r stats_text(wi_g_wi_f,2)`), but this did not interact with trial number (`r stats_text(wi_g_wi_f,3)`) or same participant versus different participant (`r stats_text(wi_g_wi_f,5)`).  
+
+same person 
+condition
+interactions w/ trial
+
+
+### Between games
 
 ## End expressions
 
