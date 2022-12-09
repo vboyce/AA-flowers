@@ -485,7 +485,32 @@ ggplot( aes(x=earlier,y=sim,color=condition))+
         scale_color_brewer(palette="Dark2")
 
 ```
+### Model
 
+```{r, eval=F}
+to_end_same_flower <- to_end |> 
+  filter(ref1==ref2) |> 
+  mutate(same_player=ifelse(player1==player2,1,0),
+         flower=str_c(color,ref1)) |> 
+  select(sim, condition, earlier, same_player, gameId, flower)
+
+m_to_end_sameflower <-  stan_glm(sim ~ condition*earlier*same_player, data=to_end_same_flower) |> write_rds(here(model_path,"m5.rds"))
+
+show_summary_rstan(m_to_end_sameflower) |> write_rds(here(model_path,"to_end_sameflower_model.rds"))
+
+```
+
+```{r, eval=F}
+to_end_diff_flower <- to_end |> 
+  filter(ref1!=ref2) |> 
+  mutate(same_player=ifelse(player1==player2,1,0)) |> 
+  select(sim, condition, earlier, same_player, gameId)
+
+m_to_end_diffflower <-  stan_glm(sim ~ condition*earlier*same_player, data=to_end_diff_flower) |> write_rds(here(model_path,"m5.rds"))
+
+show_summary_rstan(m_to_end_diffflower) |> write_rds(here(model_path,"to_end_diffflower_model.rds"))
+
+```
 ##  Within end-stuff
 
 We can look at how converged people are (or are not) by comparing what they say at the end.

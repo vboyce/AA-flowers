@@ -48,7 +48,7 @@ stats <- function(model, row){
 }
 
 stats_text  <- function(model, row){
-  str_c( model[row,2], " (CrI=", model[row,3],")")
+  str_c( model[row,2], " CrI=", model[row,3],"")
 }
 ```
 
@@ -102,7 +102,8 @@ annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |>
 # TODOs
 redraft intro & add citations
 add figs
-learn stan and run models
+consider rerunning wi_game bet flower with a mixed effect (was being slow, so didn't) and other models
+
 redraft methods
 write analysis
 write discussion
@@ -354,46 +355,104 @@ flower_all <- M_mat %>%
   ungroup()
 ```
 
-```{r during, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Amount of words produced in referring expressions across trial in games in both conditions. A: Total words of referring language per game per trial. B: Words in each reference expression by trial. C: Total number of reference expressions per game per trial.", fig.height=6, fig.width=7}
+```{r during, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cosine similarities between SBERT embeddings of utterances produced within 2 trials of each other. Utterances were paired with other utterances from different games; from the same game, but a different utterer speaker; or from the same speaker (vertical panels). Utterances were either in reference to different flowers or both in reference to the same flower (horizontal panels).", fig.height=4, fig.width=10, out.width="100%"}
 flower_all|> 
   filter(later-earlier<3) |> 
   mutate(distance=case_when(
-    player1==player2 ~ "Same person",
-    game1==game2 ~ "same game",
-    T ~ "different game"),
-    same_flower=ifelse(ref1==ref2, "Same flower", "diff flower")
+    player1==player2 ~ "Same Person",
+    game1==game2 ~ "Same Game",
+    T ~ "Different Games"),
+    same_flower=ifelse(ref1==ref2, "Same Flower", "Different Flowers")
   ) |> 
 ggplot( aes(x=later,y=sim,color=condition))+     
   stat_summary(aes(group=str_c(color,condition), color=condition),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.3, geom="point")+
   geom_smooth(formula=y~poly(x,2))+facet_grid(same_flower~distance)+theme(legend.position="bottom", legend.title=element_blank())+
         scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
-        scale_color_brewer(palette="Dark2")
+        scale_color_brewer(palette="Dark2")+
+  labs(x="Trial Number", y="Cosine Similarity")+
+  guides(color = guide_legend(override.aes = list(linetype = NA, alpha=1, fill=NA, size=5) ) )
 
 ```
 
 ```{r}
 wi_g_wi_f <- read_rds(here(model_path,"samegame_sameflower_model.rds"))
 
-#wi_g_bet_f <- read_rds(here(model_path,"samegame_diffflower_model.rds"))
+wi_g_bet_f <- read_rds(here(model_path,"samegame_diffflower_model.rds"))
 
-#bet_g_wi_f <- read_rds(here(model_path,"diffgame_sameflower_model.rds"))
+bet_g_wi_f <- read_rds(here(model_path,"diffgame_sameflower_model.rds"))
 ```
 
 ### Within games
+
 TODO we compare games within 2 rounds of each other (ex. trial 10 compared to 8, 9, 10, 11, 12)
 
 One of the key claims is that within a partnership, the referring expressions should converge for the same image, but get more different for different images. Convergence would be increasing similiarity (higher cosine similarity in later rounds), divergence would be decreasing similarity in later rounds). 
 
 For the same flower within the same game, similarity increased over rounds (trial: `r stats_text(wi_g_wi_f,6)`). Utterances were more similar if they were produced by the same participant (`r stats_text(wi_g_wi_f,8)`), although this did not interact with trial number (`r stats_text(wi_g_wi_f,7)`). Games in the shared utilities condition may have had higher similarities overall (`r stats_text(wi_g_wi_f,2)`), but this did not interact with trial number (`r stats_text(wi_g_wi_f,3)`) or same participant versus different participant (`r stats_text(wi_g_wi_f,5)`).  
 
-same person 
-condition
-interactions w/ trial
-
+Different flowers within the same game have diverging descriptions that get less similar over time (trial: `r stats_text(wi_g_bet_f,6)`). Terms are overall slightly less similar in Shared Utility groups (`r stats_text(wi_g_bet_f,2)`), but this does not interact with trial (`r stats_text(wi_g_bet_f,3)`). There is not an effect of being said by the same person (`r stats_text(wi_g_bet_f,8)`), or interactions between who said it and trial number (`r stats_text(wi_g_bet_f,7)`) or condition (`r stats_text(wi_g_bet_f,5)`). 
 
 ### Between games
 
+Utterances describing the same flower in different games diverged slightly (trial: `r stats_text(bet_g_wi_f,4)`). There was a condition difference with shared utility conditions having more similar descriptions across games (`r stats_text(bet_g_wi_f,2)`); this did not interact with trial (`r stats_text(bet_g_wi_f,3)`). 
+
+TODO: what is our possibly explanation for this?!
+
+This may be a fluke, as there are not a huge number of games in either condition, but if it's robust, it could be that the shared utility framing leads to less idiosyncratic descriptions and instead towards more universal priors. 
+TODO this should be hedged *a lot* but we can also cite the study about large groupy things and the crab-like images 
+```{r }
+
+# by trial
+to_end <- M_mat %>% 
+  filter(seen %in% c("game", "own")) |> 
+  group_by(gameId,color,condition) %>% 
+  mutate(combinedId=str_c(referent,"_", trialNum, "_",seen,"_",playerId)) %>% 
+  make_across_df(F_mat, 'cosine') %>% 
+  separate(dim1, c("ref1", "trialNum1","seen1","player1"), convert=T) |> 
+  separate(dim2, c("ref2", "trialNum2", "seen2", "player2"), convert=T) |> 
+ # rename(referent1=dim1,referent2=dim2) %>% 
+  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
+  filter(seen1!=seen2) %>% 
+  mutate(earlier=ifelse(trialNum1>trialNum2,trialNum2, trialNum1) |> as.numeric(),
+         later=ifelse(trialNum1>trialNum2, trialNum1,trialNum2) |> as.numeric()) |> 
+  ungroup()
+```
+
+
+```{r toend, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cosine similarities between SBERT embeddings of utterances produced during a game and the post-game descriptions of the flowers.", fig.height=4, fig.width=6, out.width="50%"}
+to_end|> 
+  mutate(distance=case_when(
+    player1==player2 ~ "Same Person",
+    T ~ "Same Game - Different Person"),
+        same_flower=ifelse(ref1==ref2, "Same flower", "Different flower")
+) |> 
+ggplot( aes(x=earlier,y=sim,color=condition))+     
+  stat_summary(aes(group=str_c(color,condition), color=condition),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.3, geom="point")+
+  geom_smooth(formula=y~poly(x,2))+facet_grid(same_flower~distance)+theme(legend.position="bottom", legend.title=element_blank())+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        scale_color_brewer(palette="Dark2")+
+  guides(color = guide_legend(override.aes = list(linetype = NA, alpha=1, fill=NA, size=5) ) )
+
+```
+
+```{r}
+to_e_wi_f <- read_rds(here(model_path,"to_end_sameflower_model.rds"))
+
+to_e_bet_f <- read_rds(here(model_path,"to_end_diffflower_model.rds"))
+```
 ## End expressions
+
+### game to end
+As a complementary way of looking at how referring expressions change over time as conventions are formed, we can take the post-game flower descriptions (each player was asked to provide what they would call each flower to their teammates) as the conventions. 
+
+Descriptions become more similar to the conventions over time  (trial: `r stats_text(to_e_wi_f,6)`). Utterances were more similar to the convention given by the same person (versu from a groupmate) (`r stats_text(to_e_wi_f,8)`), although this did not interact with trial number (`r stats_text(to_e_wi_f,7)`). Games in the shared utilities condition had utterances that were more similar to their conventions (`r stats_text(to_e_wi_f,2)`), but this did not interact with trial number (`r stats_text(to_e_wi_f,3)`) and did not significantly interact with same participant versus different participant (`r stats_text(to_e_wi_f,5)`).  
+
+There was not a significant divergence from the conventions for other flowers over time (trial: `r stats_text(to_e_bet_f,6)`). Terms are overall slightly less similar in Shared Utility groups (`r stats_text(to_e_bet_f,2)`), but this does not interact with trial (`r stats_text(to_e_bet_f,3)`). There is not an effect of being said by the same person (`r stats_text(to_e_bet_f,8)`), or interactions between who said it and trial number (`r stats_text(to_e_bet_f,7)`). Similarity to a different convention was slightly higher if was said by the same person in a Shared Utility group (`r stats_text(to_e_bet_f,5)`). 
+
+### within end
+want to look for more similar with a group than between groups
+
+do we want to look at the "other" (flower not in game) at all? No? 
 
 # Discussion
 
