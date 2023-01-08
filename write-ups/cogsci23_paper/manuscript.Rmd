@@ -38,7 +38,7 @@ theme_set(theme_bw())
 
 #Data import constants
 date_start=lubridate::ymd('2021-07-19')
-fig_path=here("figs")
+fig_path=here("write-ups/cogsci23_paper/figs")
 read_data_path <- "data/processed_data/joined_data/"
 annotation_path <- "data/annotations"
 model_path <- "code/models"
@@ -99,16 +99,6 @@ annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |>
 
 ```
 
-# TODOs
-redraft intro & add citations
-add figs
-consider rerunning wi_game bet flower with a mixed effect (was being slow, so didn't) and other models
-
-redraft methods
-write analysis
-write discussion
-abstract & front matter
-
 # introduction
 
 So people often care about reference or whatever. Referring expressions are crucial to interactive use of language so we can know what the interlocuter is talking about. Many goals of conversation rely on joint reference as a part of them -- for instance in order to negotiate, even from an adversarial perspective, you still need to have terms that refer to the same things in order to do the negotiation. Joint reference is a cooperative act, needed for both cooperative and non-cooperative acts. 
@@ -122,6 +112,17 @@ This has been a very useful microcosm for studying referring expressions, expect
 Implicitly, these features are thought to be about how referring expressions develop across some wider range of situations where people interact repeatedly in ways that need reference to some objects that do not already have conventional names that are sufficient for reference. Basically it needs to be a situation where people don't at the outset have a high degree of agreement on how to refer to the thing. 
 
 Needs more transition here. 
+```{r interface, fig.env = "figure*", fig.pos = "t!", fig.width=6, fig.height=2, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Player interface. Panel A shows the selection phase, where each participant sees 6 flowers, 4 with value bars. Panel B shows the feedback stage, after all players have selected. When multiple players select the same flower, they recieve a lower value rather than what is shown.  \\label{interface}", cache=FALSE}
+
+selection <- png::readPNG(here(fig_path, "selection.png"))
+
+feedback <- png::readPNG(here(fig_path, "feedback.png"))
+
+a <- ggdraw() + draw_image(selection)
+b <- ggdraw()+draw_image(feedback)
+
+plot_grid(a,b, labels="AUTO")
+```
 
 @mankewitz2021 tried to bridge the gap between datasets of negotiation (like let's make a deal?) where there is negotiation over easily nameable objects, and the reference game literature where there is reference (but no negotiation) to hard to name objects. They created a 3 person game where players had to select what flowers to grow from a set of 6 shown on the screen. The values of the flowers were partially hidden, and flowers were all the same color (but different shapes/species). Each player could select a flower, but it was only worth the shown value if one player selected it; if multiple did, they got a much lower reward. Flower images repeated across the game. @mankewitz intended this set-up so that players would need to refer the flowers in order to negotiate who would take what, but in a context where there wasn't a flower to talk about and there wasn't a designated speaker. They also had two conditions, one where players within a group won points together (and thus had fully aligned incentives) and another where they won points as individuals (and didn't). The paper found .... a slight decrease in language over the course of hte game, possibly consistent with reduced referring expressions, but also consistent with developing a negotiation pattern. 
 
@@ -131,22 +132,22 @@ Here we extract the referring expressions from the chat logs of @mankewitz in or
 
 TODO list of key points. 
 
-# Methods
 
-TODO do methods get pictures? 
+# Methods
 
 This paper presents a reanalysis of data from @mankewitz2021. We describe both the original data collection and the additional data processing done for reanalysis. 
 
 ## Data Acquisition
-@mankewitz2021 had participants play a real-time coordination game in groups of three, implemented using Empirica [@almaatouqEmpiricaVirtualLab2020]. On each trial, each group saw a set of 6 flower images. Each participant could see the values for four of the flowers (represented as a colored bar), such that each flower's value was hidden from one participant. Players could coordinate and discuss using a chat box, and each selected a flower. If one player selected a flower, it was worth the shown reward; if multiple players collided and selected the same flower, they got a low reward instead. Thus, participants were incentivized to coordinate on selecting different flowers. The rewards earned over the course of game translated in a monetary bonus for the participants at the end of the game. 
+As described in @mankewitz2021, participants played a real-time coordination game in groups of three, implemented using Empirica [@almaatouqEmpiricaVirtualLab2020]. On each trial, each group saw a set of 6 flower images (Figure \ref{interface}A) . Each participant saw the values for four of the flowers (represented as a colored bar), such that each flower's value was hidden from one participant. Players could coordinate and discuss using a chat box before each selected a flower. If one player selected a flower, it was worth the shown reward; if multiple players collided and selected the same flower, they each got a lower reward instead (Figure \ref{interface}B). This incentivized participants to communicate about the flowers in order to coordinate on selecting differenct flowers. The rewards earned over the course of game translated in a monetary bonus for the participants at the end of the game. 
 
-In *individual utility* games, each player earned points for the flowers they selected; in the *shared utility* games, the points earned were averaged together, and all players in a game got the same reward. This made for slightly different incentives; in an individual game, players want to maximize the rewards of flowers they select, and only care about avoiding collisions with other players' selections; in a shared game, players want their teammates to select different high reward flowers, and are indifferent on who selects the highest one. 
+In *individual utility* games, each player earned points for the flowers they selected; in the *shared utility* games, the points earned were averaged together, and all players in a game got the same reward. This made for slightly different incentives; in an individual game, players wanted to maximize the rewards of flowers they selected, and only cared about avoiding collisions with other players' selections; in a shared game, players wanted their teammates to select different high reward flowers, and were indifferent on who selected the highest one. 
 
-Each game was assigned a color of flower (white, red, yellow, purple) and the flower images were drawn from a set of 12 for that color, so players saw the same flowers repeatedly across the game, in different combinations. Each game consisted of 24 trials. The use of different flowers of the same color was to create a situation where players needed to refer to the images but didn't have preset names for them in the context, and thus would need to collaboratively develop shared referring expressions. 
+Each game was assigned a color of flower (white, red, yellow, purple) and the flower images were drawn from a set of 12 for that color, so players saw the same flowers repeatedly across the game, in different combinations. Each game consisted of 24 trials. The use of different flowers of the same color created situations where players did not have established names for the flowers in context and needed to develop shared referring expressions to clearly communicate with their partners. 
 
 After the game, players were asked how they would describe each of the images they had played with to their teammates. They were also asked how they would describe each of 4 images from a different color set than the one they had used. 
 
-Following @Mankewitz2021 we only included games where players finished all 24 trials in the game. We only included games where participants had access ot the chat box (@Mankewitz2021 also had a no-chat baseline condition). This left us with `r d.games.final |> filter(condition=="Individual Utilities") |> nrow()` games in the Individual Utilities condition and `r d.games.final |> filter(condition=="Shared Utilities") |> nrow()` in the Shared Utilities Condition. 
+## Exclusions 
+Following @mankewitz2021 we only included games where players finished all 24 trials in the game. We only included games where participants had access tt the chat box (@mankewitz2021 also had a no-chat baseline condition). This left us with `r d.games.final |> filter(condition=="Individual Utilities") |> nrow()` games in the individual utilities condition and `r d.games.final |> filter(condition=="Shared Utilities") |> nrow()` in the shared utilities Condition. 
 
 ## Textual annotations
 
@@ -185,16 +186,16 @@ We extracted a total of `r annotated |> filter(numword>0) |>  tally()` referring
 
 ## SBERT embeddings
 
-We then embedded each of these referring expressions using SBERT cite! in order to compare between referring expressions in semantic space. We use cosine distance between embedding pairs as a measure of similarity between the corresponding referring expressions. 
+We embedded each of the extracted referring expressions using SBERT [@reimers2019], and used cosine distance between embedding pairs as a measure of similarity between the corresponding referring expressions. 
 
-For the pairwise comparisons of utterances during the game, we take the similarities for utterances that are within 2 trials of each other (ex. an utterance from trial 10 is compared with utterances from trials 8,9,10,11,12). We do this because different flowers were shown to different groups on different trials. This width is a compromise between having enough pairs of utterances and still being able to treat them as coming from one time point in the game. 
+For the pairwise comparisons of utterances during the game, we took the similarities for utterances that were within 2 trials of each other (ex. an utterance from trial 10 was compared with utterances from trials 8,9,10,11,12). Presentation of flowers was randomized, so different groups saw different flowers combinations on the same number trial. The width of the comparison window was a compromise between having enough pairs of utterances while still being able to treat them as coming from one time point in the game. 
 
 # Results
 
 We assess the list of key points given at the beginning. 
 
 ## Reduction of referring expressions
-```{r wordcount, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Amount of words produced in referring expressions across trial in games in both conditions. A: Total words of referring language per game per trial. B: Words in each reference expression by trial. C: Total number of reference expressions per game per trial.", fig.height=2, fig.width=7}
+```{r wordcount, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Amount of words produced in referring expressions across trial in games in both conditions. A: Total words of referring language per game per trial. B: Words in each reference expression by trial. C: Total number of reference expressions per game per trial. \\label{wordcount}", fig.height=2, fig.width=7}
 
 possible <- d.rounds.final |> select(-name) |> unique()
 
@@ -265,7 +266,7 @@ show_summary_rstan(m1) |> write_rds(here(model_path,"word_model.rds"))
 word_count <- read_rds(here(model_path,"word_model.rds"))
 ```
 
-Consistent with the results from dyadic iterated reference games, the amount of referring language decreases over the course of the game. As shown in Fig @ref(fig:wordcount)A, the number of words of referring language decreases across the game in both conditions. This is due to the individual referring expressions getting shorter (@ref(fig:wordcount)B), while the total number of referring epxressions remains that same (@ref(fig:wordcount)C). 
+Consistent with the results from dyadic iterated reference games, the amount of referring language decreases over the course of the game. As shown in Figure \ref{wordcount}A, the number of words of referring language decreases across the game in both conditions. This is due to the individual referring expressions getting shorter (Figure \ref{wordcount}B), while the total number of referring expressions remains that same (Figure \ref{wordcount}C). 
 
 TODO include model!
 
@@ -355,7 +356,7 @@ flower_all <- M_mat %>%
   ungroup()
 ```
 
-```{r during, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cosine similarities between SBERT embeddings of utterances produced within 2 trials of each other. Utterances were paired with other utterances from different games; from the same game, but a different utterer speaker; or from the same speaker (vertical panels). Utterances were either in reference to different flowers or both in reference to the same flower (horizontal panels).", fig.height=4, fig.width=10, out.width="100%"}
+```{r during, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cosine similarities between SBERT embeddings of utterances produced within 2 trials of each other. Utterances were paired with other utterances from different games; from the same game, but a different utterer speaker; or from the same speaker (vertical panels). Utterances were either in reference to different flowers or both in reference to the same flower (horizontal panels). \\label{during}", fig.height=4, fig.width=10, out.width="100%"}
 flower_all|> 
   filter(later-earlier<3) |> 
   mutate(distance=case_when(
@@ -477,28 +478,6 @@ Conclusion: The key reference game findings have some generalizability. Settings
 
 
 
-```{r plot, fig.env="figure", fig.pos = "H", fig.align = "center", fig.width=2, fig.height=2, fig.cap = "R plot" }
-x <- 0:100
-y <- 2 * (x + rnorm(length(x), sd = 3) + 3)
-
-ggplot2::ggplot(data = data.frame(x, y), 
-                aes(x = x, y = y)) + 
-  geom_point() + 
-  geom_smooth(method = "lm")
-```
-
-
-```{r xtable, results="asis"}
-n <- 100
-x <- rnorm(n)
-y <- 2*x + rnorm(n)
-out <- lm(y ~ x)
-
-tab1 <- xtable::xtable(summary(out)$coef, digits=c(0, 2, 2, 1, 2), 
-                       caption = "This table prints across one column.")
-
-print(tab1, type="latex", comment = F, table.placement = "H")
-```
 
 # Acknowledgements
 
