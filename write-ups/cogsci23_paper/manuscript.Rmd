@@ -101,17 +101,20 @@ annotated <-  read_csv(here(annotation_path, "flowers_annotations.csv")) |>
 
 # introduction
 
-So people often care about reference or whatever. Referring expressions are crucial to interactive use of language so we can know what the interlocuter is talking about. Many goals of conversation rely on joint reference as a part of them -- for instance in order to negotiate, even from an adversarial perspective, you still need to have terms that refer to the same things in order to do the negotiation. Joint reference is a cooperative act, needed for both cooperative and non-cooperative acts. 
+Successful communication is grounded in a shared understanding of what utterances mean in the context they are produced in. In many cases conventional word meanings are enough, but there are also contexts where objects to be referred to are not easy to distinguish. In these situations, establishing reference is more difficult, but no less important. 
 
-In some cases joint reference is easy b/c there are conventional meanings of words that refer to the objects. However, this isn't always the case, either because objects are novel and don't have names or because objects are similar to one another and so while they might be nameable out of context, in context there are not conventional names. 
+The formation of these ad-hoc referring expressions has been studied extensively in the context of dyadic reference games [@clarkReferringCollaborativeProcess1986, ADD MORE CITES]. In these, two participants see a set of images (often abstract shapes) and one person is tasked with identifying an image so the other person can pick it out. People can be very successful at this task, achieving high levels of matches. Over repeated reference to the same images, pairs develop shorthand names for the images, leading to shorter descriptions in later repetitions. These nicknames conventionalize with a pair, as they tend to stick to the same description, but are ideosyncratic and differ between pairs. 
 
-How people develop ad-hoc shared conventional referring expressions for objects without conventional names has primarily been studied in the realm of dyadic reference games. Two participants see a set of images, and the speaker sees a particular one highlighted as the one to pick out next (or they have them in the correct order and the listener needs to reorder theirs to match). This is a task explicitly about referring to the objects that is highly structured. There are assigned roles (one person has all the knowledge) and a clear indication of which one to talk about. Selecting or ordering objects is pretty simple. 
+This has been a well-studied microcosm for understanding reference which has proven useful for testing theories about how referring expressions originate, how expressions are designed, etc [TODO]. The implicit theoretical claim is that these phenomena hold whenever people interact repeatedly in ways that require reference to some objects that do not have pre-conventionalized names that are adequate to distinguish them in context.
 
-This has been a very useful microcosm for studying referring expressions, expectations about conventions, and what happens with new listeners or speakers. The key phenomena observed across these experiments are that pairs develop partner specific referring expressions -- the utterances produced by the speaker to refer to objects get shorter over repetition, the accuracy-speed trade off improves (? maybe don't mention this b/c it's not what we look at), and the terms that develop are partner specific -- people converge on terms within partnerships, but differ between partnerships on the terms used. 
+However, there are some ways in which this microcosm is not representative of typical language use. For one, in everyday communication, establishing reference rarely happens in isolation but is usually a subgoal in a larger conversational goal. The overall goal might be cooperative, such as in asking for a piece of kitchen equipment while cooking together, but it can also be adversarial, such as in a negotiation where the assets to be divied up must be referenced. In the reference game context, the goal is always cooperative, to match the images or get them in the same order. 
 
-Implicitly, these features are thought to be about how referring expressions develop across some wider range of situations where people interact repeatedly in ways that need reference to some objects that do not already have conventional names that are sufficient for reference. Basically it needs to be a situation where people don't at the outset have a high degree of agreement on how to refer to the thing. 
+The variation in goals can also lead to choices about when and what to refer to and how precise to be, depending on the costs of mistaken reference. 
 
-Needs more transition here. 
+Do the results of dyadic reference games extend to more complex communicative interactions where goals are more complex and may not be aligned?  
+
+[possible worth acknowledging somewhere that sometimes esp. in legal things and philosophy, fighting over names is the argument, and we're going to ignore that]
+
 ```{r interface, fig.env = "figure*", fig.pos = "t!", fig.width=6, fig.height=2, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Player interface. Panel A shows the selection phase, where each participant sees 6 flowers, 4 with value bars. Panel B shows the feedback stage, after all players have selected. When multiple players select the same flower, they recieve a lower value rather than what is shown.  \\label{interface}", cache=FALSE}
 
 selection <- png::readPNG(here(fig_path, "selection.png"))
@@ -124,13 +127,22 @@ b <- ggdraw()+draw_image(feedback)
 plot_grid(a,b, labels="AUTO")
 ```
 
-@mankewitz2021 tried to bridge the gap between datasets of negotiation (like let's make a deal?) where there is negotiation over easily nameable objects, and the reference game literature where there is reference (but no negotiation) to hard to name objects. They created a 3 person game where players had to select what flowers to grow from a set of 6 shown on the screen. The values of the flowers were partially hidden, and flowers were all the same color (but different shapes/species). Each player could select a flower, but it was only worth the shown value if one player selected it; if multiple did, they got a much lower reward. Flower images repeated across the game. @mankewitz intended this set-up so that players would need to refer the flowers in order to negotiate who would take what, but in a context where there wasn't a flower to talk about and there wasn't a designated speaker. They also had two conditions, one where players within a group won points together (and thus had fully aligned incentives) and another where they won points as individuals (and didn't). The paper found .... a slight decrease in language over the course of hte game, possibly consistent with reduced referring expressions, but also consistent with developing a negotiation pattern. 
+[needs transition, but not sure how]
 
-This builds on the ref game literature in a few dimensions. The key difference is the more free-form format where reference is implicitly motivated by the task, rather than being an explicit part of the task, and the equal positions of the players (each has the same amount of knowledge) rather than an asymmetric teacher/student. Other differences include that the images are natural photos, which has been used in ref games (CITE that management paper), but is not the typical and the presence of more than two participants (which is done, but not modal, citations!). 
+@mankewitz2021 tried to bridge the gap between datasets of negotiation over easily nameable objects, and the reference game literature where there is reference (but no negotiation) over hard to name objects. They created a 3 person game where players each select what flowers to grow from a set of 6 flowers with variable and partially hidden value. Players got the value of the flower only if they were the only one to select it, which incentivized coordination and negotiation between players. However, all the flowers shown were the same color, so they were not easily nameable, and the flowers repeated, leading to opportunities for ad-hoc conventionalization. This game structure encouraged players to describe flowers while never explicitly saying that a player should refer to any specific flower. They also had two conditions, one where players within a group won points together (and thus had fully aligned incentives) and another where they won points as individuals (and didn't). @mankewitz2021 found a slight decrease in language over the course of hte game, possibly consistent with reduced referring expressions, but also consistent with developing a negotiation pattern. 
 
-Here we extract the referring expressions from the chat logs of @mankewitz in order to look at reduction as well as semantic trends. We see whether the phenomena found in classic dyadic iterated reference games extend to this more naturalistic domain, and whether they differ across the individual and shared incentive conditions. 
 
-TODO list of key points. 
+Here we extracted the referring expressions from the chat logs of @mankewitz to look for reduction to partner-specific terms. We explored whether the phenomena found in classic dyadic iterated reference games extended to this more naturalistic domain, and whether they differed across the individual and shared incentive conditions. The key questions we addressed are:
+
+1. Do the referring expressions get shorter over time? 
+
+2. Do referring expressions for the same image converge within a group?
+
+3. Do referring expressions for different images diverge within a group?
+
+4. Do referring expressions for the same image diverge between groups? 
+
+[TODO fix list of key points to match results.]
 
 
 # Methods
@@ -183,18 +195,6 @@ We annotated the chat transcripts to extract all referring expressions and ident
 Two games consisting of `r raw_rows` utterances were annotated by both annotators.  `r nrow(both)` utterances were identified as containing reference expressions by at least one annotator; of these annotators agreed on the exact reference expression for `r agree_span` (`r round(agree_span/nrow(both)*100)`%) of the cases. The second annotator coded the target of the referring expression for `r nrow(count)` of the utterances. Of these, the two annotators agreed on the target in `r agree_target` (`r round(agree_target/nrow(count)*100)`%) of cases. We take this high level of interannotator agreement as an indication that the reference spans and targets were identified in a reliable way. 
 
 We extracted a total of `r annotated |> filter(numword>0) |>  tally()` referring expressions. 
-
-## SBERT embeddings
-
-We embedded each of the extracted referring expressions using SBERT [@reimers2019], and used cosine distance between embedding pairs as a measure of similarity between the corresponding referring expressions. 
-
-For the pairwise comparisons of utterances during the game, we took the similarities for utterances that were within 2 trials of each other (ex. an utterance from trial 10 was compared with utterances from trials 8,9,10,11,12). Presentation of flowers was randomized, so different groups saw different flowers combinations on the same number trial. The width of the comparison window was a compromise between having enough pairs of utterances while still being able to treat them as coming from one time point in the game. 
-
-# Results
-
-We assess the list of key points given at the beginning. 
-
-## Reduction of referring expressions
 ```{r wordcount, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Amount of words produced in referring expressions across trial in games in both conditions. A: Total words of referring language per game per trial. B: Words in each reference expression by trial. C: Total number of reference expressions per game per trial. \\label{wordcount}", fig.height=2, fig.width=7}
 
 possible <- d.rounds.final |> select(-name) |> unique()
@@ -240,6 +240,18 @@ sum_words <- annotated %>% filter(numword>0) |>  group_by(trialNum, gameId,condi
 
 ```
 
+## SBERT embeddings
+
+We embedded each of the extracted referring expressions using SBERT [@reimers2019], and used cosine distance between embedding pairs as a measure of similarity between the corresponding referring expressions. 
+
+For the pairwise comparisons of utterances during the game, we took the similarities for utterances that were within 2 trials of each other (ex. an utterance from trial 10 was compared with utterances from trials 8,9,10,11,12). Presentation of flowers was randomized, so different groups saw different flowers combinations on the same number trial. The width of the comparison window was a compromise between having enough pairs of utterances while still being able to treat them as coming from one time point in the game. 
+
+# Results
+
+We address each of the questions of interest listed at the end of the Introduction. 
+
+## Reduction of referring expressions
+
 ```{r}
 possible <- d.rounds.final |> select(-name) |> unique()
 
@@ -266,16 +278,22 @@ show_summary_rstan(m1) |> write_rds(here(model_path,"word_model.rds"))
 word_count <- read_rds(here(model_path,"word_model.rds"))
 ```
 
-Consistent with the results from dyadic iterated reference games, the amount of referring language decreases over the course of the game. As shown in Figure \ref{wordcount}A, the number of words of referring language decreases across the game in both conditions. This is due to the individual referring expressions getting shorter (Figure \ref{wordcount}B), while the total number of referring expressions remains that same (Figure \ref{wordcount}C). 
+The amount of referring language decreases over the course of the game, consistent with the dyadic reference game pattern. As shown in Figure \ref{wordcount}A, the number of words of referring language decreases across the game in both Shared and Individual utility conditions. The reduction in referring langauge was driven by shorter referring expressions later in the game (Figure \ref{wordcount}B), while the total number of referring expressions per round remained constant (Figure \ref{wordcount}C). 
 
 TODO include model!
 
-Another coarse metric for how referring expressions are being produced is to look at how many different flowers are talked about each round. There are 6 visible on the screen, and participants are incentivized to each pick a different one. In general, each trial contained references to 2 or 3 distinct flowers (Individual Utilities: mean of `r  mean_flowers |> pluck(2,1)`, Shared Utilities: `r mean_flowers |> pluck(2,2)`). Most players referred to one flower each round (Individual Utilities: `r  mean_person |> pluck(2,1)`, Shared Utilities: `r mean_person |> pluck(2,2)`). 
+Another coarse metric for how referring expressions are produced is how many different flowers are referred to each round. Each round of the game, there are 6 flowers visible on the screen, and participants want to each pick a different one. In general, each trial contained references to 2 or 3 distinct flowers (Individual Utilities: mean of `r  mean_flowers |> pluck(2,1)`, Shared Utilities: `r mean_flowers |> pluck(2,2)`). Most players referred to one flower each round (Individual Utilities: `r  mean_person |> pluck(2,1)`, Shared Utilities: `r mean_person |> pluck(2,2)`). 
 
-This pattern is consistent with each person saying what flower they plan on choosing; some games talked less than this, and others talked more as players queried the worths of various flowers or confirmed the plan of who would pick what. 
+The average pattern is consistent with each person saying what flower they plan on choosing. Some games talked less than this and risked collisions. Other games  talked more as players queried the worths of various flowers or confirmed the plan of who would pick what. 
 
+? should there be a visual of these distributions ? 
 
 ## Convergence of referring expressions
+
+TODO resummarize what cosine similarity is 
+
+[formatting comment -- changes in cos sim tend to be small, so estimates and CredInts look kinda silly some of the time -- could leave or increase sigfigs which is also silly]
+
 ```{r, include=F,}
 
  d.raw_chat <- read_csv(here(paste(read_data_path, 
@@ -383,24 +401,30 @@ wi_g_bet_f <- read_rds(here(model_path,"samegame_diffflower_model.rds"))
 bet_g_wi_f <- read_rds(here(model_path,"diffgame_sameflower_model.rds"))
 ```
 
+Reference games have clear structures of repetition, as each image is usually the target once before any are again, and so it makes sense to treat each block as a time point. Because of the different structure of the game, trials are more continuous with each other.  We smooth the random sampling and sparseness of flowers occuring the same trial by treating descriptions from within two trials as being at a comparable time in the game (so descriptions from round 10 are compared with descriptions from rounds 8, 9, 10, 11, and 12). 
+
 ### Within games
 
-TODO we compare games within 2 rounds of each other (ex. trial 10 compared to 8, 9, 10, 11, 12)
 
-One of the key claims is that within a partnership, the referring expressions should converge for the same image, but get more different for different images. Convergence would be increasing similiarity (higher cosine similarity in later rounds), divergence would be decreasing similarity in later rounds). 
+One of the key claims is that within a partnership, the referring expressions should converge for the same image, but get more different for different images. Convergence would be increasing similarity (higher cosine similarity in later rounds), divergence would be decreasing similarity in later rounds). 
 
-For the same flower within the same game, similarity increased over rounds (trial: `r stats_text(wi_g_wi_f,6)`). Utterances were more similar if they were produced by the same participant (`r stats_text(wi_g_wi_f,8)`), although this did not interact with trial number (`r stats_text(wi_g_wi_f,7)`). Games in the shared utilities condition may have had higher similarities overall (`r stats_text(wi_g_wi_f,2)`), but this did not interact with trial number (`r stats_text(wi_g_wi_f,3)`) or same participant versus different participant (`r stats_text(wi_g_wi_f,5)`).  
+If the dyadic pattern held, we expected similarity to increase over time for the same image with a group. In a model of similarity of utterances within flower and within group, we found that similarity increased over time (trial: `r stats_text(wi_g_wi_f,6)`, see Figure \ref{during} lower middle and lower right panels). Utterances were more similar if they were produced by the same participant (`r stats_text(wi_g_wi_f,8)`), although this did not interact with trial number (`r stats_text(wi_g_wi_f,7)`). Games in the shared utilities condition may have had higher similarities overall (`r stats_text(wi_g_wi_f,2)`), but this did not interact with trial number (`r stats_text(wi_g_wi_f,3)`) or same participant versus different participant (`r stats_text(wi_g_wi_f,5)`).  
 
-Different flowers within the same game have diverging descriptions that get less similar over time (trial: `r stats_text(wi_g_bet_f,6)`). Terms are overall slightly less similar in Shared Utility groups (`r stats_text(wi_g_bet_f,2)`), but this does not interact with trial (`r stats_text(wi_g_bet_f,3)`). There is not an effect of being said by the same person (`r stats_text(wi_g_bet_f,8)`), or interactions between who said it and trial number (`r stats_text(wi_g_bet_f,7)`) or condition (`r stats_text(wi_g_bet_f,5)`). 
+In contrast, we expected descriptions of different flowers to diverge within the same group. In a model of similarity between descriptions of different flowers within a group, similarity decreased  over time (trial: `r stats_text(wi_g_bet_f,6)`, see Figure \ref{during} upper middle and upper right panels). Terms were slightly less similar in Shared Utility groups (`r stats_text(wi_g_bet_f,2)`), but this did not interact with trial (`r stats_text(wi_g_bet_f,3)`). There was not an effect of utterances being produced by the same person (`r stats_text(wi_g_bet_f,8)`), or interactions between who said it and trial number (`r stats_text(wi_g_bet_f,7)`) or condition (`r stats_text(wi_g_bet_f,5)`). 
+
+The main results of convergence of descriptions for the same image and divergence between descriptions of different images matches the reference game phenomena. 
 
 ### Between games
 
-Utterances describing the same flower in different games diverged slightly (trial: `r stats_text(bet_g_wi_f,4)`). There was a condition difference with shared utility conditions having more similar descriptions across games (`r stats_text(bet_g_wi_f,2)`); this did not interact with trial (`r stats_text(bet_g_wi_f,3)`). 
+In reference games, conventions are partner-specific, so over time, descriptions become more particular to the group.  If that held, we expected, utterances describing the same flower in different groups to have lower similarities later in the game. 
+
+In a model of utterance similarities for the same flower in different games, similiarities decreased slightly over time  (trial: `r stats_text(bet_g_wi_f,4)`, see Figure \ref{during} lower left panel). There was a condition difference with shared utility conditions having more similar descriptions across games (`r stats_text(bet_g_wi_f,2)`); this did not interact with trial (`r stats_text(bet_g_wi_f,3)`). 
 
 TODO: what is our possibly explanation for this?!
 
 This may be a fluke, as there are not a huge number of games in either condition, but if it's robust, it could be that the shared utility framing leads to less idiosyncratic descriptions and instead towards more universal priors. 
 TODO this should be hedged *a lot* but we can also cite the study about large groupy things and the crab-like images 
+
 ```{r }
 
 # by trial
@@ -419,8 +443,21 @@ to_end <- M_mat %>%
   ungroup()
 ```
 
+```{r}
+in_end <- M_mat %>% 
+  filter(seen %in% c("own")) |> 
+  group_by(color,condition) %>% 
+  mutate(combinedId=str_c(referent, "_",seen,"_", gameId, "_",playerId)) %>% 
+  make_across_df(F_mat, 'cosine') %>% 
+  separate(dim1, c("ref1", "seen1","game1","player1"), convert=T) |> 
+  separate(dim2, c("ref2",  "seen2","game2", "player2"), convert=T) |> 
+ # rename(referent1=dim1,referent2=dim2) %>% 
+  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
+  ungroup()
+```
 
-```{r toend, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cosine similarities between SBERT embeddings of utterances produced during a game and the post-game descriptions of the flowers.", fig.height=4, fig.width=6, out.width="50%"}
+
+```{r toend, fig.env="figure", fig.pos = "t", fig.align = "center", out.width="100%", fig.cap = "Cosine similarities between SBERT embeddings of utterances produced during a game and the post-game descriptions of the flowers. \\label{toend}", fig.height=4, fig.width=6}
 to_end|> 
   mutate(distance=case_when(
     player1==player2 ~ "Same Person",
@@ -440,26 +477,48 @@ ggplot( aes(x=earlier,y=sim,color=condition))+
 to_e_wi_f <- read_rds(here(model_path,"to_end_sameflower_model.rds"))
 
 to_e_bet_f <- read_rds(here(model_path,"to_end_diffflower_model.rds"))
+
+wi_e <- read_rds(here(model_path, "within_end.rds"))
 ```
+
 ## End expressions
 
+```{r withinend, fig.env="figure", fig.pos = "t", fig.align = "center", out.width="90%", fig.width=4, fig.height=2, fig.cap = "Cosine similarities between flower descriptions provided by participants after the game. Descriptions were more similar to each other if they came from the same group and were of the same flower. \\label{withinend}"}
+in_end|> 
+  filter(player2!=player1) |> 
+  mutate(distance=case_when(
+    game1==game2 ~ "Same group",
+    T ~ "Different group"),
+    same_flower=ifelse(ref1==ref2, "Same flower", "Different flower"))|> 
+ggplot( aes(x=str_c(same_flower,"\n", distance),y=sim,color=condition))+
+  labs(y="Cosine Similarity", x=NULL)+
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width=.3))+theme(legend.position=c(0.2,.75), legend.title=element_blank(), legend.background=element_blank())+
+        scale_color_brewer(palette="Dark2")
+```
+
 ### game to end
-As a complementary way of looking at how referring expressions change over time as conventions are formed, we can take the post-game flower descriptions (each player was asked to provide what they would call each flower to their teammates) as the conventions. 
+As a complementary way of looking at how referring expressions change over time as conventions are formed, we can take the post-game flower descriptions (each player was asked to provide what they would call each flower to their teammates) as the conventions, and look at how the in-game utterances converge to these conventions. 
 
-Descriptions become more similar to the conventions over time  (trial: `r stats_text(to_e_wi_f,6)`). Utterances were more similar to the convention given by the same person (versu from a groupmate) (`r stats_text(to_e_wi_f,8)`), although this did not interact with trial number (`r stats_text(to_e_wi_f,7)`). Games in the shared utilities condition had utterances that were more similar to their conventions (`r stats_text(to_e_wi_f,2)`), but this did not interact with trial number (`r stats_text(to_e_wi_f,3)`) and did not significantly interact with same participant versus different participant (`r stats_text(to_e_wi_f,5)`).  
+Descriptions become more similar to the conventions over time  (trial: `r stats_text(to_e_wi_f,6)`, see Figure \ref{toend} lower panels). Utterances were more similar to the convention given by the same person (versus from a groupmate) (`r stats_text(to_e_wi_f,8)`), although this did not interact with trial number (`r stats_text(to_e_wi_f,7)`). Games in the shared utilities condition had utterances that were more similar to their conventions (`r stats_text(to_e_wi_f,2)`), but this did not interact with trial number (`r stats_text(to_e_wi_f,3)`) and did not significantly interact with same participant versus different participant (`r stats_text(to_e_wi_f,5)`).  
 
-There was not a significant divergence from the conventions for other flowers over time (trial: `r stats_text(to_e_bet_f,6)`). Terms are overall slightly less similar in Shared Utility groups (`r stats_text(to_e_bet_f,2)`), but this does not interact with trial (`r stats_text(to_e_bet_f,3)`). There is not an effect of being said by the same person (`r stats_text(to_e_bet_f,8)`), or interactions between who said it and trial number (`r stats_text(to_e_bet_f,7)`). Similarity to a different convention was slightly higher if was said by the same person in a Shared Utility group (`r stats_text(to_e_bet_f,5)`). 
+There was not a significant divergence from the conventions for other flowers over time (trial: `r stats_text(to_e_bet_f,6)`, see Figure \ref{toend} lower panels). Terms are overall slightly less similar in Shared Utility groups (`r stats_text(to_e_bet_f,2)`), but this does not interact with trial (`r stats_text(to_e_bet_f,3)`). There is not an effect of being said by the same person (`r stats_text(to_e_bet_f,8)`), or interactions between who said it and trial number (`r stats_text(to_e_bet_f,7)`). Similarity to a different convention was slightly higher if was said by the same person in a Shared Utility group (`r stats_text(to_e_bet_f,5)`). 
 
 ### within end
-want to look for more similar with a group than between groups
+One last way of looking at convention formation is to look at how similar the end descriptions were to those of other players, either groupmates or people in different groups (but playing with the same color palette) for the same or different flowers. We expected that within a group, descriptions for the same flower would be much more similar, while descriptions of different flowers would be more different, compared to cross-group similarities. 
 
-do we want to look at the "other" (flower not in game) at all? No? 
+As shown in Figure \ref{withinend}, compared to different flowers described by different games as a baseline, descriptions for the same game are more similar (even for different flowers, `r stats_text(wi_e,8)`), descriptions of the same flower are more similar (even across games, `r stats_text(wi_e,6)`), and there is a large interaction effect, where descriptions of the same flower are very similar among groupmates (`r stats_text(wi_e,7)`). Compared with the individual utility condition, shared utility games had more similar descriptions of the same flower between games (`r stats_text(wi_e,3)`). Other differences between the two conditions were small. 
+
+[probably need to talk about this result]
+[this whole section might be more interpretable if I centered Shared/indiv utilities in the model?] 
 
 # Discussion
+TODO!
 
 Many of the key reduction findings from tangrams generalize to this situation. Specifically, we see utterance reduction over time and w/i group convergence for each image and divergence between images. This situation is different in that we have different stimuli (more natural) and the set up is collaborative and more free-form in what is talked about. These patterns hold for both the individual and group payoff structures.
 
 One difference we see is that groups don’t diverge (from each other). This may be dependent on stimulus properities (are there universal features of some of the images?) and group dynamics
+
+mention the set of departures this made from classic reference game 
 
 Conclusion: The key reference game findings have some generalizability. Settings like this one may be useful for encouraging discussion of a set of images and setting up partial knowledge situations.
 

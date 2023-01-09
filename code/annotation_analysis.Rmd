@@ -538,24 +538,49 @@ in_end <- M_mat %>%
   ungroup()
 ```
 
+```{r }
+
+# by trial
+in_end <- M_mat %>% 
+  filter(seen %in% c("own")) |> 
+  group_by(color,condition) %>% 
+  mutate(combinedId=str_c(referent, "_",seen,"_", gameId, "_",playerId)) %>% 
+  make_across_df(F_mat, 'cosine') %>% 
+  separate(dim1, c("ref1", "seen1","game1","player1"), convert=T) |> 
+  separate(dim2, c("ref2",  "seen2","game2", "player2"), convert=T) |> 
+ # rename(referent1=dim1,referent2=dim2) %>% 
+  mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
+  ungroup()
+```
+
 ```{r}
 in_end|> 
+  filter(player2!=player1) |> 
   mutate(distance=case_when(
-    player1==player2 ~ "Same person",
     game1==game2 ~ "same game",
     T ~ "different game"),
-    same_flower=ifelse(ref1==ref2, "Same flower", "diff flower"),
-    same_color=case_when(
-  seen1=="own" & seen2=="own" ~ "own",
-  seen2=="other" & seen1=="other" ~ "other",
-  T ~"mixed"
-  ))|> 
-ggplot( aes(x=same_color,y=sim,color=condition))+     
+    same_flower=ifelse(ref1==ref2, "Same flower", "diff flower"))|> 
+ggplot( aes(x=condition,y=sim,color=condition))+ geom_point(alpha=.01)+    
   stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width=.3))+
 facet_grid(same_flower~distance)+theme(legend.position="bottom", legend.title=element_blank())+
         scale_color_brewer(palette="Dark2")
 ```
 
+### Model
+
+```{r, eval=F}
+within_end <- in_end |> 
+  filter(seen1=="own" & seen2=="own") |> 
+  filter(player1!=player2) |> 
+  mutate(same_flower=ifelse(ref1==ref2, 1, 0),
+         same_game=ifelse(game1==game2, 1,0)) |> 
+  select(sim, condition, same_flower, same_game)
+
+m_within_end <-  stan_glm(sim ~ condition*same_flower*same_game, data=within_end) |> write_rds(here(model_path,"m6.rds"))
+
+show_summary_rstan(m_within_end) |> write_rds(here(model_path,"within_end.rds"))
+
+```
 Not sure how to show spread here. Or how to do a viz that allows for comparisons. 
 
 Take aways:
