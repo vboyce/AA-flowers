@@ -32,11 +32,11 @@ model_path <- "code/models"
 show_summary_rstan <- function(model){
   badlist <- c("accept_stat__","divergent__","energy__","n_leapfrog__","sigma", "stepsize__","treedepth__")
   intervals <- gather_draws(model, `[a-zA-z_(): ]+`, regex=TRUE) |> mean_qi() |> filter(!.variable %in% badlist) |> 
-    mutate(lower=round(.lower, digits=2),
-           upper=round(.upper, digits=2),
+    mutate(lower=round(.lower, digits=3),
+           upper=round(.upper, digits=3),
            `Credible Interval`=str_c("[",lower,", ", upper,"]"),
            Term=.variable,
-           Estimate=round(.value, digits=2)) %>% 
+           Estimate=round(.value, digits=3)) %>% 
     select(Term, Estimate, `Credible Interval`)
   
   intervals
@@ -261,15 +261,19 @@ annotated |> group_by(gameId, trialNum, condition, player, name) |> select(flowe
 
 ```{r,eval=F, include=F}
 
-m1 <- stan_lmer(numword ~ trialNum + condition + (1|gameId)+ (1|player)+(1|flower), data=annotated) |> write_rds(here(model_path,"m1.rds"))
-show_summary_rstan(m1) |> write_rds(here(model_path,"word_model.rds"))
-```
-
-```{r, eval=F, include=F}
-m1 <- read_rds(here(model_path,"m1.rds"))
-m1
+m1 <- stan_lmer(numword ~ trialNum + condition + (1|gameId)+ (1|flower)+(1|player), data=annotated) |> write_rds(here(model_path,"m1.rds"))
 
 ```
+
+```{r, eval=F}
+ read_rds(here(model_path,"m1.rds")) |> show_summary_rstan() |> write_rds(here(model_path,"word_model.rds"))
+```
+
+```{r}
+foo <- read_rds(here(model_path,"m1.rds"))
+gather_draws(foo, `[a-zA-z_(): ]+`, regex=TRUE) |> select(.variable) |> unique()
+```
+
 
 
 
@@ -397,8 +401,11 @@ within_game_flower <- flower_all |>
 
 m_samegame_sameflower <-  stan_lmer(sim ~ condition*earlier*same_player + 
                                       (1|game1)+(1|flower), data=within_game_flower) |> write_rds(here(model_path,"m2.rds"))
+```
 
-show_summary_rstan(m_samegame_sameflower) |> write_rds(here(model_path,"samegame_sameflower_model.rds"))
+```{r, eval=F}
+read_rds(here(model_path,"m2.rds")) |> 
+show_summary_rstan() |> write_rds(here(model_path,"samegame_sameflower_model.rds"))
 
 ```
 
@@ -411,12 +418,14 @@ within_game_between_flower <- flower_all |>
   select(sim, condition, earlier, same_player, game1)
 
 m_samegame_diffflower <-  stan_glm(sim ~ condition*earlier*same_player, data=within_game_between_flower) |> write_rds(here(model_path,"m3.rds"))
+```
 
-show_summary_rstan(m_samegame_diffflower) |> write_rds(here(model_path,"samegame_diffflower_model.rds"))
+```{r, eval=F}
+read_rds(here(model_path,"m3.rds")) |> show_summary_rstan() |> write_rds(here(model_path,"samegame_diffflower_model.rds"))
 
 ```
 
-```{r}
+```{r, eval=F}
 between_game_within_flower <- flower_all |> 
   filter(game1!=game2) |> 
   filter(ref1==ref2) |> 
@@ -425,8 +434,10 @@ between_game_within_flower <- flower_all |>
   select(sim, condition, earlier, flower)
 
 m_diffgame_sameflower <-  stan_glm(sim ~ condition*earlier, data=between_game_within_flower) |> write_rds(here(model_path,"m4.rds"))
+```
 
-show_summary_rstan(m_diffgame_sameflower) |> write_rds(here(model_path,"diffgame_sameflower_model.rds"))
+```{r, eval=F}
+read_rds(here(model_path,"m4.rds")) |> show_summary_rstan() |> write_rds(here(model_path,"diffgame_sameflower_model.rds"))
 
 ```
 
@@ -495,8 +506,10 @@ to_end_same_flower <- to_end |>
   select(sim, condition, earlier, same_player, gameId, flower)
 
 m_to_end_sameflower <-  stan_glm(sim ~ condition*earlier*same_player, data=to_end_same_flower) |> write_rds(here(model_path,"m5.rds"))
+```
 
-show_summary_rstan(m_to_end_sameflower) |> write_rds(here(model_path,"to_end_sameflower_model.rds"))
+```{r, eval=F}
+read_rds(here(model_path,"m5.rds")) |> show_summary_rstan() |> write_rds(here(model_path,"to_end_sameflower_model.rds"))
 
 ```
 
@@ -506,9 +519,11 @@ to_end_diff_flower <- to_end |>
   mutate(same_player=ifelse(player1==player2,1,0)) |> 
   select(sim, condition, earlier, same_player, gameId)
 
-m_to_end_diffflower <-  stan_glm(sim ~ condition*earlier*same_player, data=to_end_diff_flower) |> write_rds(here(model_path,"m5.rds"))
+m_to_end_diffflower <-  stan_glm(sim ~ condition*earlier*same_player, data=to_end_diff_flower) |> write_rds(here(model_path,"m6.rds"))
+```
 
-show_summary_rstan(m_to_end_diffflower) |> write_rds(here(model_path,"to_end_diffflower_model.rds"))
+```{r, eval=F}
+read_rds(here(model_path,"m6.rds")) |> show_summary_rstan() |> write_rds(here(model_path,"to_end_diffflower_model.rds"))
 
 ```
 ##  Within end-stuff
@@ -576,9 +591,13 @@ within_end <- in_end |>
          same_game=ifelse(game1==game2, 1,0)) |> 
   select(sim, condition, same_flower, same_game)
 
-m_within_end <-  stan_glm(sim ~ condition*same_flower*same_game, data=within_end) |> write_rds(here(model_path,"m6.rds"))
+m_within_end <-  stan_glm(sim ~ condition*same_flower*same_game, data=within_end) |> write_rds(here(model_path,"m7.rds"))
 
-show_summary_rstan(m_within_end) |> write_rds(here(model_path,"within_end.rds"))
+```
+
+```{r, eval=F}
+
+read_rds(here(model_path,"m7.rds")) |> show_summary_rstan() |> write_rds(here(model_path,"within_end.rds"))
 
 ```
 Not sure how to show spread here. Or how to do a viz that allows for comparisons. 
