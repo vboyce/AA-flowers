@@ -31,6 +31,7 @@ library(tidybayes)
 library(viridis)
 library(cowplot)
 library(lsa)
+library(kableExtra)
 #rstan_options(auto_write = TRUE)
 #options(mc.cores = parallel::detectCores())
 #for plotting
@@ -239,16 +240,81 @@ Whereas in the past studies of convention formation have had to rely on manual a
 
 We embedded each of the extracted referring expressions using SBERT [@reimers2019] which maps each utterance to a vector in a high-dimensional semantic vector space. We use cosine distance between pairs of vector embeddings as a measure of similarity between the corresponding referring expressions. When two vectors are near each other, the angle between them is small, and the cosine of this angle is large. Higher cosine values correspond to vectors close together, and thus, reference expressions with more similar meanings. 
 
-When doing pairwise comparisons between referring expressions produced during the game, we smoothed out the random sampling and sparseness of which flowers were presented on the same trial by comparing descriptions with those from the same round and the two prior rounds (thus the similarity at round 10 comes from 8-10, 9-10 and 10-10 comparisons). This smoothing was not necessary when comparing with the names produced after the game. 
+When doing pairwise comparisons between referring expressions produced during the game, we smoothed out the random sampling and sparseness of which flowers were presented on the same trial by comparing descriptions with those from the same round and the two later rounds (thus the similarity at round 10 comes from 10-10, 10-11 and 10-12 comparisons). This smoothing was not necessary when comparing with the names produced after the game. 
 
 ## Analytic methods
-TODO this is the section where we talk about modelling details
+All models were run using rstan [@rstan]. We treatment-coded condition, with individual utilities as the baseline condition, and shared utilities as the marked condition. 
+
 
 # Results
 
 We address each of the questions of interest listed at the end of the Introduction in order. 
 
 ## Reduction of referring expressions
+
+
+```{r}
+
+include <- tribble(
+  ~gameId, ~name, ~flower, ~trialNum, ~normalized_span,
+  "cK5bFKgBKPiq4oCki", "Laju", "11yellow", 1, "not sure what kind of flower it is but the droopy-ish one",
+  "cK5bFKgBKPiq4oCki", "Repi", "11yellow", 3, "droopy iris flower",
+  "cK5bFKgBKPiq4oCki", "Minu", "11yellow", 20, "droopy",
+  "DTw5mrEvPvfyuEiGw", "Minu", "2yellow", 1, "the red middle with spike",
+    "DTw5mrEvPvfyuEiGw", "Minu", "2yellow", 2, "the red center",
+    "DTw5mrEvPvfyuEiGw", "Laju", "2yellow", 19, "red middle",
+  "KiRHskdD2iLy8Fh8C", "Repi", "2yellow", 5, "the one with the dark red centre",
+    "KiRHskdD2iLy8Fh8C", "Laju", "2yellow", 12, "the one with black background",
+      "KiRHskdD2iLy8Fh8C", "Laju", "2yellow", 23, "black background",
+    "cK5bFKgBKPiq4oCki", "Laju", "4yellow", 3, "the big cluster of flowers with the orange in the middle",
+      "cK5bFKgBKPiq4oCki", "Laju", "4yellow", 22, "cluster",
+      "DTw5mrEvPvfyuEiGw", "Repi", "4yellow", 23, "bundle",
+        "KiRHskdD2iLy8Fh8C", "Minu", "4yellow", 23, "multi flowers",
+)
+
+examples <- read_rds(here(model_path,"sbert_examples.rds")) |> left_join(include, by=c("game1"="gameId","ref1"="flower","player1"="name","trialNum1"="trialNum")) |> rename(text1=normalized_span) |> left_join(include, by=c("game2"="gameId","ref2"="flower","player2"="name","trialNum2"="trialNum")) |> rename(text2=normalized_span)
+
+```
+
+```{r examples}
+text_examples <- include |> 
+  mutate(Game=as.factor(gameId) |> as.numeric() |> as.character(),
+         Player=LETTERS[as.factor(name) |> as.numeric()],
+         GamePlayer=str_c(Game,Player),
+         Trial=trialNum+1,
+         Flower=as.factor(flower) |> as.numeric() |> as.character()) |> arrange(Flower,Game,Trial) |> 
+  select(Flower,Game=GamePlayer, Trial,  Expression=normalized_span )
+
+knitr::kable(text_examples, caption = "Examples of descriptions of different flowers from different games, illustrating reduction and convergence phenomenon. Games are numbered, letters refer to players within games. Images of flowers can be found in Figure 1: flower 1 upper left, flower 2 lower center, flower 3 lower left.",  format="latex", booktabs=TRUE, linesep="") %>%
+kable_styling(full_width = F) %>%
+  row_spec(c(3,9), hline_after=T) |> 
+column_spec(4, width = "12em") %>%
+  kable_styling(latex_options="H")
+
+```
+
+```{r sbert-example}
+sbert_include <- tribble(
+  ~text1, ~text2,
+  #"the red center", "the one with the dark red centre",
+  "the red center", "red middle",
+  "droopy iris flower", "droopy",
+  "cluster", "bundle",
+  "droopy iris flower","the red center", 
+  "droopy iris flower","multi flowers", 
+  "red middle", "black background",
+  "droopy", "bundle",
+) |> left_join(examples) |> arrange(desc(sim)) |> mutate(sim=round(sim,2)) |> select(`Expression 1`=text1, `Expression 2`=text2, `Sim`=sim)
+
+
+knitr::kable(sbert_include, caption = "Examples of cosine similarities between pairs of descriptions.",  format="latex", booktabs=TRUE, linesep="") %>%
+kable_styling(full_width = F) %>%
+column_spec(c(1,2), width = "9em") %>% 
+  kable_styling(latex_options="H")
+
+```
+
+
 
 ```{r}
 possible <- d.rounds.final |> select(-name) |> unique()
@@ -372,7 +438,7 @@ flower_all|>
     same_flower=ifelse(ref1==ref2, "Same Flower", "Different Flowers")
   ) |> mutate(same_flower=factor(same_flower,levels=c("Same Flower", "Different Flowers")),
               distance=factor(distance, levels=c("Same Person", "Same Game - Different Person", "Different Games"))) |> 
-ggplot( aes(x=later,y=sim,color=condition))+     
+ggplot( aes(x=earlier,y=sim,color=condition))+     
   stat_summary(aes(group=str_c(color,condition), color=condition),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.3, geom="point")+
   geom_smooth(formula=y~poly(x,2))+facet_grid(same_flower~distance)+theme(legend.position="bottom", legend.title=element_blank())+
         scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
@@ -411,7 +477,7 @@ The theory of partner-specificity predictions that descriptions to the same flow
 For descriptions of the same flower across games, we found that cosine similarities decreased slightly over time  (trial: `r stats_text(bet_g_wi_f,4)`, see Figure \ref{during} upper right panel). This is weakly consistent with the predictions. 
 
 
-```{r }
+```{r, cache=T}
 
 # by trial
 to_end <- M_mat %>% 
@@ -429,7 +495,7 @@ to_end <- M_mat %>%
   ungroup()
 ```
 
-```{r}
+```{r, cache=T}
 in_end <- M_mat %>% 
   filter(seen %in% c("own")) |> 
   group_by(color,condition) %>% 

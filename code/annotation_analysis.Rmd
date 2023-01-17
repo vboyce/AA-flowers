@@ -31,7 +31,7 @@ model_path <- "code/models"
 
 show_summary_rstan <- function(model){
   badlist <- c("accept_stat__","divergent__","energy__","n_leapfrog__","sigma", "stepsize__","treedepth__")
-  intervals <- gather_draws(model, `[a-zA-z_(): ]+`, regex=TRUE) |> mean_qi() |> filter(!.variable %in% badlist) |> 
+  intervals <- gather_draws(model, `[a-zA-Z_(): ]+`, regex=TRUE) |> mean_qi() |> filter(!.variable %in% badlist) |> 
     mutate(lower=round(.lower, digits=3),
            upper=round(.upper, digits=3),
            `Credible Interval`=str_c("[",lower,", ", upper,"]"),
