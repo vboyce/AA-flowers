@@ -15,13 +15,13 @@ keywords: >
     Convention formation; reference games; reduction of referring expressions; multi-party communication
     
 output: cogsci2016::cogsci_paper
-#final-submission: \cogscifinalcopy
+final-submission: \cogscifinalcopy
 ---
 
 ```{r global_options, include=FALSE}
 knitr::opts_chunk$set(fig.width=3, fig.height=3, fig.crop = F, 
                       fig.pos = "tb", fig.path='figs/',
-                      echo=F, warning=F, cache=F, 
+                      echo=F, warning=F, cache=T, 
                       message=F, sanitize = T)
 library(here)
 library(tidyverse)
@@ -121,7 +121,7 @@ b <- ggdraw()+draw_image(feedback)
 plot_grid(a,b, labels="AUTO")
 ```
 
-We build on work by @mankewitz2021, who created a task with the aim of bridging the gap between reference games with hard-to-name objects and negotiation datasets with easily nameable objects. They created a 3-person game where players each selected what flowers to grow from a set of 6 flowers with variable and partially hidden value. Players got the value of the flower only if they were the only one to select it, which incentivized coordination and negotiation. However, all the flowers shown were the same color, so they were not easily nameable, and the flowers repeated, leading to opportunities for ad-hoc conventionalization. This game structure encouraged players to describe flowers while never explicitly telling a player to refer to any specific flower. The experiment had two conditions, one where players within a group won points together (and thus had fully aligned incentives) and another where they won points as individuals (and didn't). @mankewitz2021 found a slight decrease in language over the course of the games, but they did not conduct a detailed analysis to assess whether the decreases in words were associated with shorter and more conventionalized referring expressions. Here, we address this gap by separating out the referring expressions in order to check for patterns of convention-formation. 
+We build on work by @mankewitz2021, who created a task with the aim of bridging the gap between reference games with hard-to-name objects and negotiation datasets with easily nameable objects. They created a 3-person game where players each selected what flowers to grow from a set of 6 flowers with variable and partially hidden value. Players got the value of the flower only if they were the only one to select it, which incentivized coordination and negotiation. However, all the flowers shown were the same color, so they were not easily nameable, and the flowers repeated, leading to opportunities for ad-hoc conventionalization. This game structure encouraged players to describe flowers while never explicitly telling a player to refer to any specific flower. The experiment had two conditions, one where players within a group won points together (and thus had fully aligned incentives) and another where they won points as individuals (and didn't). @mankewitz2021 found a slight decrease in language over the course of the games, but they did not conduct a detailed analysis to assess whether the decreases in words were associated with shorter and more conventionalized referring expressions. However, this pattern of decreased language production is actually totally consistent with increased task familiarity, fatigue, and/or less communication about overall strategy, with no change in the actual referring language.  Here, we address this gap by separating out the referring expressions in order to check for patterns of convention-formation. 
 
 Our work addresses whether participants in a complex, multi-player strategic game with differing incentives and shared knowledge are able to develop conventionalized reference expressions. We explore whether the phenomena found in classic dyadic iterated reference games can also be found in this more naturalistic domain, and whether the results differ across the individual and shared incentive conditions. The key questions we addressed were:
 
@@ -135,10 +135,12 @@ Historically, studies of convention formation have had to rely on proxies for co
 
 # Methods
 
-This paper presents a reanalysis of data from @mankewitz2021. We describe both the original data collection and the additional data processing done for reanalysis. 
+This paper presents a reanalysis of data from @mankewitz2021. We describe both the original data collection and the additional data processing done for reanalysis. The materials, data, and code are all available at https://github.com/vboyce/AA-flowers. 
 
 ## Procedure
-As described in @mankewitz2021, participants played a real-time coordination game in groups of three, implemented using Empirica [@almaatouqEmpiricaVirtualLab2020]. On each trial, each group saw a set of 6 flower images (Figure \ref{interface}A) . Each participant saw the values for 4 of the flowers (represented as a colored bar), such that each flower's value was hidden from one participant. Players could coordinate and discuss using a chat box before each player selected a flower. If one player selected a flower, it was worth the shown reward; if multiple players collided and selected the same flower, they each got a lower reward instead (Figure \ref{interface}B). Players needed to communicate about the flowers in order to coordinate their selections. The rewards translated into a monetary bonus for the participants at the end of the game. 
+As described in @mankewitz2021, participants played a real-time coordination game in groups of three, implemented using Empirica [@almaatouqEmpiricaVirtualLab2020]. On each trial, each group saw a set of 6 flower images (Figure \ref{interface}A) . Each participant saw the values for 4 of the flowers (represented as a colored bar), such that each flower's value was hidden from one participant. Players could coordinate and discuss using a chat box before each player selected a flower. There were no restrictions on what participants could say in the chat.
+
+If one player selected a flower, it was worth the shown reward; if multiple players collided and selected the same flower, they each got a lower reward instead (Figure \ref{interface}B). Players needed to communicate about the flowers in order to coordinate their selections. The rewards translated into a monetary bonus for the participants at the end of the game. 
 
 In *individual utility* games, each player earned points for the flowers they selected; in the *shared utility* games, the points were averaged together, and all players in a game got the same reward. This made for slightly different incentives; in an individual game, players wanted to maximize the rewards of flowers they selected, and only cared about avoiding collisions with other players' selections; in a shared game, players wanted their teammates to select different high reward flowers, and were indifferent on who selected the highest one. 
 
@@ -147,7 +149,7 @@ Each game was assigned a color of flower (white, red, yellow, purple) and the fl
 After the game, players were asked how they would describe each of the images to their teammates. 
 
 ## Participants
-@mankewitz2021 recruited `r 3 *(d.games |> filter(conditionName!="Old Cooperative") |> nrow())` participants total for 25 3-person games in each of the individual and shared utilities conditions. Some games did not complete the full 24 trials because participants dropped out early.  We excluded incomplete games from analyses, which left us with `r d.games.final |> filter(condition=="Individual Utilities") |> nrow()` games in the individual utilities condition and `r d.games.final |> filter(condition=="Shared Utilities") |> nrow()` in the shared utilities condition (`r 3*(d.games.final |> nrow())` participants included in the analyses). 
+@mankewitz2021 recruited `r 3 *(d.games |> filter(conditionName!="Old Cooperative") |> nrow())` participants total for 25 3-person games in each of the individual and shared utilities conditions. Games took roughly 20 minutes with wide variability (5-40 minutes). If a participant disconnected, the game ended, so some games did not complete the full 24 trials as participants dropped out early.  We excluded incomplete games from analyses, which left us with `r d.games.final |> filter(condition=="Individual Utilities") |> nrow()` games in the individual utilities condition and `r d.games.final |> filter(condition=="Shared Utilities") |> nrow()` in the shared utilities condition (`r 3*(d.games.final |> nrow())` participants included in the analyses). 
 
 ```{r wordcount, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Words produced in referring expressions across trials in both conditions. A: Total words of referring language per game per trial. B: Words in each reference expression by trial. C: Total number of reference expressions per game per trial. \\label{wordcount}", fig.height=2, fig.width=7}
 
@@ -189,7 +191,7 @@ sum_words <- annotated %>% filter(numword>0) |>  group_by(trialNum, gameId,condi
         scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
         ggthemes::scale_color_solarized()
         
-        top <- plot_grid(all_words, words, utts,nrow=1, labels="AUTO")
+        top <- plot_grid(all_words, words, utts,nrow=1, labels="AUTO", hjust=c(-5, -4, -4), vjust=1.8)
         plot_grid(top, legend, nrow=2, rel_heights=c(1,.15))
 
 ```
@@ -274,11 +276,14 @@ word_count <- read_rds(here(model_path,"word_model.rds")) |> filter(str_detect(T
 
 In each trial of the game, there were 6 flowers visible on the screen, and participants wanted to each pick a different one. In general, each trial contained references to 2 or 3 distinct flowers: individual utilities: mean of `r  mean_flowers |> pluck(2,1)`, shared utilities: `r mean_flowers |> pluck(2,2)`. Most players referred to one flower each trial: individual utilities: `r  mean_person |> pluck(2,1)`, shared utilities: `r mean_person |> pluck(2,2)`. 
 
+Participants employed a range of reference strategies, including referring to the flowers by a common name (ex. rose, iris), referring to the number or groupings of flowers, referring to properties of the flowers (ex. spiky), referring to background elements (ex. white house), and analogies to other objects (ex. flame). Descriptions sometimes combined multiple of these approaches. 
+
 The amount of referring language decreased over the course of the game, consistent with the dyadic reference game pattern. As shown in Figure \ref{wordcount}A, the number of words of referring language decreased across the game (trial: `r stats_text(word_count,3)`). The reduction in referring language was driven by shortening referring expressions (Figure \ref{wordcount}B), while the total number of referring expressions per trial remained constant (Figure \ref{wordcount}C). See Table \ref{extable}, flowers 1 and 2, for examples of reduction.
+
 
 ## Convergence of referring expressions
 
-The classic reference game phenomenon of convergence to partner-specific referring expressions can be quantified using similarity metrics as the combination of three patterns occurring over time: 1) within a group, descriptions of the same flower converge, 2) within a group, descriptions of different flowers diverge, and 3) between groups, descriptions of the same flower diverge. We assess all of these in two ways: 1) comparing referring expressions within the game to other referring expressions from the same time to get at the dynamic changes, and 2) comparing referring expressions within the game to the names players gave the flowers after the game, to track how expressions evolve towards these final conventions. 
+The classic reference game phenomena of convergence to partner-specific referring expressions can be quantified using similarity metrics as the combination of three patterns occurring over time: 1) within a group, descriptions of the same flower converge, 2) within a group, descriptions of different flowers diverge, and 3) between groups, descriptions of the same flower diverge. We assess all of these in two ways: 1) comparing referring expressions within the game to other referring expressions from the same time to get at the dynamic changes, and 2) comparing referring expressions within the game to the names players gave the flowers after the game, to track how expressions evolve towards these final conventions. 
 
 
 ```{r, include=F,}
@@ -416,6 +421,7 @@ Within games, the patterns from dyadic reference games predict that similarity f
 
 We found that for descriptions of the same flower, cosine similarity increased over time (trial: `r stats_text(wi_g_wi_f,6)`, see Figure \ref{during} upper left and middle panels). Utterances were more similar if they were produced by the same participant (`r stats_text(wi_g_wi_f,8)`), although this did not interact with trial number (`r stats_text(wi_g_wi_f,7)`). 
 
+For descriptions of different flowers, cosine similarity decreased over time (trial: `r stats_text(wi_g_bet_f,6)`, see Figure \ref{during} lower left and middle panels). Utterances being produced by the same person did not have an effect (`r stats_text(wi_g_bet_f,8)`) or an interaction with trial number (`r stats_text(wi_g_bet_f,7)`). 
 
  
 ```{r}
@@ -451,7 +457,7 @@ text_examples <- include |>
          Flower=as.factor(flower) |> as.numeric() |> as.character()) |> arrange(Flower,Game,Trial) |> 
   select(Flower,Game=GamePlayer, Trial,  Expression=normalized_span )
 
-knitr::kable(text_examples, caption = "Examples of descriptions of different flowers from different games, illustrating reduction and convergence phenomenon. Games are numbered, letters refer to players within games. Images of flowers can be found in Figure 1: flower 1 upper left, flower 2 lower center, flower 3 lower left.\\label{extable}",  format="latex", booktabs=TRUE, linesep="") %>%
+knitr::kable(text_examples, caption = "Examples of descriptions of different flowers from different games, illustrating reduction and convergence phenomena. Games are numbered, letters refer to players within games. Images of flowers can be found in Figure 1: flower 1 upper left, flower 2 lower center, flower 3 lower left.\\label{extable}",  format="latex", booktabs=TRUE, linesep="") %>%
 kable_styling(full_width = F) %>%
   row_spec(c(3,9), hline_after=T) |> 
 column_spec(4, width = "12em") %>%
@@ -461,26 +467,6 @@ column_spec(4, width = "12em") %>%
 
 
 
-```{r sbert-example}
-sbert_include <- tribble(
-  ~text1, ~text2,
-  #"the red center", "the one with the dark red centre",
-  "the red center", "red middle",
-  "droopy iris flower", "droopy",
-  "cluster", "bundle",
-  "droopy iris flower","the red center", 
-  "droopy iris flower","multi flowers", 
-  "red middle", "black background",
-  "droopy", "bundle",
-) |> left_join(examples) |> arrange(desc(sim)) |> mutate(sim=round(sim,2)) |> select(`Expression 1`=text1, `Expression 2`=text2, `Sim`=sim)
-
-
-knitr::kable(sbert_include, caption = "Examples of cosine similarities between pairs of descriptions. \\label{costable}",  format="latex", booktabs=TRUE, linesep="") %>%
-kable_styling(full_width = F) %>%
-column_spec(c(1,2), width = "9em") %>% 
-  kable_styling(latex_options="H")
-
-```
 
 ```{r during, fig.env = "figure*", fig.pos = "h", fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cosine similarities between SBERT embeddings of utterances produced within 2 trials of each other. Utterances were paired with other utterances from the same speaker; from the same game, but a different speaker; or from a different game (vertical panels). Utterances were either in reference to the same flower or different flowers (horizontal panels). \\label{during}", fig.height=4, fig.width=10, out.width="80%"}
 flower_all|> 
@@ -502,7 +488,6 @@ ggplot( aes(x=earlier,y=sim,color=condition))+
 
 ```
 
-For descriptions of different flowers, cosine similarity decreased over time (trial: `r stats_text(wi_g_bet_f,6)`, see Figure \ref{during} lower left and middle panels). Utterances being produced by the same person did not have an effect (`r stats_text(wi_g_bet_f,8)`) or an interaction with trial number (`r stats_text(wi_g_bet_f,7)`). 
 
 These results replicate and generalize the pattern found in prior literature: convergence in expressions for the same referent  games and divergence between referents [@hawkins2020]. 
 
@@ -511,7 +496,6 @@ These results replicate and generalize the pattern found in prior literature: co
 The theory of partner-specificity predicts that descriptions to the same flower in different groups will diverge over time as each group forms their own distinct convention. Table \ref{extable} shows how descriptions of the same flower may diverge (flower 2), but also how groups might choose related but different descriptions (flower 3). 
 
 For descriptions of the same flower across games, we found that cosine similarities decreased over time  (trial: `r stats_text(bet_g_wi_f,4)`, see Figure \ref{during} upper right panel). This between-game decrease is also consistent with prior reports in more restricted reference games.
-
 
 ```{r, cache=T}
 
@@ -542,24 +526,6 @@ in_end <- M_mat %>%
  # rename(referent1=dim1,referent2=dim2) %>% 
   mutate(sim = ifelse(is.nan(sim), NA, sim)) %>%
   ungroup()
-```
-
-
-```{r toend, fig.env="figure", fig.pos = "h", fig.align = "center", out.width="100%", fig.cap = "Cosine similarities between SBERT embeddings of utterances produced during a game and the post-game descriptions of the flowers. \\label{toend}", fig.height=4, fig.width=6}
-to_end|> 
-  mutate(distance=case_when(
-    player1==player2 ~ "Same Person",
-    T ~ "Same Game - Different Person"),
-        same_flower=ifelse(ref1==ref2, "Same Flower", "Different Flowers")
-) |> mutate(same_flower=factor(same_flower,levels=c("Same Flower", "Different Flowers")),
-              distance=factor(distance, levels=c("Same Person", "Same Game - Different Person" ))) |> 
-ggplot( aes(x=earlier,y=sim,color=condition))+     
-  stat_summary(aes(group=str_c(color,condition), color=condition),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.3, geom="point")+
-  geom_smooth(formula=y~poly(x,2))+facet_grid(same_flower~distance)+theme(legend.position="bottom", legend.title=element_blank())+
-        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
-        ggthemes::scale_color_solarized()+
-  guides(color = guide_legend(override.aes = list(linetype = NA, alpha=1, fill=NA, size=5) ) )
-
 ```
 
 
@@ -611,7 +577,26 @@ After the game, players provided the description they would use to identify each
 
 Referring descriptions later in a game were more similar to the convention than descriptions earlier in the game  (trial: `r stats_text(to_e_wi_f,6)`, see Figure \ref{toend} upper panels). Utterances were more similar to the convention given by the same person (versus the convention given by a groupmate) (`r stats_text(to_e_wi_f,8)`), and this increased over time (`r stats_text(to_e_wi_f,7)`). This finding is consistent with the expected pattern of convention formation. 
 
-We also examined how referring expressions related to the conventionalized names for other flowers. Utterances diverge from the conventionalized names of other flowers over time (trial: `r stats_text(to_e_bet_f,6)`, see Figure \ref{toend} lower panels).  There was no effect of the same person saying the description and convention (`r stats_text(to_e_bet_f,8)`) and no interaction between same person and trial number (`r stats_text(to_e_bet_f,7)`). 
+```{r sbert-example}
+sbert_include <- tribble(
+  ~text1, ~text2,
+  #"the red center", "the one with the dark red centre",
+  "the red center", "red middle",
+  "droopy iris flower", "droopy",
+  "cluster", "bundle",
+  "droopy iris flower","the red center", 
+  "droopy iris flower","multi flowers", 
+  "red middle", "black background",
+  "droopy", "bundle",
+) |> left_join(examples) |> arrange(desc(sim)) |> mutate(sim=round(sim,2)) |> select(`Expression 1`=text1, `Expression 2`=text2, `Sim`=sim)
+
+
+knitr::kable(sbert_include, caption = "Examples of cosine similarities between pairs of descriptions. \\label{costable}",  format="latex", booktabs=TRUE, linesep="") %>%
+kable_styling(full_width = F) %>%
+column_spec(c(1,2), width = "9em") %>% 
+  kable_styling(latex_options="H")
+
+```
 
 ```{r withinend, fig.env="figure", fig.pos = "h", fig.align = "center", out.width="90%", fig.width=4, fig.height=2, fig.cap = "Cosine similarities between flower descriptions provided by participants after the game. Error bars are 95\\% CIs, but some are hidden by the point size. \\label{withinend}"}
 in_end|> 
@@ -625,6 +610,28 @@ ggplot( aes(x=str_c(same_flower,"\n", distance),y=sim,color=condition))+
   stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width=.3))+theme(legend.position=c(0.2,.75), legend.title=element_blank(), legend.background=element_blank())+
         ggthemes::scale_color_solarized()
 ```
+
+
+```{r toend, fig.env="figure", fig.pos = "h", fig.align = "center", out.width="100%", fig.cap = "Cosine similarities between SBERT embeddings of utterances produced during a game and the post-game descriptions of the flowers. \\label{toend}", fig.height=4, fig.width=6}
+to_end|> 
+  mutate(distance=case_when(
+    player1==player2 ~ "Same Person",
+    T ~ "Same Game - Different Person"),
+        same_flower=ifelse(ref1==ref2, "Same Flower", "Different Flowers")
+) |> mutate(same_flower=factor(same_flower,levels=c("Same Flower", "Different Flowers")),
+              distance=factor(distance, levels=c("Same Person", "Same Game - Different Person" ))) |> 
+ggplot( aes(x=earlier,y=sim,color=condition))+     
+  stat_summary(aes(group=str_c(color,condition), color=condition),fun.data = "mean_cl_boot", position = position_dodge(width=.3), alpha=.3, geom="point")+
+  geom_smooth(formula=y~poly(x,2))+facet_grid(same_flower~distance)+theme(legend.position="bottom", legend.title=element_blank())+
+        scale_x_continuous(limits=c(1,24), breaks=c(6,12,18,24))+
+        ggthemes::scale_color_solarized()+
+  guides(color = guide_legend(override.aes = list(linetype = NA, alpha=1, fill=NA, size=5) ) )
+
+```
+
+We also examined how referring expressions related to the conventionalized names for other flowers. Utterances diverge from the conventionalized names of other flowers over time (trial: `r stats_text(to_e_bet_f,6)`, see Figure \ref{toend} lower panels).  There was no effect of the same person saying the description and convention (`r stats_text(to_e_bet_f,8)`) and no interaction between same person and trial number (`r stats_text(to_e_bet_f,7)`). 
+
+
 ## Individual and shared utility conditions 
 
 The last question of interest is whether there were differences between the individual and shared utility conditions. Here we report the extent to which the shared utility condition differed from the individual utility condition. Overall, there was not a significant difference in the amount of referring language produced in the two conditions (`r stats_text(word_count,2)`). 
@@ -663,7 +670,7 @@ Our interpretation of results is limited by the dataset, which is small, especia
 
 This dataset is just the start of testing how well findings from reference games generalize to more complex conversational situations. One dimension that we were unable to explore here due to the design of the game is the idea of shared versus privileged knowledge [@keysar2000taking; @heller2008role]. In the flowers game, like in reference games, all players saw the same set of images (and knew they did). In real-world situations, interlocutors may have different sets of objects in their context and may not know what is in their communication partner's context. An important future direction is studying how repeated reference phenomena interact with different communication goals and contexts. 
 
-In conclusion, our analysis here showed that the phenomenon of reduction and conventionalization occurs even in complex games with different incentives, asymmetric knowledge, and more open-ended negotiation and dialogue than that found in reference games. Additionally, we saw hints that different incentives may lightly moderate the formation of conventions, but that reduction and convention formation took place regardless of incentive condition. We hope future work will continue to develop our understanding of these phenomena in more natural settings. 
+In conclusion, our analysis here showed that the phenomena of reduction and conventionalization occurs even in complex games with different incentives, asymmetric knowledge, and more open-ended negotiation and dialogue than that found in reference games. Additionally, we saw hints that different incentives may lightly moderate the formation of conventions, but that reduction and convention formation took place regardless of incentive condition. We hope future work will continue to develop our understanding of these phenomena in more natural settings. 
 
 
 # References 
