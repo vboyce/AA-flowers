@@ -62,26 +62,31 @@
 				{\LARGE\textbf{Communicative reduction in referring expressions \\ within a
 						multi-player negotiation game}}\\
 				{\Large Veronica Boyce, Michael C. Frank} \\
-				{Stanford University, send correspondence to vboyce@mit.edu}	
+				{Stanford University, contact: vboyce@stanford.edu}	
 				
 			\end{centering}
 		\end{tcolorbox}
 	\end{textblock}
 	
-	\begin{textblock}{.32}(0,0.16)
+	\begin{textblock}{.32}(0,0.15)
 		\begin{tcolorbox}[title= {\centering Goals }]
+			\vspace{.5em}
 			\begin{small}\centering
 				\bigskip
-			The ability to form novel conventions is a key signature of efficient
-			linguistic communication.
- In dyadic reference games, we commonly observe 
+			\textbf{The ability to form novel conventions is a key signature of efficient
+			linguistic communication.}
+			
+			\vspace{.5em}
+ In dyadic reference games (Clark \& Wilkes-Gibbs 1986, Hawkins et al. 2020), speaker-listener pairs show the following patterns:
  \begin{itemize}
  	\item \textbf{reduction} as utterances shorter over time,
- 	 \item \textbf{convergence} within groups to a shared nick name,
- 	  \item \textbf{divergence} between groups as each focuses on different features.
-   \end{itemize}  CITATIONS
+ 	 \item \textbf{convergence} within groups to a shared nickname,
+ 	  \item \textbf{divergence} between groups as different nicknames develop.
+   \end{itemize}
 
-Do these phenomena occur in strategic games with more complex goals?
+\vspace{.5em}
+\textbf{Do these patterns occur for reference expressions in strategic games with more complex goals?}
+\vspace{.5em}
 
 
 			\end{small}
@@ -92,66 +97,83 @@ Do these phenomena occur in strategic games with more complex goals?
 
 	\begin{textblock}{.32}[0,1](0,1 )
 		\begin{tcolorbox}[title={\centering Experimental design }]
-
+\vspace{.5em}
 			
 			\includegraphics[clip,width=\textwidth]{interface-1.pdf}
 			
+			\vspace{.5em}
 			\begin{small}
-				 During selection (A) each participant sees 6 flowers, 4 with value bars. Players can use a chat box to communicate before making selections. Then they see feedback (B) indicating who chose what.  When multiple players select the same flower, they recieve a lower value rather than what is shown. 
+				
+				Participants were assigned to 3-player games. 
+				 During selection (A) each participant saw 6 flowers, 4 with value bars. Players could communicate in a chat box before each selecting a flower. Then they saw feedback (B) indicating who chose what.  When multiple players selected the same flower, they received a lower value rather than the indicated value. 
+
+\vspace{.5em}
 
 				In \emph{individual utility} games (18 games), each player earned points for the
 				flowers they selected; in the \emph{shared utility} games (21 games), the points
 				were averaged together, and all players in a game got the same reward.
-								Each group plays 24 trials with images drawn from a set of 12 flowers. This data was first presented in  Mankewitz et al. (2021).
+								Each group played 24 trials with images drawn from a set of 12 flowers. This data was first presented in  Mankewitz et al. (2021).
 								
-								We measure distance between two utterances by the cosine of the angle between their embedings using SBERT (CITATION). 
-								
+							
 								
 			\end{small}
 		
+		\vspace{.5em}
 		\end{tcolorbox}
 	\end{textblock}
 	
 	
-	\begin{textblock}{.41}[0,0](.33,.16)
-	\begin{tcolorbox}[title={\centering Referring expressions reduce over time}]  
-		\includegraphics[width=.95\textwidth]{wordcount-1.pdf}    
+	\begin{textblock}{.41}[0,0](.33,.15)
+	\begin{tcolorbox}[title={\centering Referring expressions reduced over time}]  
+		\vspace{.5em}
+		\centering
+		\includegraphics[width=.9\textwidth]{wordcount-1.pdf}    
 		
-	\begin{small}	Over time individual utterances shorten, but the same number of referring expressions are produced.     \end{small}                                              
+	\begin{small}	Descriptions got shorter over time, but the number of descriptions stayed constant.   \end{small}                                              
 	\end{tcolorbox}
 \end{textblock}
 
 	
-		\begin{textblock}{.41}[0,0](.33,.43)
+		\begin{textblock}{.41}[0,0](.33,.4)
 
-		\begin{tcolorbox}[title={\centering Expressions converge within groups}]  
-			\includegraphics[width=.95\textwidth]{during-1.pdf}                            			                                                  
+		\begin{tcolorbox}[title={\centering Referring expressions converged within groups}]  
+			\vspace{.5em}
+			\centering
+			\includegraphics[width=.9\textwidth]{during-1.pdf}                            			                                                  
 			\begin{small}
 				
-				Descriptions to the same flower in nearby trials increase in similarity with a group. 
 				
-				Similarity decreases slightly for the same flower across games. 
+					Similarity between two descriptions was measured by the cosine between their S-BERT embeddings (Reimers \& Gurevych, 2019).
+				\begin{itemize}
+
+				\item Similarity increased for the same flower within games (top left, center). 
 				
-				Flower names become more distinctive as descriptions for two different flowers become less similar. 
+				\item Similarity decreased slightly for the same flower across games (top right). 
 				
+				\item Descriptions for different flowers became more distinct (bottom).
+				\end{itemize}
 			\end{small}
+		\vspace{.5em}
 		\end{tcolorbox}
 	\end{textblock}
 
 
 	\begin{textblock}{.41}[0,1](.33,1)
-	\begin{tcolorbox}[title={ \centering 					Incentive conditions differed a bit}]  
-		\begin{minipage}{.45\textwidth}
+	\begin{tcolorbox}[title={ \centering 					Shared utilities games diverged less}]  
+		\begin{minipage}{.4\textwidth}
+			\vspace{.5em}
 			\includegraphics[width=\textwidth]{withinend-1.pdf}    
 		\end{minipage}
 	\hfill
 	\noindent
-	\begin{minipage}{.45\textwidth}
+	\begin{minipage}{.55\textwidth}
 				\begin{small}
-					
-				Individual and shared utilities conditions differed slightly in divergence rate during games (above). In post-game descriptions (left), shared utility games show greater cross-game similarity for the same flowers than individual utility.
+					\vspace{.5em}
+			Shared utility games diverged less from each other in how to refer to each flower, both during game (above, top right) and in post-game descriptions (left), possibly due to the shared utilities encouraging coordination and thus comprehension.
 				
+				\vspace{.2em}
 				\end{small}
+			
 	\end{minipage}
 
 		
@@ -160,12 +182,13 @@ Do these phenomena occur in strategic games with more complex goals?
 \end{textblock}
 
 
-		\begin{textblock}{.25}[1,0](1,.16)
+		\begin{textblock}{.25}[1,0](1,.15)
 	\begin{tcolorbox}[title={\centering Examples}]
+		\vspace{.2em}
 		
 		\centering
 		\begin{footnotesize}
-			Descriptions of different flowers from different games, illustrating reduction and convergence phenomenon. Images from experimental design: flower 1 upper left, flower 2 lower center, flower 3 lower left.
+			Descriptions of different flowers from different games. Images shown in  experimental design: flower 1 upper left, flower 2 lower center, flower 3 lower left.
 			\vspace{-1em}
 			
 			\centering
@@ -191,10 +214,10 @@ Do these phenomena occur in strategic games with more complex goals?
 				\bottomrule
 			\end{tabular}
 			
-			\vspace{2em}
+			\vspace{1em}
 			Cosine similarities between pairs of descriptions. 
 			
-			\vspace{-1em}
+			\vspace{-1.5em}
 			\begin{tabular}[t]{>{\raggedright\arraybackslash}p{9em}>{\raggedright\arraybackslash}p{9em}r}
 				\toprule
 				Expression 1 & Expression 2 & Sim\\
@@ -209,19 +232,34 @@ Do these phenomena occur in strategic games with more complex goals?
 				\bottomrule
 			\end{tabular}
 		\end{footnotesize}
-		
+		\vspace{.5em}
 	\end{tcolorbox}
 \end{textblock}
 	\begin{textblock}{.25}[1,1](1,1)
 		\begin{tcolorbox}[title= {\centering Conclusion}]
-			\begin{small} Reduction and convergence patterns generalize to freer-form and
-			more naturalistic domain of a negotiation game
-			\end{small}
-			\begin{scriptsize}
+			\vspace{.5em}
+			
+			\begin{small}
 				
-				\textbf{References: }\noindent
-				TODO
-			\end{scriptsize}
+				 Reduction and 
+				and conventionalization occur even in strategic games with more open-ended negotiation and more complex goals than reference games. 
+			
+			\end{small}
+		
+		\vspace{.5em}
+		\begin{tiny}
+			References: Clark, H., \& Wilkes-Gibbs, D. (1986). Referring as a collaborative
+			process. $\bullet$
+			Reimers, N., \& Gurevych, I. (2019). Sentence-{BERT}:
+				{Sentence Embeddings} using {Siamese BERT-Networks}. $\bullet$ 
+Hawkins, R., Frank, M., \& Goodman, N. (2020). Characterizing
+			the dynamics of learning in repeated reference games. $\bullet$
+		Mankewitz, J., et al. (2021). Multi-party referential communication in
+	complex strategic games. 
+	
+	
+			\end{tiny}
+		
 \end{tcolorbox}
 \end{textblock}
 	
